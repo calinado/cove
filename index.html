@@ -1117,7 +1117,7 @@ async function settings(t='lib'){
       <p class="dim">One launcher for every emulator.</p>
       <button class="btn pri xl" data-act="upd">Check for updates</button></div>
     <div class="card"><b>How updates work</b><p class="dim">Each time Cove opens it compares this version with the newest one at ${esc(INFO.repo?'github.com/'+INFO.repo:'its update address')}. If there is a newer one it shows what changed and asks before installing. Your games, settings and saves are never touched, and the version you had is kept in the data folder. You can also check any time with the button above.</p></div>
-    <div class="row"><button class="btn" data-act="site">Open the Cove page</button><button class="btn" data-act="open" data-arg="${esc(INFO.app)}">Open Cove's folder</button></div>
+    <div class="row"><button class="btn" data-act="applnk">Add Cove to the desktop</button><button class="btn" data-act="site">Open the Cove page</button><button class="btn" data-act="open" data-arg="${esc(INFO.app)}">Open Cove's folder</button></div>
     <small>CALINADO &copy; ${new Date().getFullYear()}</small>`;
   modal('Settings',body,'<button class="btn pri" data-act="x">Done</button>',tabsHtml);
   const E=id=>S.emus.find(e=>e.id===id), again=()=>settings(t);
