@@ -251,7 +251,7 @@ function Handle($ctx) {
   switch ($path) {
     '/api/info' {
       $ver = Get-Ver
-      Json $res @{ v = 7; version = [string]$ver.version; repo = [string]$ver.repo; sep = [string][IO.Path]::DirectorySeparatorChar; app = $App; appdata = $env:APPDATA; local = $env:LOCALAPPDATA
+      Json $res @{ v = 8; version = [string]$ver.version; repo = [string]$ver.repo; sep = [string][IO.Path]::DirectorySeparatorChar; app = $App; appdata = $env:APPDATA; local = $env:LOCALAPPDATA
         docs = [Environment]::GetFolderPath('MyDocuments'); desktop = [Environment]::GetFolderPath('Desktop') }
     }
     '/api/ping' { Sweep; $d = @($done); $done.Clear(); Json $res @{ done = $d; running = $running.Count; ids = @($running | ForEach-Object { $_.id }) } }
@@ -370,6 +370,41 @@ function Handle($ctx) {
       $n = Copy-Tree $root (Join-Path ([string]$j.dest) $name)
       Remove-Item -LiteralPath $tmp -Recurse -Force
       Json $res @{ name = $name; files = $n }
+    }
+    '/api/core' {   # RetroArch and its cores, only ever from libretro's own build server
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+      $lb = 'https://buildbot.libretro.com/'
+      $wc = New-Object System.Net.WebClient
+      if ($j.kind -eq 'app') {
+        $dest = Join-Path $env:LOCALAPPDATA 'Cove\Emulators'
+        $exe = Join-Path $dest 'RetroArch-Win64\retroarch.exe'
+        if (-not (Test-Path -LiteralPath $exe)) {
+          [void](New-Item -ItemType Directory -Force -Path $dest)
+          $tmp = Join-Path ([IO.Path]::GetTempPath()) 'Cove-RetroArch.7z'
+          # ponytail: fixed stable version and an inline download that blocks the helper for a few minutes; bump the number when RetroArch moves on
+          $wc.DownloadFile($lb + 'stable/1.22.2/windows/x86_64/RetroArch.7z', $tmp)
+          # Windows' own tar reads .7z on Windows 11; older Windows cannot, and gets the message below
+          $tar = Join-Path $env:SystemRoot 'System32\tar.exe'
+          if (Test-Path -LiteralPath $tar) { Start-Process -FilePath $tar -ArgumentList @('-xf', ('"' + $tmp + '"'), '-C', ('"' + $dest + '"')) -Wait -WindowStyle Hidden }
+          Remove-Item -LiteralPath $tmp -Force
+          if (-not (Test-Path -LiteralPath $exe)) { throw 'This version of Windows could not unpack RetroArch. Install it from retroarch.com, then add it under Settings, Emulators.' }
+        }
+        Json $res @{ exe = $exe }
+      } else {
+        $n = [string]$j.name; $d = [string]$j.dir
+        if ($n -notmatch '^[a-z0-9_]+$') { throw 'Bad core name' }
+        if (-not (Test-Path -LiteralPath (Join-Path $d 'retroarch.exe'))) { throw 'That is not a RetroArch folder' }
+        $cores = Join-Path $d 'cores'; $dll = Join-Path $cores ($n + '_libretro.dll')
+        if ($j.kind -eq 'remove') { if (Test-Path -LiteralPath $dll) { Remove-Item -LiteralPath $dll -Force } }
+        else {
+          [void](New-Item -ItemType Directory -Force -Path $cores)
+          $tmp = Join-Path ([IO.Path]::GetTempPath()) ($n + '_libretro.dll.zip')
+          $wc.DownloadFile($lb + 'nightly/windows/x86_64/latest/' + $n + '_libretro.dll.zip', $tmp)
+          Expand-Archive -LiteralPath $tmp -DestinationPath $cores -Force
+          Remove-Item -LiteralPath $tmp -Force
+        }
+        Json $res @{ ok = $true }
+      }
     }
     '/api/focus' {   # bring a running game's window back to the front
       $r = $running | Where-Object { $_.id -eq $j.id } | Select-Object -First 1

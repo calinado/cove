@@ -161,9 +161,7 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .v-shelf #hero{background:none;border:0;box-shadow:none;backdrop-filter:none;padding:4px 14px}
 .v-shelf #hero::before,.v-shelf #hero .cover{display:none}
 .v-shelf #grid{display:flex;gap:26px;padding:0 10px;align-items:center}
-.v-shelf .tile{flex:0 0 auto}
-.v-shelf .art{height:calc(var(--tile)*1.75);aspect-ratio:var(--ar,1);align-self:flex-start}   /* each cover keeps its own shape: no crop, no gaps */
-.v-shelf .tile .name{width:0;min-width:100%}
+.v-shelf .tile{flex:0 0 calc(var(--tile)*1.75)}
 .v-shelf .tile:not(:focus){opacity:.72;transform:scale(.94)}
 /* layout: List (cover on the left, rows on the right) */
 .v-list .stage{flex-direction:row;gap:24px;padding-bottom:8px}
@@ -390,7 +388,33 @@ const KINDS=[
  {id:'custom',name:'Custom (write the arguments yourself)',rx:/^$/,args:'"{rom}"',sys:[]},
 ];
 KINDS.find(k=>k.id==='retroarch').sys=Object.keys(KINDS.find(k=>k.id==='retroarch').cores);
-const VER=7;
+const VER=8;
+const RAK=KINDS.find(k=>k.id==='retroarch');
+// other cores you can switch a system to; the first is what Cove picks
+const ALT={gb:['gambatte','sameboy','mgba'],gbc:['gambatte','sameboy','mgba'],gba:['mgba','vbam'],nes:['mesen','nestopia','fceumm'],snes:['snes9x','bsnes'],n64:['mupen64plus_next','parallel_n64'],nds:['melondsds','desmume'],
+  psx:['mednafen_psx_hw','swanstation','pcsx_rearmed'],saturn:['mednafen_saturn','kronos'],genesis:['genesis_plus_gx','picodrive'],mastersystem:['genesis_plus_gx','picodrive'],gamegear:['genesis_plus_gx'],arcade:['mame','fbneo']};
+const coreFor=s=>(S.cores||{})[s]||RAK.cores[s]||'';
+const coreDll=(ra,c)=>J(J(dir(ra.exe),'cores'),c+'_libretro.dll');
+async function getRA(){   // downloads RetroArch into Cove's own folder on this PC (or finds the copy already there) and registers it
+  const r=await api('core',{kind:'app'}); let e=S.emus.find(x=>x.exe.toLowerCase()===r.exe.toLowerCase());
+  if(!e){e={id:uid(),kind:'retroarch',name:'RetroArch',exe:r.exe,args:''};S.emus.push(e)}
+  emuSys(e).forEach(s=>{if(!S.defaults[s])S.defaults[s]=e.id});save();return e;
+}
+function offerRA(g){
+  modal('No emulator for '+esc(sysOf(g.sys).name),`<p>Cove can set up RetroArch with the <b>${esc(coreFor(g.sys))}</b> core and start the game with it. RetroArch is a free download of about 200 MB from libretro, kept in Cove's own folder on this PC.</p>`,
+    `<button class="btn" data-act="x">Back</button><button class="btn" data-act="own">Choose my own</button><button class="btn pri xl" data-act="get">Set it up</button>`);
+  onChange=()=>{};
+  onAct=async a=>{
+    closeModal(); if(a==='own')return settings('emus'); if(a!=='get')return;
+    toast('Downloading RetroArch. This takes a few minutes.');
+    try{await getRA();launch(g)}catch(e){toast(e.message)}
+  };
+}
+async function coreMarks(){   // fills in which cores are downloaded on the Emulators tab
+  const ra=S.emus.find(e=>e.kind==='retroarch'), b=[...document.querySelectorAll('#layer [data-act=core]')]; if(!ra||!b.length)return;
+  const have=(await api('exists',{paths:b.map(x=>coreDll(ra,coreFor(x.dataset.arg)))})).r;
+  b.forEach((x,i)=>{x.textContent=have[i]?'Remove':'Get';x.dataset.have=have[i]?1:'';x.previousElementSibling.textContent=have[i]?'Downloaded':'Not downloaded'});
+}
 const DISCORD_APP='';                                    // Cove's own Discord Application ID; when set, Discord is one button for everyone
 const did=()=>S.discord.id||DISCORD_APP;                                              // bump with server.ps1's info.v when the helper changes
 const SW=['.nsp','.xci','.nsz','.xcz','.nup'];            // Switch-family files: told apart by "Switch 2"/"NX2" in the path
@@ -582,14 +606,18 @@ function resolve(g){
   const o=gs(g.id), fits=S.emus.filter(e=>emuSys(e).includes(g.sys));
   const e=fits.find(e=>e.id===o.emu)||fits.find(e=>e.id===S.defaults[g.sys])||fits[0];
   if(!e)return null;
-  const k=kindOf(e), v={rom:g.path,dir:dir(g.path),name:g.base,emudir:dir(e.exe),core:(k.cores||{})[g.sys]||''};
-  return{exe:e.exe,args:fill((e.args||k.args)+(o.args?' '+o.args:''),v),cwd:dir(e.exe),name:e.name};
+  const k=kindOf(e), v={rom:g.path,dir:dir(g.path),name:g.base,emudir:dir(e.exe),core:k===RAK?coreFor(g.sys):''};
+  return{need:k===RAK&&v.core?{ra:e,core:v.core}:null,exe:e.exe,args:fill((e.args||k.args)+(o.args?' '+o.args:''),v),cwd:dir(e.exe),name:e.name};
 }
 async function launch(g){
   if(g.sys==='unsorted'){toast('Pick which system this one is for');return details(g)}
   const r=resolve(g);
+  if(!r&&!INFO.android&&RAK.cores[g.sys])return offerRA(g);
   if(!r){toast('No emulator set up for '+sysOf(g.sys).name+' yet. Opening Settings.');return settings('emus')}
   try{
+    if(r.need&&!(await api('exists',{paths:[coreDll(r.need.ra,r.need.core)]})).r[0]){   // first game on this system: fetch its core
+      toast('Getting the '+r.need.core+' core');await api('core',{kind:'core',name:r.need.core,dir:dir(r.need.ra.exe)});
+    }
     await api('launch',r.intent?{id:g.id,...r.intent}:{id:g.id,exe:r.exe,args:r.args,cwd:r.cwd,after:S.ui.after||'taskbar'});
     gs(g.id).last=Date.now();save();blip('launch');launchFx(g,r);
     NOW={id:g.id,title:g.title,emu:r.name,t:Date.now()};nowUI();render();syncPresence();   // re-drawn so the running game moves to the front and takes the cursor
@@ -651,7 +679,7 @@ const LAYPIC={shelf:'<rect x="1" y="6" width="7" height="10" rx="1.5" opacity=".
   list:'<rect x="1" y="1" width="11" height="20" rx="2"/><rect x="14" y="1" width="17" height="5" rx="1.5"/><rect x="14" y="8.5" width="17" height="5" rx="1.5"/><rect x="14" y="16" width="17" height="5" rx="1.5"/>'};
 const ago=t=>{if(!t)return 'Never played';const d=Math.floor((Date.now()-t)/864e5);return 'Last played '+(d<1?'today':d<2?'yesterday':d+' days ago')};
 const played=x=>{const m=Math.round((x||0)/60);return m<1?'':m<60?m+' min':(m/60).toFixed(1)+' h'};
-const artOk=i=>{const a=i.parentNode;if(!a)return;a.classList.add('has');a.style.setProperty('--ar',Math.min(1.9,Math.max(.55,i.naturalWidth/i.naturalHeight||1)))};
+const artOk=i=>{const a=i.parentNode;if(!a)return;a.classList.add('has')};
 const cover=g=>{const u=artUrl(g),h=hue(g.title);return `style="background:linear-gradient(140deg,hsl(${h} 70% 46%),hsl(${(h+60)%360} 65% 22%));--img:${u?`url('${esc(u)}')`:'none'}"><span class="ph">${esc(g.title[0].toUpperCase())}</span>${u?`<img loading="lazy" data-id="${esc(g.id)}" alt="" src="${esc(u)}" onload="artOk(this)" onerror="artFail(this)">`:''}`};
 function visible(){
   const q=$('#q').value.trim().toLowerCase();
@@ -1195,6 +1223,12 @@ async function settings(t='lib'){
       <div class="row"><label>Works like</label><select data-set="kind" data-arg="${e.id}">${KINDS.map(x=>opt(x.id,x.name,e.kind)).join('')}</select></div>
       <div class="row"><label>Arguments</label><input class="w" type="text" data-set="args" data-arg="${e.id}" value="${esc(e.args)}" placeholder="${esc(k.args)}"></div>
       <div class="row"><label>Systems</label><input class="w" type="text" data-set="sys" data-arg="${e.id}" value="${esc((e.sys||[]).join(' '))}" placeholder="${esc(k.sys.join(' ')||'folder ids, e.g. gba nds')}"></div></div>`}).join('')||'<p class="dim">No emulators yet.</p>'}
+    <h3>RetroArch cores</h3>
+    ${INFO.android?'<small>On Android, cores are downloaded inside RetroArch itself.</small>':S.emus.some(e=>e.kind==='retroarch')?`<small>A core is the emulator RetroArch loads for a system. Cove downloads one the first time you start a game that needs it, or get them here.</small>
+      <div class="row"><button class="btn" data-act="coreall">Get all missing cores</button></div>
+      ${Object.keys(RAK.cores).map(s=>`<div class="row"><label>${esc((sysOf(s)||{name:s}).name)}</label><select data-set="core" data-arg="${s}">${(ALT[s]||[RAK.cores[s]]).map(c=>opt(c,c,coreFor(s))).join('')}</select><small class="dim"></small><button class="btn" data-act="core" data-arg="${s}">Get</button></div>`).join('')}`
+     :`<small>RetroArch runs older systems (NES, SNES, Game Boy, DS, N64, PlayStation and more) through small emulators called cores. Cove can download it for you: about 200 MB, from libretro, kept in Cove's own folder on this PC.</small>
+      <div class="row"><button class="btn pri" data-act="getra">Get RetroArch</button></div>`}
     ${sysWith.length?'<h3>Default per system</h3>':''}
     ${sysWith.map(s=>`<div class="row"><label>${esc(s.name)}</label><select data-set="def" data-arg="${s.id}">${S.emus.filter(e=>emuSys(e).includes(s.id)).map(e=>opt(e.id,e.name,S.defaults[s.id])).join('')}</select></div>`).join('')}`;
   }
@@ -1226,7 +1260,7 @@ async function settings(t='lib'){
     <h3>Layout</h3><div class="row">${LAYOUTS.map(x=>`<button class="btn ${x[0]===u.view?'pri':''}" data-act="view" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>
     <small>Home: a big card for the selected game over two rows of icons. Grid: everything, grouped by system. Shelf: one row of large covers. List: cover on the left, rows on the right.</small>
     <h3>Details</h3>
-    <div class="row"><label>Covers</label><select data-set="fit">${opt('cover','Fill the tile',u.fit||'cover')}${opt('contain','Whole cover with a blurred edge',u.fit||'cover')}</select></div>
+    <div class="row"><label>Covers</label><select data-set="fit">${opt('cover','Square, filled edge to edge',u.fit||'cover')}${opt('contain','Whole cover with a blurred edge',u.fit||'cover')}</select></div>
     <div class="row"><label>When a game starts</label><select data-set="after">${opt('taskbar','Minimise Cove to the taskbar',u.after||'taskbar')}${opt('tray','Hide Cove in the system tray',u.after||'taskbar')}${opt('stay','Leave Cove open behind the game',u.after||'taskbar')}</select></div>
     <div class="row"><label>Corners</label><select data-set="corners">${opt('soft','Soft',u.corners)}${opt('round','Extra round',u.corners)}${opt('sharp','Sharp',u.corners)}</select></div>
     <div class="row"><label>Motion</label><select data-set="motion">${opt('full','Full',u.motion)}${opt('calm','Calm',u.motion)}${opt('off','Off',u.motion)}</select></div>
@@ -1251,10 +1285,12 @@ async function settings(t='lib'){
     <small>CALINADO &copy; ${new Date().getFullYear()}</small>`;
   modal('Settings',body,'<button class="btn pri" data-act="x">Done</button>',tabsHtml);
   const E=id=>S.emus.find(e=>e.id===id), again=()=>settings(t);
+  if(t==='emus')coreMarks();
   onChange=(k,v,arg)=>{
     if(t==='look'){S.ui[k]=k==='size'||k==='vol'?+v:v;look();save();if(k==='vol'||k==='sound')blip('ok');return}
     if(t==='discord'){S.discord[k]=typeof v==='string'?v.trim():v;save();return}
     if(k==='def'){S.defaults[arg]=v;save();return}
+    if(k==='core'){(S.cores=S.cores||{})[arg]=v;save();return coreMarks()}
     if(k==='src'){v?delete S.scrape.off[arg]:S.scrape.off[arg]=1;save();return again()}
     if(k==='key'){S.scrape.keys[arg]=String(v).trim();igdbTok=null;save();return again()}
     const e=E(arg); if(k==='sys')v=v.trim()?v.trim().split(/[\s,]+/):undefined;
@@ -1263,6 +1299,12 @@ async function settings(t='lib'){
   onAct=async(a,arg)=>{
     if(a==='x')return closeModal();
     if(a==='tab')return settings(arg);
+    if(a==='getra'){toast('Downloading RetroArch. This takes a few minutes.');try{await getRA();toast('RetroArch is ready')}catch(e){toast(e.message)}return again()}
+    if(a==='core'||a==='coreall'){
+      const ra=S.emus.find(e=>e.kind==='retroarch'), b=[...document.querySelectorAll('#layer [data-act=core]')].filter(x=>a==='core'?x.dataset.arg===arg:!x.dataset.have);
+      const names=[...new Set(b.map(x=>coreFor(x.dataset.arg)))], rm=a==='core'&&b[0].dataset.have;
+      try{for(const n of names){toast((rm?'Removing ':'Getting ')+n);await api('core',{kind:rm?'remove':'core',name:n,dir:dir(ra.exe)})}toast(rm?'Removed':'Done')}catch(e){toast(e.message)}
+      return coreMarks()}
     if(a==='open')return api('open',{path:arg});
     if(a==='inbox')return organize(J(S.library,'Inbox'));
     if(a==='orgother'){const p=await pick('folder');return p&&organize(p)}

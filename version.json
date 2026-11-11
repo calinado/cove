@@ -1,5 +1,5 @@
 {
-  "version": "1.0.8",
+  "version": "1.0.9",
   "repo": "calinado/cove",
-  "notes": "Controller: menus move in the direction you press, LT opens layouts and RT opens themes, press down from the games to reach the bottom buttons, steadier hold-to-scroll."
+  "notes": "All covers are square again. New: Cove can download RetroArch and the right core for a system, with a Cores list under Settings, Emulators."
 }
