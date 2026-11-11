@@ -20,7 +20,7 @@ Cove does not include any games, emulators, BIOS files or keys. You bring your o
 - Reads your games where they already are, in any folder layout, and works out the system for each one.
 - Looks up a cover, a short description and the year for each game.
 - Shows a preview card before a game starts: the game file, the emulator, and whether save data was found.
-- Four layouts, eleven themes, menu sounds, and full controller support.
+- Five layouts, fifteen themes, three styles, menu sounds, and full controller support.
 - Imports saves and settings from one emulator into another of the same family, with a backup first.
 - Optional Discord status showing what you are playing.
 

@@ -6,7 +6,7 @@
 <link rel="icon" href="/cove.ico">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;600&family=Nunito:wght@500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;600&family=Nunito:wght@500;700;900&family=Orbitron:wght@500;700;900&family=VT323&display=swap" rel="stylesheet">
 <style>
 /* Everything is frosted glass floating over soft moving light. A theme only swaps the variables below. */
 :root{--acc:#CCFF00;--on:#0a0a0a;--bg:#040404;--fg:#fff;--dim:rgba(255,255,255,.64);--o1:#CCFF00;--o2:#1f6b3a;--o3:#d9ffe9;--tint:255,255,255;--ga:.17;--gb:.04;--edge:.2;--shine:.42;--shade:rgba(0,0,0,.5);--field:rgba(0,0,0,.28);
@@ -17,11 +17,31 @@
 [data-theme=mint]{--acc:#5eead4;--bg:#03110f;--o1:#0d9488;--o2:#22c55e;--o3:#a7f3d0}
 [data-theme=sunset]{--acc:#ffb347;--bg:#160910;--o1:#ff5e62;--o2:#7b2ff7;--o3:#ff9966}
 [data-theme=mono]{--acc:#fff;--bg:#070707;--o1:#5a5a5a;--o2:#2a2a2a;--o3:#9a9a9a}
-[data-theme=daylight],[data-theme=channel],[data-theme=pocket],[data-theme=sakura]{--on:#fff;--fg:#141a2b;--dim:rgba(20,26,43,.62);--ga:.72;--gb:.42;--edge:.9;--shine:1;--shade:rgba(40,60,110,.18);--field:rgba(255,255,255,.7)}
+[data-theme=daylight],[data-theme=channel],[data-theme=pocket],[data-theme=sakura],[data-theme=paper]{--on:#fff;--fg:#141a2b;--dim:rgba(20,26,43,.62);--ga:.72;--gb:.42;--edge:.9;--shine:1;--shade:rgba(40,60,110,.18);--field:rgba(255,255,255,.7)}
 [data-theme=daylight]{--acc:#2563eb;--bg:#dde6f6;--o1:#8ec5ff;--o2:#c4b5fd;--o3:#ffe08a}
 [data-theme=channel]{--acc:#00a3e0;--bg:#eef4f8;--o1:#b8e6ff;--o2:#fff;--o3:#cdeffd;--font:"Nunito","Segoe UI",system-ui,sans-serif}
 [data-theme=pocket]{--acc:#f26b1d;--bg:#f5ede2;--o1:#ffd2a6;--o2:#fff0b8;--o3:#ffc4c4;--font:"Nunito","Segoe UI",system-ui,sans-serif}
 [data-theme=sakura]{--acc:#e2457f;--bg:#fbeaf1;--o1:#ffc2d9;--o2:#e9d5ff;--o3:#fff0c9;--font:"Nunito","Segoe UI",system-ui,sans-serif}
+/* looks that change more than colour */
+[data-theme=neon]{--acc:#ff2bd6;--on:#fff;--bg:#05010d;--o1:#ff2bd6;--o2:#00e5ff;--o3:#7a00ff;--ga:.05;--gb:.02;--shine:0;--font:"Orbitron","Segoe UI",system-ui,sans-serif}
+[data-theme=neon] #orbs i{opacity:.2}
+[data-theme=neon] .glass{border:1.5px solid var(--acc);box-shadow:0 0 14px color-mix(in srgb,var(--acc) 55%,transparent),inset 0 0 12px color-mix(in srgb,var(--acc) 16%,transparent)}
+[data-theme=neon] .tile{border:1.5px solid #00e5ff;box-shadow:0 0 12px rgba(0,229,255,.45)}
+[data-theme=neon] #hero h1{color:#fff;text-shadow:0 0 8px #fff,0 0 22px var(--acc),0 0 46px var(--acc);text-transform:uppercase;letter-spacing:.04em}
+[data-theme=crt]{--acc:#7cff6b;--on:#031003;--bg:#060b06;--fg:#c9ffc2;--dim:rgba(160,255,150,.62);--tint:124,255,107;--ga:.06;--gb:.03;--edge:.45;--shine:0;--shade:rgba(0,0,0,.6);--field:rgba(0,0,0,.5);--font:"VT323",Consolas,monospace;--mono:"VT323",Consolas,monospace}
+[data-theme=crt] body{--r:6px;font-size:18px;text-shadow:0 0 6px color-mix(in srgb,var(--acc) 55%,transparent)}
+[data-theme=crt] body::after{content:"";position:fixed;inset:0;z-index:80;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.3) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.6))}
+[data-theme=crt] #orbs{display:none}
+[data-theme=crt] .tile .name,[data-theme=crt] #dock button,[data-theme=crt] .btn{font-size:17px}
+[data-theme=crt] #hero h1{text-transform:uppercase}
+[data-theme=crt] #hero p,[data-theme=crt] .cta,[data-theme=crt] #hints,[data-theme=crt] .chip,[data-theme=crt] #count,[data-theme=crt] #clock{font-size:16px}
+[data-theme=dark]{--acc:#4da3ff;--on:#04121f;--bg:#0c0d10;--ga:.05;--gb:.05;--edge:.1;--shine:0;--shade:rgba(0,0,0,.35)}
+[data-theme=dark] #orbs{display:none}
+[data-theme=dark] #bg{opacity:.16}
+[data-theme=dark] body{--r:14px}
+[data-theme=paper]{--acc:#d9480f;--bg:#f4f1ea;--ga:.96;--gb:.96;--edge:1;--shade:rgba(60,50,30,.14)}
+[data-theme=paper] #orbs,[data-theme=paper] #bg{display:none}
+[data-theme=paper] #hero h1,[data-theme=paper] .modal h2{font-family:Georgia,"Times New Roman",serif;font-weight:700;letter-spacing:-.02em}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{font-family:var(--font);color:var(--fg);background:var(--bg);overflow:hidden;user-select:none;display:flex;flex-direction:column}
@@ -153,6 +173,20 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .v-list .tile .ph{font-size:20px}
 .v-list .tile .name{flex:1;font-size:15px}
 .v-list .sec{margin:16px 8px 0}
+
+/* layout: Wheel (titles on a curved wheel, big cover beside). --d is each title's distance from the selected one. */
+.v-wheel .stage{flex-direction:row-reverse;gap:24px}
+.v-wheel main{flex:0 0 clamp(300px,34vw,540px);overflow-x:hidden;scrollbar-width:none;padding:38vh 24px 38vh 120px;mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent)}
+.v-wheel #grid{display:flex;flex-direction:column;gap:10px}
+.v-wheel .tile{flex-direction:row;align-items:center;padding:12px 24px;border-radius:999px;transform-origin:left center;animation:none;
+  transform:translateX(calc(var(--d,0)*var(--d,0)*-4px)) scale(calc(1 - var(--d,0)*.035));opacity:calc(1 - var(--d,0)*.11);transition:transform .35s var(--spring),opacity .3s}
+.v-wheel .tile .art,.v-wheel .tile .meta,.v-wheel .sec,.v-wheel .new{display:none}
+.v-wheel .tile .name{font-size:18px;font-weight:800;padding:0}
+.v-wheel .tile:focus{transform:translateX(16px) scale(1.12);opacity:1;background:var(--acc);color:var(--on);border-color:var(--acc)}
+.v-wheel .tile:focus::after{display:none}
+.v-wheel #hero{flex:1;flex-direction:column;justify-content:center;align-items:flex-start;gap:24px;padding:32px;margin:16px 0}
+.v-wheel #hero .cover{width:min(44vh,440px)}
+.v-wheel #hero h1{white-space:normal}
 
 /* bottom bar */
 footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:rise .5s .1s both}
@@ -539,9 +573,9 @@ addEventListener('pagehide',()=>navigator.sendBeacon('/api/quit?t='+T));
 
 /* ---------- main view ---------- */
 const STYLES=[['frost','Frosted','Glass panels over soft light'],['art','Full art','The selected game fills the screen'],['flat','Flat','Solid colour, no glow']];
-const LAYOUTS=[['shelf','Shelf','One row of large covers'],['home','Home','Big card over two rows of icons'],['grid','Grid','Everything, grouped by system'],['list','List','Cover on the left, rows on the right']];
-const THEMES=[['frost','Frost','#CCFF00','#040404'],['aurora','Aurora','#7c3aed','#090818'],['joy','Joy','#ff3c28','#0f0f13'],['midnight','Midnight','#1d4ed8','#050a1c'],['mint','Mint','#0d9488','#03110f'],['sunset','Sunset','#ff5e62','#160910'],['mono','Mono','#777','#070707'],
-  ['daylight','Daylight','#8ec5ff','#dde6f6'],['channel','Channel','#7fd4f7','#eef4f8'],['pocket','Pocket','#ffb877','#f5ede2'],['sakura','Sakura','#ff9cc2','#fbeaf1']];
+const LAYOUTS=[['shelf','Shelf','One row of large covers'],['home','Home','Big card over two rows of icons'],['grid','Grid','Everything, grouped by system'],['list','List','Cover on the left, rows on the right'],['wheel','Wheel','Titles on a curved wheel, big cover beside']];
+const THEMES=[['frost','Frost','#CCFF00','#040404'],['aurora','Aurora','#7c3aed','#090818'],['joy','Joy','#ff3c28','#0f0f13'],['midnight','Midnight','#1d4ed8','#050a1c'],['mint','Mint','#0d9488','#03110f'],['sunset','Sunset','#ff5e62','#160910'],['mono','Mono','#777','#070707'],['neon','Arcade neon','#ff2bd6','#05010d'],['crt','CRT retro','#3fae36','#060b06'],['dark','Console dark','#2f6fb3','#0c0d10'],
+  ['daylight','Daylight','#8ec5ff','#dde6f6'],['channel','Channel','#7fd4f7','#eef4f8'],['pocket','Pocket','#ffb877','#f5ede2'],['sakura','Sakura','#ff9cc2','#fbeaf1'],['paper','Paper light','#e9b89f','#f4f1ea']];
 const ICON={settings:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',layout:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
   theme:'<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17z" fill="currentColor"/>',add:'<path d="M12 5v14M5 12h14"/>',random:'<rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r=".8" fill="currentColor"/><circle cx="15" cy="15" r=".8" fill="currentColor"/><circle cx="12" cy="12" r=".8" fill="currentColor"/>'};
 $('#quick').innerHTML=[['settings','Settings'],['layout','Change layout'],['theme','Change theme'],['random','Surprise me'],['add','Add games']].map(q=>`<button class="glass" data-q="${q[0]}" title="${q[1]}" tabindex="-1"><svg viewBox="0 0 24 24">${ICON[q[0]]}</svg></button>`).join('');
@@ -556,6 +590,7 @@ const mark=(id,label)=>ART['systems/'+id]?`<img class="lg" alt="${esc(label)}" s
 const LAYPIC={shelf:'<rect x="1" y="6" width="7" height="10" rx="1.5" opacity=".5"/><rect x="10" y="3" width="12" height="16" rx="2"/><rect x="24" y="6" width="7" height="10" rx="1.5" opacity=".5"/>',
   home:'<rect x="1" y="1" width="30" height="8" rx="2"/><rect x="1" y="11" width="6" height="4.5" rx="1"/><rect x="9" y="11" width="6" height="4.5" rx="1"/><rect x="17" y="11" width="6" height="4.5" rx="1"/><rect x="25" y="11" width="6" height="4.5" rx="1"/><rect x="1" y="16.5" width="6" height="4.5" rx="1"/><rect x="9" y="16.5" width="6" height="4.5" rx="1"/><rect x="17" y="16.5" width="6" height="4.5" rx="1"/><rect x="25" y="16.5" width="6" height="4.5" rx="1"/>',
   grid:'<rect x="1" y="1" width="8.5" height="9" rx="1.5"/><rect x="11.75" y="1" width="8.5" height="9" rx="1.5"/><rect x="22.5" y="1" width="8.5" height="9" rx="1.5"/><rect x="1" y="12" width="8.5" height="9" rx="1.5"/><rect x="11.75" y="12" width="8.5" height="9" rx="1.5"/><rect x="22.5" y="12" width="8.5" height="9" rx="1.5"/>',
+  wheel:'<rect x="7" y="1" width="9" height="3.5" rx="1.5" opacity=".5"/><rect x="3" y="6" width="11" height="3.5" rx="1.5" opacity=".75"/><rect x="1" y="11" width="13" height="4" rx="2"/><rect x="3" y="16.5" width="11" height="3.5" rx="1.5" opacity=".75"/><rect x="18" y="3" width="13" height="16" rx="2"/>',
   list:'<rect x="1" y="1" width="11" height="20" rx="2"/><rect x="14" y="1" width="17" height="5" rx="1.5"/><rect x="14" y="8.5" width="17" height="5" rx="1.5"/><rect x="14" y="16" width="17" height="5" rx="1.5"/>'};
 const ago=t=>{if(!t)return 'Never played';const d=Math.floor((Date.now()-t)/864e5);return 'Last played '+(d<1?'today':d<2?'yesterday':d+' days ago')};
 const played=x=>{const m=Math.round((x||0)/60);return m<1?'':m<60?m+' min':(m/60).toFixed(1)+' h'};
@@ -587,6 +622,7 @@ function render(keep){
   const t=focusId&&tiles().find(x=>x.dataset.id===focusId);
   (t||$('.tile'))?.focus({preventScroll:!!keep});
   if(!list.length)hero(null);
+  wheel();
 }
 const game=el=>GAMES.find(g=>g.id===el?.dataset?.id);
 const tiles=()=>[...document.querySelectorAll('.tile')];
@@ -682,8 +718,10 @@ function launchFx(g,r){
 }
 $('#grid').addEventListener('click',e=>{const g=game(e.target.closest('.tile'));if(g)start(g)});
 $('#grid').addEventListener('contextmenu',e=>{const g=game(e.target.closest('.tile'));if(g){e.preventDefault();details(g)}});
+// Wheel layout: tell each title how far it is from the selected one, so the CSS can bend the list
+function wheel(){if(S.ui.view!=='wheel')return;const t=tiles(),i=t.indexOf(document.activeElement);t.forEach((x,n)=>x.style.setProperty('--d',i<0?0:Math.min(9,Math.abs(n-i))))}
 let heroT;
-$('#grid').addEventListener('focusin',e=>{clearTimeout(heroT);heroT=setTimeout(()=>hero(game(e.target)),70)});   // settle before redrawing, so fast scrolling stays light
+$('#grid').addEventListener('focusin',e=>{wheel();clearTimeout(heroT);heroT=setTimeout(()=>hero(game(e.target)),70)});   // settle before redrawing, so fast scrolling stays light
 $('#grid').addEventListener('mousemove',e=>{const t=e.target.closest('.tile');if(t&&t!==document.activeElement&&!$('#layer').children.length){t.focus({preventScroll:true});blip('move')}});
 $('#dock').addEventListener('click',e=>{const b=e.target.closest('button');if(b){tab=b.dataset.tab;render();blip('tab')}});
 $('#quick').addEventListener('click',async e=>{
