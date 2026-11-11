@@ -54,6 +54,7 @@ button,input,select{font:inherit;color:inherit}
 @keyframes drift{to{transform:translate(9vmax,7vmax) scale(1.18)}}
 #bg{inset:-80px;background-size:cover;background-position:center;filter:blur(60px) saturate(1.5);opacity:.5;transition:opacity .35s;will-change:opacity}
 #bg.swap{opacity:0}
+#bgart,#wash{position:fixed;inset:0;z-index:-1;display:none}
 .glass{background:linear-gradient(135deg,rgba(var(--tint),var(--ga)),rgba(var(--tint),var(--gb)));border:1px solid rgba(var(--tint),var(--edge));box-shadow:inset 0 1px 0 rgba(var(--tint),var(--shine)),inset 0 -1px 0 rgba(var(--tint),.06),0 14px 40px var(--shade)}
 .menu,#toast{backdrop-filter:blur(30px) saturate(1.6)}
 @keyframes pop{from{opacity:0;transform:translateY(18px) scale(.9)}}
@@ -220,9 +221,12 @@ footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:
 
 /* style: Full art. The selected game's cover fills the screen, sharp, under a dark wash; panels turn solid. */
 .s-art #orbs{display:none}
-.s-art #bg{inset:0;filter:none;opacity:1;background-position:center 20%}
+.s-art #bg{filter:blur(46px) saturate(1.4);opacity:.6}
 .s-art #bg.swap{opacity:0}
-.s-art #bg::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.88),rgba(0,0,0,.45) 55%,rgba(0,0,0,.25)),linear-gradient(0deg,rgba(0,0,0,.9),transparent 45%)}
+.s-art #bgart{display:block;background:no-repeat right top/auto 70%;transition:opacity .35s;mask-image:linear-gradient(90deg,transparent 56%,#000 80%),linear-gradient(0deg,transparent,#000 38%);mask-composite:intersect}
+.s-art #bgart.wide{background-size:cover;background-position:center;mask-image:none}
+.s-art #bgart.swap{opacity:0}
+.s-art #wash{display:block;background:linear-gradient(90deg,rgba(0,0,0,.84),rgba(0,0,0,.4) 58%,rgba(0,0,0,.12)),linear-gradient(0deg,rgba(0,0,0,.94) 16%,transparent 64%)}   /* keeps text and the cover row readable over any art */
 .s-art,.s-art .modal,.s-art .menu{--bg:#0b0b0d;--fg:#fff;--dim:rgba(255,255,255,.7);--tint:255,255,255;--ga:.1;--gb:.1;--edge:.14;--shine:0;--field:rgba(0,0,0,.4);color:var(--fg)}
 .s-art .glass,.s-flat .glass{background:rgba(12,12,14,.72);box-shadow:0 10px 30px rgba(0,0,0,.45)}
 .s-art .tile,.s-flat .tile{padding:0;gap:6px;background:none;border-color:transparent;box-shadow:none}
@@ -281,7 +285,7 @@ code{font-family:var(--mono);font-size:12px;word-break:break-all;color:var(--dim
 
 </head>
 <body>
-<div id="orbs"><i></i><i></i><i></i></div><div id="bg"></div>
+<div id="orbs"><i></i><i></i><i></i></div><div id="bg"></div><div id="bgart"></div><div id="wash"></div>
 <div id="splash"><div><img src="/cove.ico" alt="">COVE</div></div>
 <header>
   <div id="brand" class="glass"><img src="/cove.ico" alt="">COVE</div>
@@ -385,7 +389,7 @@ const NOT_MAIN=/(cli|cmd|room|tests?|precompile|redist|crash|updat|unins|setup)/
 
 /* ---------- state ---------- */
 let S, INFO, GAMES=[], HIDDEN=[], ART={}, NOW=null, tab='all', saveT;
-const DEF={setup:false,library:'',roots:[],emus:[],defaults:{},games:{},systems:[],art:{},meta:{},scrape:{order:['igdb','sgdb','wiki'],off:{},keys:{}},discord:{on:false,id:'',art:true},ui:{theme:'frost',accent:'',wall:'',size:150,view:'shelf',style:'frost',corners:'soft',motion:'full',sound:true,vol:70,confirm:true}};
+const DEF={setup:false,library:'',roots:[],emus:[],defaults:{},games:{},systems:[],art:{},meta:{},wide:{},scrape:{order:['igdb','sgdb','wiki'],off:{},keys:{}},discord:{on:false,id:'',art:true},ui:{theme:'frost',accent:'',wall:'',size:150,view:'shelf',style:'frost',corners:'soft',motion:'full',sound:true,vol:70,confirm:true}};
 const save=()=>{clearTimeout(saveT);saveT=setTimeout(()=>api('state',JSON.stringify(S,null,1)).catch(e=>toast('Could not save settings: '+e.message)),250)};
 const systems=()=>SYS.concat(S.systems.map(s=>({...s,auto:s.exts,lr:''})));
 const sysOf=id=>systems().find(s=>s.id===id)||(id==='unsorted'?UNSORTED:undefined);
@@ -458,7 +462,7 @@ const lookFor=g=>(HACKS.find(h=>h[0].test(g.title))||[0,g.title.replace(/[-:]/g,
 // scraper: looks each game up by name on Wikipedia (no key) for a cover, a short description and the year.
 // Answers are remembered in settings, including "nothing found", so each game is only asked about once.
 async function wikiSearch(q){
-  const res=await fetch('https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrlimit=5&prop=pageimages|extracts|description&piprop=thumbnail&pithumbsize=600&pilicense=any&exintro=1&explaintext=1&exsentences=2&exlimit=max&format=json&origin=*&gsrsearch='+encodeURIComponent(q));
+  const res=await fetch('https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrlimit=5&prop=pageimages|extracts|description&piprop=thumbnail&pithumbsize=1200&pilicense=any&exintro=1&explaintext=1&exsentences=2&exlimit=max&format=json&origin=*&gsrsearch='+encodeURIComponent(q));
   if(!res.ok)throw 0;                                        // busy or offline: try again later, do not record a miss
   const r=await res.json();
   return Object.values(r.query?.pages||{}).sort((a,b)=>a.index-b.index).map(p=>({title:p.title,img:p.thumbnail?.source||'',about:(p.extract||'').trim(),kind:p.description||''}));
@@ -473,15 +477,16 @@ const SRC={
     find:async(q,n)=>{
       const k=K();
       if(!igdbTok||igdbTok.exp<Date.now()){const t=await viaHelper(`https://id.twitch.tv/oauth2/token?client_id=${encodeURIComponent(k.igdbId)}&client_secret=${encodeURIComponent(k.igdbSecret)}&grant_type=client_credentials`,{method:'POST',body:''});igdbTok={v:t.access_token,exp:Date.now()+(t.expires_in-60)*1000}}
-      const r=await viaHelper('https://api.igdb.com/v4/games',{method:'POST',headers:{'Client-ID':k.igdbId,Authorization:'Bearer '+igdbTok.v},body:`search "${q.replace(/"/g,'')}"; fields name,summary,first_release_date,cover.image_id,genres.name; limit ${n};`});
-      return r.map(g=>({title:g.name,img:g.cover?`https://images.igdb.com/igdb/image/upload/t_cover_big/${g.cover.image_id}.jpg`:'',about:g.summary||'',year:g.first_release_date?''+new Date(g.first_release_date*1000).getFullYear():'',kind:(g.genres||[]).map(x=>x.name).join(', ')}));
+      const r=await viaHelper('https://api.igdb.com/v4/games',{method:'POST',headers:{'Client-ID':k.igdbId,Authorization:'Bearer '+igdbTok.v},body:`search "${q.replace(/"/g,'')}"; fields name,summary,first_release_date,cover.image_id,genres.name,artworks.image_id,screenshots.image_id; limit ${n};`});
+      return r.map(g=>({title:g.name,img:g.cover?`https://images.igdb.com/igdb/image/upload/t_cover_big_2x/${g.cover.image_id}.jpg`:'',hero:(g.artworks||g.screenshots)?`https://images.igdb.com/igdb/image/upload/t_1080p/${(g.artworks||g.screenshots)[0].image_id}.jpg`:'',about:g.summary||'',year:g.first_release_date?''+new Date(g.first_release_date*1000).getFullYear():'',kind:(g.genres||[]).map(x=>x.name).join(', ')}));
     }},
   sgdb:{name:'SteamGridDB',gives:'Covers only, with the widest choice, including fan-made art for hacks and new releases.',needs:'A free API key from steamgriddb.com (Preferences > API).',fields:[['sgdb','API key']],ready:()=>!!K().sgdb,
     find:async(q,n)=>{
       const h={headers:{Authorization:'Bearer '+K().sgdb}}, s=await viaHelper('https://www.steamgriddb.com/api/v2/search/autocomplete/'+encodeURIComponent(q),h), out=[];
       for(const g of (s.data||[]).slice(0,n)){
         const a=await viaHelper(`https://www.steamgriddb.com/api/v2/grids/game/${g.id}?dimensions=1024x1024,512x512,600x900`,h);
-        out.push({title:g.name,img:a.data?.[0]?.url||'',about:'',year:g.release_date?''+new Date(g.release_date*1000).getFullYear():'',kind:'SteamGridDB'});
+        let w={};try{w=await viaHelper(`https://www.steamgriddb.com/api/v2/heroes/game/${g.id}`,h)}catch{}
+        out.push({title:g.name,img:a.data?.[0]?.url||'',hero:w.data?.[0]?.url||'',about:'',year:g.release_date?''+new Date(g.release_date*1000).getFullYear():'',kind:'SteamGridDB'});
       }
       return out;
     }},
@@ -493,6 +498,7 @@ const needsArt=g=>{const k=artKey(g),lr=!S.scrape.off.libretro&&sysOf(g.sys).lr;
 function applyMatch(g,hit){
   const k=artKey(g);
   S.meta[k]=hit?{t:hit.title,d:hit.about,y:hit.year||yr(hit.kind+' '+hit.about)}:0;
+  if(hit&&hit.hero)S.wide[k]=hit.hero;
   if(hit&&hit.img&&(needsArt(g)||hit.force))S.art[k]=hit.img; else if(!(k in S.art)&&needsArt(g))S.art[k]=0;
   save();
   for(const x of GAMES.filter(x=>artKey(x)===k)){
@@ -514,8 +520,8 @@ async function pumpArt(){
     for(const id of sources()){
       let res; try{res=await SRC[id].find(lookFor(g),id==='wiki'?5:2)}catch(e){if(id==='wiki')throw e;continue}   // a paid-for source failing just falls through to the next
       const hit=res.find(fits); if(!hit)continue;
-      got=got||{title:hit.title,img:'',about:'',year:'',kind:hit.kind};
-      for(const f of ['img','about','year'])if(!got[f]&&hit[f])got[f]=hit[f];
+      got=got||{title:hit.title,img:'',about:'',year:'',hero:'',kind:hit.kind};
+      for(const f of ['img','about','year','hero'])if(!got[f]&&hit[f])got[f]=hit[f];
       if(got.img&&got.about&&got.year)break;
     }
     applyMatch(g,got); artPending.delete(k);
@@ -636,7 +642,9 @@ function hero(g){
     <div class="cta"><span><b class="gl">A</b>Start</span><span><b class="gl">Y</b>Options</span>${o.fav?'<span>&#9733; Favourite</span>':''}</div></div>`;
   h.classList.remove('in'); void h.offsetWidth; h.classList.add('in');
   const bg=$('#bg'), img=S.ui.wall?`url("/file?t=${T}&p=${encodeURIComponent(S.ui.wall)}")`:u?`url("${u}")`:'';
+  const wide=S.wide[artKey(g)], sharp=$('#bgart'), big=S.ui.wall?img:wide?`url("${wide}")`:img;
   if(bg.dataset.img!==img){bg.dataset.img=img;bg.classList.add('swap');setTimeout(()=>{bg.style.backgroundImage=img;bg.classList.remove('swap')},240)}
+  if(sharp.dataset.img!==big){sharp.dataset.img=big;sharp.classList.add('swap');setTimeout(()=>{sharp.style.backgroundImage=big;sharp.classList.toggle('wide',!!(wide||S.ui.wall));sharp.classList.remove('swap')},240)}
 }
 // eased scrolling that can be redirected mid-flight (wheel, keys and controller all feed the same target)
 const glides=new Map();
