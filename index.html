@@ -162,6 +162,7 @@ footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:
 #quick svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #quick button::after{content:attr(title);position:absolute;bottom:54px;left:50%;transform:translateX(-50%) translateY(6px);white-space:nowrap;font-size:12px;font-weight:700;background:var(--fg);color:var(--bg);padding:4px 10px;border-radius:99px;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s}
 #quick button:hover::after{opacity:1;transform:translateX(-50%)}
+#ver{color:var(--dim);font:500 12px var(--mono);letter-spacing:.04em;opacity:.7;cursor:pointer}
 #count{color:var(--dim);font:500 12px var(--mono);letter-spacing:.04em;text-transform:uppercase}
 #hints{margin-left:auto;color:var(--dim);font-size:12px;white-space:nowrap;display:flex;gap:14px;align-items:center}
 #hints .gl{width:20px;height:20px;font-size:10px;background:rgba(var(--tint),.2);color:var(--fg);border:1px solid rgba(var(--tint),.35)}
@@ -182,6 +183,27 @@ footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:
 #fx .bar{width:220px;height:5px;border-radius:9px;background:rgba(255,255,255,.2);margin:22px auto 0;overflow:hidden}
 #fx .bar i{display:block;height:100%;background:var(--acc);animation:fill 1.5s ease-out both}
 @keyframes fill{from{width:0}to{width:100%}}
+
+/* style: Full art. The selected game's cover fills the screen, sharp, under a dark wash; panels turn solid. */
+.s-art #orbs{display:none}
+.s-art #bg{inset:0;filter:none;opacity:1;background-position:center 20%}
+.s-art #bg.swap{opacity:0}
+.s-art #bg::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.88),rgba(0,0,0,.45) 55%,rgba(0,0,0,.25)),linear-gradient(0deg,rgba(0,0,0,.9),transparent 45%)}
+.s-art,.s-art .modal,.s-art .menu{--fg:#fff;--dim:rgba(255,255,255,.7);--tint:255,255,255;--ga:.1;--gb:.1;--edge:.14;--shine:0;--field:rgba(0,0,0,.4);color:var(--fg)}
+.s-art .glass,.s-flat .glass{background:rgba(12,12,14,.72);box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.s-art .tile,.s-flat .tile{padding:0;gap:6px;background:none;border-color:transparent;box-shadow:none}
+.s-art .art,.s-flat .art{border-radius:var(--r);box-shadow:0 10px 28px rgba(0,0,0,.5)}
+.s-art .art::after,.s-flat .art::after,.s-art #hero .cover::after,.s-flat #hero .cover::after,.s-art #hero::before,.s-flat #hero::before{display:none}
+.s-art #hero,.s-art.v-list #hero{background:none;border-color:transparent;box-shadow:none}
+.s-art #hero .cover{display:none}
+.s-art.v-list #hero .cover{display:block}
+.s-art #hero h1{text-shadow:0 2px 20px rgba(0,0,0,.6)}
+.s-art .v-list .tile,.s-art.v-list .tile,.s-flat.v-list .tile{padding:8px 24px 8px 8px;background:rgba(12,12,14,.6)}
+.s-art.v-list .art,.s-flat.v-list .art{border-radius:12px;box-shadow:none}
+/* style: Flat. Solid theme colour, no glow, no blur. */
+.s-flat #orbs,.s-flat #bg{display:none}
+.s-flat .glass{background:rgba(var(--tint),.08)}
+.s-flat .modal,.s-flat .menu{background:color-mix(in srgb,var(--bg) 92%,var(--fg))}
 
 /* motion settings */
 .m-calm #orbs i,.m-calm .tile:focus::after{animation:none}
@@ -236,7 +258,7 @@ code{font-family:var(--mono);font-size:12px;word-break:break-all;color:var(--dim
   <main><div id="grid"></div><div id="empty" hidden></div></main>
 </div>
 <footer>
-  <div id="quick"></div><span id="count"></span>
+  <div id="quick"></div><span id="count"></span><span id="ver"></span>
   <div id="hints"><span><b class="gl">A</b>Start</span><span><b class="gl">Y</b>Options</span><span><b class="gl">X</b>Favourite</span><span><b class="gl w">LB RB</b>Systems</span><span><b class="gl w">SELECT</b>Layout</span><span><b class="gl w">START</b>Settings</span><span id="padhint"></span></div>
 </footer>
 <div id="toast" class="glass"></div>
@@ -318,7 +340,7 @@ const KINDS=[
  {id:'custom',name:'Custom (write the arguments yourself)',rx:/^$/,args:'"{rom}"',sys:[]},
 ];
 KINDS.find(k=>k.id==='retroarch').sys=Object.keys(KINDS.find(k=>k.id==='retroarch').cores);
-const VER=5;
+const VER=6;
 const DISCORD_APP='';                                    // Cove's own Discord Application ID; when set, Discord is one button for everyone
 const did=()=>S.discord.id||DISCORD_APP;                                              // bump with server.ps1's info.v when the helper changes
 const SW=['.nsp','.xci','.nsz','.xcz','.nup'];            // Switch-family files: told apart by "Switch 2"/"NX2" in the path
@@ -328,7 +350,7 @@ const NOT_MAIN=/(cli|cmd|room|tests?|precompile|redist|crash|updat|unins|setup)/
 
 /* ---------- state ---------- */
 let S, INFO, GAMES=[], HIDDEN=[], ART={}, NOW=null, tab='all', saveT;
-const DEF={setup:false,library:'',roots:[],emus:[],defaults:{},games:{},systems:[],art:{},meta:{},discord:{on:false,id:'',art:true},ui:{theme:'frost',accent:'',wall:'',size:150,view:'shelf',corners:'soft',motion:'full',sound:true,vol:70,confirm:true}};
+const DEF={setup:false,library:'',roots:[],emus:[],defaults:{},games:{},systems:[],art:{},meta:{},scrape:{order:['igdb','sgdb','wiki'],off:{},keys:{}},discord:{on:false,id:'',art:true},ui:{theme:'frost',accent:'',wall:'',size:150,view:'shelf',style:'frost',corners:'soft',motion:'full',sound:true,vol:70,confirm:true}};
 const save=()=>{clearTimeout(saveT);saveT=setTimeout(()=>api('state',JSON.stringify(S,null,1)).catch(e=>toast('Could not save settings: '+e.message)),250)};
 const systems=()=>SYS.concat(S.systems.map(s=>({...s,auto:s.exts,lr:''})));
 const sysOf=id=>systems().find(s=>s.id===id)||(id==='unsorted'?UNSORTED:undefined);
@@ -388,7 +410,7 @@ function artUrl(g){
   const custom=gs(g.id).art||ART[g.sys+'/'+g.base];
   if(custom)return '/file?t='+T+'&p='+encodeURIComponent(custom);
   const k=artKey(g); if(S.art[k])return S.art[k];
-  const lr=sysOf(g.sys).lr;
+  const lr=!S.scrape.off.libretro&&sysOf(g.sys).lr;
   return lr&&S.art[k]!==0&&!LRFAIL.has(k)&&!HACKS.some(h=>h[0].test(g.title))?`https://thumbnails.libretro.com/${encodeURIComponent(lr)}/Named_Boxarts/${encodeURIComponent(g.base.replace(/[&*/:`<>?\\|"]/g,'_'))}.png`:'';
 }
 // cover lookup by name on Wikipedia (no key needed); the answer is remembered, including "nothing found"
@@ -406,10 +428,36 @@ async function wikiSearch(q){
   const r=await res.json();
   return Object.values(r.query?.pages||{}).sort((a,b)=>a.index-b.index).map(p=>({title:p.title,img:p.thumbnail?.source||'',about:(p.extract||'').trim(),kind:p.description||''}));
 }
-const needsArt=g=>{const k=artKey(g),lr=sysOf(g.sys).lr;return !gs(g.id).art&&!ART[g.sys+'/'+g.base]&&!S.art[k]&&(!lr||LRFAIL.has(k)||HACKS.some(h=>h[0].test(g.title)))};
+// Sources are tried in your order; the first one to supply a cover, a description or a year wins that field.
+// SteamGridDB and IGDB block browsers, so those requests go through the helper (/api/fetch, fixed list of sites).
+const viaHelper=(url,o={})=>fetch('/api/fetch',{method:'POST',headers:{'X-Token':T},body:JSON.stringify({url,...o})}).then(r=>{if(!r.ok)throw 0;return r.json()});
+const yr=x=>(/\b(19|20)\d\d\b/.exec(x||'')||[''])[0], K=()=>S.scrape.keys;
+let igdbTok=null;
+const SRC={
+  igdb:{name:'IGDB',gives:'Cover, description, year and genre. The most complete for official games.',needs:'A free Twitch developer app (dev.twitch.tv > Applications): paste its Client ID and Client Secret.',fields:[['igdbId','Client ID'],['igdbSecret','Client Secret']],ready:()=>!!(K().igdbId&&K().igdbSecret),
+    find:async(q,n)=>{
+      const k=K();
+      if(!igdbTok||igdbTok.exp<Date.now()){const t=await viaHelper(`https://id.twitch.tv/oauth2/token?client_id=${encodeURIComponent(k.igdbId)}&client_secret=${encodeURIComponent(k.igdbSecret)}&grant_type=client_credentials`,{method:'POST',body:''});igdbTok={v:t.access_token,exp:Date.now()+(t.expires_in-60)*1000}}
+      const r=await viaHelper('https://api.igdb.com/v4/games',{method:'POST',headers:{'Client-ID':k.igdbId,Authorization:'Bearer '+igdbTok.v},body:`search "${q.replace(/"/g,'')}"; fields name,summary,first_release_date,cover.image_id,genres.name; limit ${n};`});
+      return r.map(g=>({title:g.name,img:g.cover?`https://images.igdb.com/igdb/image/upload/t_cover_big/${g.cover.image_id}.jpg`:'',about:g.summary||'',year:g.first_release_date?''+new Date(g.first_release_date*1000).getFullYear():'',kind:(g.genres||[]).map(x=>x.name).join(', ')}));
+    }},
+  sgdb:{name:'SteamGridDB',gives:'Covers only, with the widest choice, including fan-made art for hacks and new releases.',needs:'A free API key from steamgriddb.com (Preferences > API).',fields:[['sgdb','API key']],ready:()=>!!K().sgdb,
+    find:async(q,n)=>{
+      const h={headers:{Authorization:'Bearer '+K().sgdb}}, s=await viaHelper('https://www.steamgriddb.com/api/v2/search/autocomplete/'+encodeURIComponent(q),h), out=[];
+      for(const g of (s.data||[]).slice(0,n)){
+        const a=await viaHelper(`https://www.steamgriddb.com/api/v2/grids/game/${g.id}?dimensions=1024x1024,512x512,600x900`,h);
+        out.push({title:g.name,img:a.data?.[0]?.url||'',about:'',year:g.release_date?''+new Date(g.release_date*1000).getFullYear():'',kind:'SteamGridDB'});
+      }
+      return out;
+    }},
+  wiki:{name:'Wikipedia',gives:'Cover, short description and year. Works with no sign-up.',ready:()=>true,
+    find:async q=>(await wikiSearch(q+' video game')).map(p=>({...p,year:yr(p.kind+' '+p.about)}))},
+};
+const sources=()=>S.scrape.order.filter(id=>SRC[id]&&!S.scrape.off[id]&&SRC[id].ready());
+const needsArt=g=>{const k=artKey(g),lr=!S.scrape.off.libretro&&sysOf(g.sys).lr;return !gs(g.id).art&&!ART[g.sys+'/'+g.base]&&!S.art[k]&&(!lr||LRFAIL.has(k)||HACKS.some(h=>h[0].test(g.title)))};
 function applyMatch(g,hit){
   const k=artKey(g);
-  S.meta[k]=hit?{t:hit.title,d:hit.about,y:(/\b(19|20)\d\d\b/.exec(hit.kind+' '+hit.about)||[''])[0]}:0;
+  S.meta[k]=hit?{t:hit.title,d:hit.about,y:hit.year||yr(hit.kind+' '+hit.about)}:0;
   if(hit&&hit.img&&(needsArt(g)||hit.force))S.art[k]=hit.img; else if(!(k in S.art)&&needsArt(g))S.art[k]=0;
   save();
   for(const x of GAMES.filter(x=>artKey(x)===k)){
@@ -425,9 +473,17 @@ async function pumpArt(){
   if(artBusy||!artQ.length)return;
   const g=artQ.shift(), k=artKey(g); artBusy=1;
   try{
-    const pages=await wikiSearch(lookFor(g)+' video game');
     const words=(nrm(lookFor(g)).match(/[a-z0-9]{4,}/g)||[]).filter(w=>!['game','video','version','edition','with','from','base'].includes(w));
-    applyMatch(g,pages.find(p=>!words.length||words.some(w=>nrm(p.title).includes(w)))); artPending.delete(k);
+    const fits=p=>!words.length||words.some(w=>nrm(p.title).includes(w));
+    let got=null;
+    for(const id of sources()){
+      let res; try{res=await SRC[id].find(lookFor(g),id==='wiki'?5:2)}catch(e){if(id==='wiki')throw e;continue}   // a paid-for source failing just falls through to the next
+      const hit=res.find(fits); if(!hit)continue;
+      got=got||{title:hit.title,img:'',about:'',year:'',kind:hit.kind};
+      for(const f of ['img','about','year'])if(!got[f]&&hit[f])got[f]=hit[f];
+      if(got.img&&got.about&&got.year)break;
+    }
+    applyMatch(g,got); artPending.delete(k);
   }catch{
     g.tries=(g.tries||0)+1;
     if(g.tries<5)setTimeout(()=>{artQ.push(g);pumpArt()},5000*g.tries); else artPending.delete(k);
@@ -482,6 +538,7 @@ setInterval(async()=>{
 addEventListener('pagehide',()=>navigator.sendBeacon('/api/quit?t='+T));
 
 /* ---------- main view ---------- */
+const STYLES=[['frost','Frosted','Glass panels over soft light'],['art','Full art','The selected game fills the screen'],['flat','Flat','Solid colour, no glow']];
 const LAYOUTS=[['shelf','Shelf','One row of large covers'],['home','Home','Big card over two rows of icons'],['grid','Grid','Everything, grouped by system'],['list','List','Cover on the left, rows on the right']];
 const THEMES=[['frost','Frost','#CCFF00','#040404'],['aurora','Aurora','#7c3aed','#090818'],['joy','Joy','#ff3c28','#0f0f13'],['midnight','Midnight','#1d4ed8','#050a1c'],['mint','Mint','#0d9488','#03110f'],['sunset','Sunset','#ff5e62','#160910'],['mono','Mono','#777','#070707'],
   ['daylight','Daylight','#8ec5ff','#dde6f6'],['channel','Channel','#7fd4f7','#eef4f8'],['pocket','Pocket','#ffb877','#f5ede2'],['sakura','Sakura','#ff9cc2','#fbeaf1']];
@@ -587,10 +644,11 @@ function menu(kind){
   const b=$(`#quick [data-q=${isT?'theme':'layout'}]`).getBoundingClientRect();
   $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${b.left}px;bottom:${innerHeight-b.top+12}px"><h2>${isT?'Theme':'Layout'}</h2><div class="body ${isT?'sws':'list'}">${
     isT?THEMES.map(x=>`<button class="sw ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}" style="background:radial-gradient(circle at 30% 25%,${x[2]},${x[3]} 75%)">${x[1]}</button>`).join('')
-       :LAYOUTS.map(x=>`<button class="item ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}"><svg class="lp" viewBox="0 0 32 22">${LAYPIC[x[0]]}</svg><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')}</div></div></div>`;
+       :LAYOUTS.map(x=>`<button class="item ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}"><svg class="lp" viewBox="0 0 32 22">${LAYPIC[x[0]]}</svg><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')}</div>${
+    isT?`<h2>Style</h2><div class="body list">${STYLES.map(x=>`<button class="item ${x[0]===(S.ui.style||'frost')?'on':''}" data-act="sty" data-arg="${x[0]}"><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')}</div>`:''}</div></div>`;
   ($('#layer .on')||focusables()[0])?.focus();
   onChange=()=>{};
-  onAct=(a,arg)=>{S.ui[key]=arg;look();save();closeModal();blip('ok')};
+  onAct=(a,arg)=>{S.ui[a==='sty'?'style':key]=arg;look();save();closeModal();blip('ok')};
   blip('tab');
 }
 function surprise(){const l=visible();if(!l.length)return;const g=l[Math.floor(Math.random()*l.length)],t=tiles().find(x=>x.dataset.id===g.id);if(t){goto(t);blip('ok')}}
@@ -626,7 +684,7 @@ $('#grid').addEventListener('click',e=>{const g=game(e.target.closest('.tile'));
 $('#grid').addEventListener('contextmenu',e=>{const g=game(e.target.closest('.tile'));if(g){e.preventDefault();details(g)}});
 let heroT;
 $('#grid').addEventListener('focusin',e=>{clearTimeout(heroT);heroT=setTimeout(()=>hero(game(e.target)),70)});   // settle before redrawing, so fast scrolling stays light
-$('#grid').addEventListener('mousemove',e=>{const t=e.target.closest('.tile');if(t&&t!==document.activeElement&&!$('#layer').children.length)t.focus({preventScroll:true})});
+$('#grid').addEventListener('mousemove',e=>{const t=e.target.closest('.tile');if(t&&t!==document.activeElement&&!$('#layer').children.length){t.focus({preventScroll:true});blip('move')}});
 $('#dock').addEventListener('click',e=>{const b=e.target.closest('button');if(b){tab=b.dataset.tab;render();blip('tab')}});
 $('#quick').addEventListener('click',async e=>{
   const q=e.target.closest('button')?.dataset.q;
@@ -695,14 +753,13 @@ addEventListener('gamepadconnected',e=>toast('Controller connected: '+e.gamepad.
   }
   requestAnimationFrame(pad);
 })();
-// menu sounds: small synth voices through a short echo, so they ring instead of beep. No audio files.
+// menu sounds: small synth voices, played dry. No audio files.
 let actx,bus;
 function audio(){
   if(!actx){
     actx=new AudioContext(); bus=actx.createGain();
-    const dl=actx.createDelay(.5), fb=actx.createGain(), wet=actx.createGain(), lp=actx.createBiquadFilter();
-    dl.delayTime.value=.17; fb.gain.value=.34; wet.gain.value=.4; lp.type='lowpass'; lp.frequency.value=2400;
-    bus.connect(actx.destination); bus.connect(dl); dl.connect(lp); lp.connect(fb); fb.connect(dl); lp.connect(wet); wet.connect(actx.destination);
+    const warm=actx.createBiquadFilter(); warm.type='lowpass'; warm.frequency.value=2600;   // takes the harsh edge off
+    bus.connect(warm); warm.connect(actx.destination);
   }
   if(actx.state==='suspended')actx.resume();
   bus.gain.value=(S.ui.vol??70)/100;
@@ -713,15 +770,16 @@ function note(f,at,o={}){
   g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(gain,t+.008); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
   osc.connect(g).connect(bus); osc.start(t); osc.stop(t+dur+.03);
 }
+// low, round voices: a fundamental with a quiet octave above it, played dry (no echo)
 const SFX={
-  move:()=>{note(784,0,{type:'triangle',dur:.1,gain:.3,to:659});note(1568,0,{dur:.07,gain:.08})},
-  tab:()=>{note(523,0,{type:'triangle',dur:.13,gain:.3});note(784,.06,{type:'triangle',dur:.18,gain:.3})},
-  ok:()=>{note(659,0,{dur:.3,gain:.3});note(988,.05,{dur:.36,gain:.24});note(1319,.1,{dur:.42,gain:.14})},
-  back:()=>{note(587,0,{type:'triangle',dur:.14,gain:.28,to:440});note(392,.07,{type:'triangle',dur:.22,gain:.24})},
-  open:()=>{note(392,0,{dur:.2,gain:.22,to:784});note(1175,.09,{dur:.32,gain:.14})},
-  error:()=>{note(196,0,{type:'sawtooth',dur:.16,gain:.14});note(175,.13,{type:'sawtooth',dur:.22,gain:.14})},
-  launch:()=>{[392,523,659,784,1047,1319].forEach((f,i)=>note(f,i*.07,{type:i%2?'sine':'triangle',dur:.55,gain:.26}));note(98,0,{dur:.7,gain:.45,to:49})},
-  boot:()=>[523,784,1047,1568].forEach((f,i)=>note(f,i*.11,{dur:.8,gain:.2})),
+  move:()=>{note(294,0,{type:'triangle',dur:.2,gain:.34});note(588,0,{dur:.1,gain:.07})},
+  tab:()=>{note(196,0,{type:'triangle',dur:.2,gain:.34});note(294,.07,{type:'triangle',dur:.28,gain:.32})},
+  ok:()=>{note(262,0,{dur:.36,gain:.34});note(392,.06,{dur:.42,gain:.28});note(523,.12,{dur:.5,gain:.16})},
+  back:()=>{note(247,0,{type:'triangle',dur:.2,gain:.32,to:185});note(165,.08,{type:'triangle',dur:.3,gain:.3})},
+  open:()=>{note(147,0,{dur:.26,gain:.3,to:294});note(440,.1,{dur:.4,gain:.14})},
+  error:()=>{note(110,0,{type:'triangle',dur:.2,gain:.34});note(98,.14,{type:'triangle',dur:.28,gain:.34})},
+  launch:()=>{[131,196,262,330,392,523].forEach((f,i)=>note(f,i*.08,{type:i%2?'sine':'triangle',dur:.7,gain:.3}));note(65,0,{dur:.9,gain:.5,to:41})},
+  boot:()=>[196,294,392,587].forEach((f,i)=>note(f,i*.13,{dur:1,gain:.24})),
 };
 function blip(kind){if(!S?.ui.sound)return;try{audio();(SFX[kind]||SFX.move)()}catch{}}
 // browsers keep sound off until the first key press or click; wake it then, with the start-up chime
@@ -732,7 +790,7 @@ function look(){
   const u=S.ui, d=document.documentElement;
   d.dataset.theme=u.theme; d.style.setProperty('--tile',u.size+'px'); d.style.setProperty('--r',{soft:'26px',round:'40px',sharp:'8px'}[u.corners]||'26px');
   u.accent?d.style.setProperty('--acc',u.accent):d.style.removeProperty('--acc');
-  document.body.className='v-'+u.view+' m-'+u.motion;
+  document.body.className='v-'+u.view+' m-'+u.motion+' s-'+(u.style||'frost');
   if(u.wall)$('#bg').style.backgroundImage=`url("/file?t=${T}&p=${encodeURIComponent(u.wall)}")`;
 }
 setInterval(()=>{const n=[...navigator.getGamepads()].filter(p=>p&&p.connected).length;$('#padhint').textContent=n?'':'Controller: press any button to wake it'},1500);
@@ -760,7 +818,7 @@ const addRoot=p=>{if(!romRoots().some(r=>r.toLowerCase()===p.toLowerCase()))S.ro
 
 /* built-in file browser: works with a controller, unlike the Windows dialogs */
 function pick(kind){return new Promise(res=>{
-  const exts=kind==='exe'?['.exe']:kind==='image'?['.png','.jpg','.jpeg','.webp','.gif']:[];
+  const exts=kind==='exe'?['.exe']:kind==='zip'?['.zip']:kind==='image'?['.png','.jpg','.jpeg','.webp','.gif']:[];
   const prev={html:$('#layer').innerHTML,onAct,onChange};
   const done=v=>{escHook=null;$('#layer').innerHTML=prev.html;onAct=prev.onAct;onChange=prev.onChange;res(v)};
   const join=(a,b)=>a?a.replace(/[\\/]+$/,'')+INFO.sep+b:b;
@@ -795,7 +853,7 @@ function details(g){
     <div class="row"><label>Runs as</label><code>${r?esc('"'+r.exe+'" '+r.args):'no emulator set up for this system yet'}</code></div>`}
     <div class="row"><label>Display name</label><input class="w" type="text" data-set="title" value="${esc(g.title)}"></div>
     <code>${esc(target)}</code>`,
-    `<button class="btn" data-act="del">Delete</button><button class="btn" data-act="hide">Hide</button><button class="btn" data-act="show">Show file</button><button class="btn" data-act="art">Set artwork</button><button class="btn" data-act="match">Fix match</button><button class="btn" data-act="lnk">Desktop shortcut</button><button class="btn" data-act="fav">${o.fav?'Unfavourite':'Favourite'}</button><button class="btn pri" data-act="play">Launch</button>`);
+    `<button class="btn" data-act="del">Delete</button><button class="btn" data-act="hide">Hide</button><button class="btn" data-act="show">Show file</button><button class="btn" data-act="art">Set artwork</button><button class="btn" data-act="match">Fix match</button>${r&&MODDIR[S.emus.find(e=>e.exe===r.exe)?.kind]?'<button class="btn" data-act="mods">Mods</button>':''}<button class="btn" data-act="lnk">Desktop shortcut</button><button class="btn" data-act="fav">${o.fav?'Unfavourite':'Favourite'}</button><button class="btn pri" data-act="play">Launch</button>`);
   const hide=async()=>{o.hide=true;save();await scan();closeModal();toast('Hidden. Bring it back from Settings > Library')};
   onChange=(k,v)=>{
     if(k==='sys'&&v==='unsorted')return;
@@ -809,23 +867,24 @@ function details(g){
     if(a==='play'){closeModal();launch(g)}
     if(a==='show')api('open',{path:dir(target)});
     if(a==='hide')return hide();
+    if(a==='mods')return mods(g);
     if(a==='art'){const p=await pick('image');if(p){o.art=p;save();toast('Artwork set')}}
     if(a==='match'){
-      const draw=async q=>{
-        let res=[]; try{res=await wikiSearch(q)}catch{toast('The lookup is busy, try again in a moment')}
-        modal('Match '+esc(g.title),`<small>Pick the right game and Cove uses its cover, description and year. Search with different words if it is not listed.</small>
-          <div class="row"><input class="w" type="text" id="mq" value="${esc(q)}"><button class="btn" data-act="search">Search</button></div>
-          <div class="list">${res.map((p,i)=>`<button class="item" data-act="use" data-arg="${i}">${p.img?`<img alt="" src="${esc(p.img)}" style="width:44px;height:44px;object-fit:cover;border-radius:8px">`:'<i></i>'}<span><b>${esc(p.title)}</b><br><small>${esc(p.kind)}</small></span></button>`).join('')||'<small>No results.</small>'}</div>`,
+      const draw=async(q,src)=>{
+        let res=[]; try{res=await SRC[src].find(q,5)}catch{toast(SRC[src].name+' did not answer. Try again, or pick another source')}
+        modal('Match '+esc(g.title),`<small>Pick the right game and Cove uses its cover, description and year. Search with different words, or another source, if it is not listed.</small>
+          <div class="row"><input class="w" type="text" id="mq" value="${esc(q)}"><select id="ms">${S.scrape.order.filter(id=>SRC[id].ready()).map(id=>opt(id,SRC[id].name,src)).join('')}</select><button class="btn" data-act="search">Search</button></div>
+          <div class="list">${res.map((p,i)=>`<button class="item" data-act="use" data-arg="${i}">${p.img?`<img alt="" src="${esc(p.img)}" style="width:44px;height:44px;object-fit:cover;border-radius:8px">`:'<i></i>'}<span><b>${esc(p.title)}</b><br><small>${esc([p.year,p.kind].filter(Boolean).join(' · '))}</small></span></button>`).join('')||'<small>No results.</small>'}</div>`,
           `<button class="btn" data-act="none">No match, clear it</button><button class="btn pri" data-act="back">Back</button>`);
         onChange=()=>{};
         onAct=(b,arg)=>{
-          if(b==='search')return draw($('#mq').value.trim()||g.title);
-          if(b==='use'){delete o.art;applyMatch(g,{...res[arg],force:true});toast('Matched to '+res[arg].title)}
+          if(b==='search')return draw($('#mq').value.trim()||g.title,$('#ms').value);
+          if(b==='use'){delete o.art;const old=S.meta[artKey(g)]||{},h=res[arg];applyMatch(g,{...h,about:h.about||old.d||'',year:h.year||old.y||'',force:true});toast('Matched to '+h.title)}
           if(b==='none'){S.meta[artKey(g)]=0;S.art[artKey(g)]=0;save()}
           details(g);
         };
       };
-      return draw(lookFor(g)+' video game');
+      return draw(lookFor(g),sources()[0]||'wiki');
     }
     if(a==='lnk'){if(!r)return toast('Set up an emulator first');await api('shortcut',{name:g.title,exe:r.exe,args:r.args,cwd:r.cwd});toast('Shortcut added to your desktop')}
     if(a==='del'){
@@ -838,6 +897,40 @@ function details(g){
         await api('trash',{path:target});delete S.games[g.id];save();await scan();closeModal();toast('Moved to the Recycle Bin');
       };
     }
+  };
+}
+
+/* mods: installs into the folder the emulator loads mods from for this game (Switch emulators so far) */
+const MODDIR={yuzu:['load'],ryujinx:['mods','contents']};
+async function titleId(g){
+  const o=gs(g.id); if(o.tid)return o.tid;
+  const m=/\[([0-9A-Fa-f]{16})\]/.exec(g.path); if(m)return m[1].toUpperCase();
+  if(g.folder)try{return (await api('npdm',{path:J(g.folder,'exefs','main.npdm')})).tid}catch{}
+  return '';
+}
+async function mods(g){
+  const r=resolve(g), emu=r&&S.emus.find(e=>e.exe===r.exe), base=emu&&MODDIR[emu.kind];
+  if(!base)return toast('Mods are supported for Switch and Switch 2 emulators so far');
+  const data=await dataDir(emu); if(!data)return toast('Open '+emu.name+' once first, so its data folder exists');
+  const tid=await titleId(g), dirOn=tid&&J(data,...base,tid), dirOff=tid&&J(data,'mods_off',tid);
+  let on=[],off=[];
+  if(tid){try{on=(await api('browse',{path:dirOn,exts:[]})).dirs}catch{} try{off=(await api('browse',{path:dirOff,exts:[]})).dirs}catch{}}
+  modal('Mods for '+esc(g.title),tid?`
+      <small>Installed for ${esc(emu.name)}, title ID ${esc(tid)}. A mod is a folder with <code>romfs</code>, <code>exefs</code> or <code>cheats</code> inside it.</small>
+      <div class="list">${on.map(m=>`<div class="row"><b style="flex:1">${esc(m)}</b><small>On</small><button class="btn" data-act="off" data-arg="${esc(m)}">Turn off</button></div>`).join('')}
+      ${off.map(m=>`<div class="row"><b style="flex:1;opacity:.55">${esc(m)}</b><small>Off</small><button class="btn" data-act="on" data-arg="${esc(m)}">Turn on</button></div>`).join('')}
+      ${on.length+off.length?'':'<small>No mods installed for this game yet.</small>'}</div>
+      <code>${esc(dirOn)}</code>`
+    :`<p>Cove could not read this game's title ID, which names its mod folder. Type it once and Cove remembers it. Your emulator shows it in the game's properties.</p>
+      <div class="row"><label>Title ID</label><input class="w" type="text" data-set="tid" placeholder="16 characters, for example 0100F2C0115B6000"></div>`,
+    `<button class="btn" data-act="back">Back</button>${tid?'<button class="btn" data-act="openm">Open mods folder</button><button class="btn" data-act="addf">Install from a folder</button><button class="btn pri" data-act="addz">Install from a zip</button>':''}`);
+  onChange=(k,v)=>{if(/^[0-9a-f]{16}$/i.test(v.trim())){gs(g.id).tid=v.trim().toUpperCase();save();mods(g)}else toast('A title ID is 16 characters, 0-9 and A-F')};
+  onAct=async(a,arg)=>{
+    if(a==='back')return details(g);
+    if(a==='openm'){await api('mkdir',{paths:[dirOn]});return api('open',{path:dirOn})}
+    if(a==='addf'){const p=await pick('folder');if(!p)return;const x=await api('copy',{from:p,to:J(dirOn,file(p))});toast(`Installed ${file(p)} (${x.files} files)`);return mods(g)}
+    if(a==='addz'){const p=await pick('zip');if(!p)return;const x=await api('modzip',{zip:p,dest:dirOn});toast(`Installed ${x.name} (${x.files} files)`);return mods(g)}
+    if(a==='off'||a==='on'){const [f,t]=a==='off'?[dirOn,dirOff]:[dirOff,dirOn];await api('move',{moves:[{from:J(f,arg),to:J(t,arg)}]});return mods(g)}
   };
 }
 
@@ -907,14 +1000,19 @@ async function dataDir(e){
 
 /* settings */
 async function settings(t='lib'){
-  const tabsHtml='<div class="tabs">'+[['lib','Library'],['emus','Emulators'],['saves','Saves'],['discord','Discord'],['look','Look'],['share','Share']].map(x=>`<button class="btn ${x[0]===t?'on':''}" data-act="tab" data-arg="${x[0]}">${x[1]}</button>`).join('')+'</div>';
+  const tabsHtml='<div class="tabs">'+[['lib','Library'],['emus','Emulators'],['saves','Saves'],['discord','Discord'],['look','Look'],['share','Share'],['about','About']].map(x=>`<button class="btn ${x[0]===t?'on':''}" data-act="tab" data-arg="${x[0]}">${x[1]}</button>`).join('')+'</div>';
   let body='';
   if(t==='lib')body=`
     <h3>Game folders</h3><small>Cove reads games right where they are, in any layout. File types that only one system uses sort themselves; the rest show under Unsorted until you pick a system.</small>
     ${romRoots().map((r,i)=>`<div class="row"><code>${esc(r)}</code>${i?`<button class="btn" data-act="delroot" data-arg="${i-1}">Remove</button>`:'<small>(Cove\'s own folder)</small>'}</div>`).join('')}
     <div class="row"><button class="btn pri" data-act="addroot">Add a games folder</button><button class="btn" data-act="rescan">Rescan</button></div>
     ${HIDDEN.length?`<h3>Hidden games</h3>${HIDDEN.map(g=>`<div class="row"><button class="btn" data-act="unhide" data-arg="${esc(g.id)}">Show again</button><small>${esc(g.title)}</small></div>`).join('')}`:''}
-    <h3>Scraper</h3><small>Cove looks up a cover, a short description and the year for each game in the background, one at a time. Details found for <b>${GAMES.filter(g=>S.meta[artKey(g)]).length}</b> of ${GAMES.length} games${artQ.length?', '+artQ.length+' still in the queue':''}. A wrong match can be fixed from the game's options.</small>
+    <h3>Scraper</h3><small>Cove looks up a cover, a description and the year for each game in the background. Details found for <b>${GAMES.filter(g=>S.meta[artKey(g)]).length}</b> of ${GAMES.length} games${artQ.length?', '+artQ.length+' still in the queue':''}. Sources are tried from the top down; move the ones you trust most to the top. A wrong match can be fixed from the game's options.</small>
+    ${S.scrape.order.map((id,i)=>{const x=SRC[id],on=!S.scrape.off[id];return `<div class="card"><div class="row" style="margin:0"><input type="checkbox" data-set="src" data-arg="${id}" ${on?'checked':''}><b>${i+1}. ${x.name}</b><small>${x.ready()?(on?'In use':'Switched off'):'Needs a key to work'}</small>
+      <span style="margin-left:auto;display:flex;gap:6px"><button class="btn" data-act="srcup" data-arg="${i}" ${i?'':'disabled'}>Up</button><button class="btn" data-act="srcdn" data-arg="${i}" ${i<S.scrape.order.length-1?'':'disabled'}>Down</button></span></div>
+      <small>${x.gives}${x.needs?' '+x.needs:''}</small>
+      ${(x.fields||[]).map(f=>`<div class="row"><label>${f[1]}</label><input class="w" type="text" data-set="key" data-arg="${f[0]}" value="${esc(K()[f[0]])}"></div>`).join('')}</div>`}).join('')}
+    <div class="row"><input type="checkbox" data-set="src" data-arg="libretro" ${S.scrape.off.libretro?'':'checked'}><b>libretro box art</b><small>Official box scans for cartridge and disc systems, tried first when on. No sign-up.</small></div>
     <div class="row"><button class="btn" data-act="scrape">Scrape missing now</button><button class="btn" data-act="rescrape">Scrape everything again</button></div>
     <h3>Tidy up (optional)</h3><small>Moves loose files into one folder per system inside Cove's library, taking matching save files along. Use it for an Inbox of new downloads; you never have to.</small>
     <div class="row"><button class="btn" data-act="inbox">Organize Inbox</button><button class="btn" data-act="orgother">Organize another folder</button><button class="btn" data-act="open" data-arg="${esc(S.library)}">Open library folder</button></div>
@@ -957,6 +1055,8 @@ async function settings(t='lib'){
     <small>Some emulators post their own Discord status too. If you see two cards, turn the emulator's one off in its settings.</small>`}
   if(t==='look'){const u=S.ui;body=`
     <h3>Theme</h3><div class="row">${THEMES.map(x=>`<button class="sw ${x[0]===u.theme?'on':''}" data-act="theme" data-arg="${x[0]}" style="background:radial-gradient(circle at 30% 25%,${x[2]},${x[3]} 75%)">${x[1]}</button>`).join('')}</div>
+    <h3>Style</h3><div class="row">${STYLES.map(x=>`<button class="btn ${x[0]===(u.style||'frost')?'pri':''}" data-act="style" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>
+    <small>${STYLES.map(x=>x[1]+': '+x[2].toLowerCase()).join('. ')}.</small>
     <h3>Layout</h3><div class="row">${LAYOUTS.map(x=>`<button class="btn ${x[0]===u.view?'pri':''}" data-act="view" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>
     <small>Home: a big card for the selected game over two rows of icons. Grid: everything, grouped by system. Shelf: one row of large covers. List: cover on the left, rows on the right.</small>
     <h3>Details</h3>
@@ -971,14 +1071,24 @@ async function settings(t='lib'){
   if(t==='share')body=`
     <div class="card"><b>Desktop shortcut</b><p class="dim">Puts a Cove shortcut on this PC's desktop.</p><button class="btn pri" data-act="applnk">Create desktop shortcut</button></div>
     <div class="card"><b>Send to a friend</b><p class="dim">Makes Cove-share.zip with the launcher, your theme and your custom systems. No games, saves or folder paths are included. They unzip it, run Cove.bat, and get the same setup walkthrough.</p><button class="btn pri" data-act="pack">Export share pack</button></div>
-    <div class="card"><b>Updates</b><p class="dim">This is Cove ${esc(INFO.version||'?')}. It checks ${esc(INFO.repo?'github.com/'+INFO.repo:'nowhere yet')} each time it opens and asks before installing anything.</p><button class="btn" data-act="upd">Check for updates</button></div>
     <div class="card"><b>Run setup again</b><p class="dim">Replays the first-run walkthrough. Your library and settings are kept.</p><button class="btn" data-act="rewiz">Open walkthrough</button></div>`;
+  if(t==='about')body=`
+    <div class="card" style="text-align:center;padding:28px"><img src="/cove.ico" alt="" style="width:84px;height:84px;border-radius:22px;box-shadow:0 12px 30px var(--shade)">
+      <h2 style="padding:14px 0 2px">Cove</h2>
+      <p style="margin:0;font:600 13px var(--mono);letter-spacing:.08em">${INFO.version?'VERSION '+esc(INFO.version):'Close Cove and reopen it to see the version'}</p>
+      <p class="dim">One launcher for every emulator.</p>
+      <button class="btn pri xl" data-act="upd">Check for updates</button></div>
+    <div class="card"><b>How updates work</b><p class="dim">Each time Cove opens it compares this version with the newest one at ${esc(INFO.repo?'github.com/'+INFO.repo:'its update address')}. If there is a newer one it shows what changed and asks before installing. Your games, settings and saves are never touched, and the version you had is kept in the data folder. You can also check any time with the button above.</p></div>
+    <div class="row"><button class="btn" data-act="site">Open the Cove page</button><button class="btn" data-act="open" data-arg="${esc(INFO.app)}">Open Cove's folder</button></div>
+    <small>CALINADO &copy; ${new Date().getFullYear()}</small>`;
   modal('Settings',body,'<button class="btn pri" data-act="x">Done</button>',tabsHtml);
   const E=id=>S.emus.find(e=>e.id===id), again=()=>settings(t);
   onChange=(k,v,arg)=>{
     if(t==='look'){S.ui[k]=k==='size'||k==='vol'?+v:v;look();save();if(k==='vol'||k==='sound')blip('ok');return}
     if(t==='discord'){S.discord[k]=typeof v==='string'?v.trim():v;save();return}
     if(k==='def'){S.defaults[arg]=v;save();return}
+    if(k==='src'){v?delete S.scrape.off[arg]:S.scrape.off[arg]=1;save();return again()}
+    if(k==='key'){S.scrape.keys[arg]=String(v).trim();igdbTok=null;save();return again()}
     const e=E(arg); if(k==='sys')v=v.trim()?v.trim().split(/[\s,]+/):undefined;
     v?e[k]=v:delete e[k]; save(); if(k==='kind')again();
   };
@@ -990,6 +1100,7 @@ async function settings(t='lib'){
     if(a==='orgother'){const p=await pick('folder');return p&&organize(p)}
     if(a==='rescan'){await scan();toast(GAMES.length+' games found');return again()}
     if(a==='addroot'){const p=await pick('folder');if(p){addRoot(p);await scan();toast(GAMES.length+' games found');again()}return}
+    if(a==='srcup'||a==='srcdn'){const o=S.scrape.order,i=+arg,j=a==='srcup'?i-1:i+1;[o[i],o[j]]=[o[j],o[i]];save();return again()}
     if(a==='scrape'||a==='rescrape'){
       for(const g of GAMES){const k=artKey(g);if(a==='rescrape'||!S.meta[k]){delete S.meta[k];if(!S.art[k]||a==='rescrape')delete S.art[k]}}
       LRFAIL.clear();save();GAMES.forEach(findArt);toast('Scraping '+artQ.length+' games in the background');return again()}
@@ -1025,11 +1136,12 @@ async function settings(t='lib'){
       d.on=true;save();blip('ok');toast('Connected. Check your Discord profile');return again()}
     if(a==='sfx'){['move','tab','ok','back','open','launch'].forEach((k,i)=>setTimeout(()=>blip(k),i*650));return}
     if(a==='noaccent'){S.ui.accent='';look();save();return again()}
-    if(a==='theme'||a==='view'){S.ui[a]=arg;look();save();blip('tab');return again()}
+    if(a==='theme'||a==='view'||a==='style'){S.ui[a]=arg;look();save();blip('tab');return again()}
     if(a==='reart'){for(const k in S.art)if(!S.art[k]){delete S.art[k];delete S.meta[k]}LRFAIL.clear();save();closeModal();return toast('Looking for covers')}
     if(a==='wall'){const p=await pick('image');if(p){S.ui.wall=p;look();save();again()}return}
     if(a==='nowall'){S.ui.wall='';look();save();return again()}
     if(a==='upd')return checkUpdate(true);
+    if(a==='site'){if(INFO.repo)window.open('https://github.com/'+INFO.repo,'_blank');return}
     if(a==='applnk'){await api('shortcut',{name:'Cove'});return toast('Cove is on your desktop')}
     if(a==='pack'){const r=await api('pack',{preset:JSON.stringify({ui:{...S.ui,wall:''},systems:S.systems,discord:{...S.discord,on:false}})});toast('Saved '+r.path);return api('open',{path:dir(r.path)})}
     if(a==='rewiz'){S.setup=false;return wizard(0)}
@@ -1089,7 +1201,7 @@ async function checkUpdate(manual){
 (async()=>{
   INFO=await api('info');
   const raw=await api('state');
-  S={...structuredClone(DEF),...raw,ui:{...DEF.ui,...raw.ui},discord:{...DEF.discord,...raw.discord}};
+  S={...structuredClone(DEF),...raw,ui:{...DEF.ui,...raw.ui},discord:{...DEF.discord,...raw.discord},scrape:{...structuredClone(DEF.scrape),...raw.scrape}};
   if(S.artV!==2){S.artV=2;for(const k in S.art)if(!S.art[k])delete S.art[k]}   // retry covers recorded as missing by older versions
   if(S.ui.v2!==2){S.ui.v2=2;S.ui.view='shelf'}   // one-time switch to the current default layout
   if(!LAYOUTS.some(l=>l[0]===S.ui.view))S.ui.view='shelf';
@@ -1098,6 +1210,7 @@ async function checkUpdate(manual){
   if((INFO.v||1)<VER)setTimeout(()=>toast('Update ready: close Cove, wait 10 seconds, then reopen it'),1500);
   if(!S.setup)return wizard(0);
   await scan();render();
+  if(INFO.version){$('#ver').textContent='v'+INFO.version;$('#ver').onclick=()=>settings('about')}
   setTimeout(()=>checkUpdate(false),2500);
 })().catch(e=>{$('#splash')?.remove();document.body.innerHTML='<p style="padding:40px">Cove could not start: '+esc(e.message)+'</p>'});
 </script>

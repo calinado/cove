@@ -1,5 +1,5 @@
 {
-  "version": "1.0.1",
+  "version": "1.0.2",
   "repo": "calinado/cove",
-  "notes": "New menu sounds with a volume slider, game details scraper, pre-launch preview card, update checker."
+  "notes": "Mod installer for Switch games, choosable scraper sources (IGDB, SteamGridDB, Wikipedia), Full art and Flat styles, an About tab, and new menu sounds."
 }

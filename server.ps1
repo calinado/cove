@@ -185,7 +185,7 @@ function Handle($ctx) {
   switch ($path) {
     '/api/info' {
       $ver = Get-Ver
-      Json $res @{ v = 5; version = [string]$ver.version; repo = [string]$ver.repo; sep = [string][IO.Path]::DirectorySeparatorChar; app = $App; appdata = $env:APPDATA; local = $env:LOCALAPPDATA
+      Json $res @{ v = 6; version = [string]$ver.version; repo = [string]$ver.repo; sep = [string][IO.Path]::DirectorySeparatorChar; app = $App; appdata = $env:APPDATA; local = $env:LOCALAPPDATA
         docs = [Environment]::GetFolderPath('MyDocuments'); desktop = [Environment]::GetFolderPath('Desktop') }
     }
     '/api/ping' { Sweep; $d = @($done); $done.Clear(); Json $res @{ done = $d; running = $running.Count; ids = @($running | ForEach-Object { $_.id }) } }
@@ -275,6 +275,34 @@ function Handle($ctx) {
       foreach ($f in $AppFiles) { Copy-Item -LiteralPath (Join-Path $tmp $f) -Destination $App -Force }
       Json $res @{ ok = $true; version = [string]$new.version }
       $script:restart = $true
+    }
+    '/api/fetch' {   # the page cannot call these scraper sites itself (browsers block it), so the helper does; fixed list only
+      $u = [Uri][string]$j.url
+      if ($u.Scheme -ne 'https' -or @('www.steamgriddb.com', 'api.igdb.com', 'id.twitch.tv') -notcontains $u.Host) { throw 'That address is not allowed' }
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+      $wc = New-Object System.Net.WebClient
+      $wc.Encoding = $Utf8
+      if ($j.headers) { foreach ($h in $j.headers.PSObject.Properties) { $wc.Headers[$h.Name] = [string]$h.Value } }
+      if ($j.method -eq 'POST') { $txt = $wc.UploadString($u, [string]$j.body) } else { $txt = $wc.DownloadString($u) }
+      Send $res 200 $Utf8.GetBytes($txt) 'application/json'
+    }
+    '/api/npdm' {   # reads a Switch game's title ID out of its unpacked exefs\main.npdm
+      $b = [IO.File]::ReadAllBytes([string]$j.path)
+      $o = [BitConverter]::ToInt32($b, 0x70)
+      if ($o -lt 0 -or $o + 0x18 -gt $b.Length -or $Utf8.GetString($b, $o, 4) -ne 'ACI0') { throw 'Could not read the title ID' }
+      Json $res @{ tid = [BitConverter]::ToUInt64($b, $o + 0x10).ToString('X16') }
+    }
+    '/api/modzip' {   # unpacks a mod zip and copies the mod folder into the game's mod directory
+      $tmp = Join-Path ([IO.Path]::GetTempPath()) ('Cove-mod-' + [guid]::NewGuid().ToString('N'))
+      Expand-Archive -LiteralPath ([string]$j.zip) -DestinationPath $tmp -Force
+      $root = $tmp
+      $name = [IO.Path]::GetFileNameWithoutExtension([string]$j.zip)
+      $kids = @(Get-ChildItem -LiteralPath $tmp -Directory)
+      $isMod = @($kids | Where-Object { @('romfs', 'exefs', 'cheats', 'romfs_ext') -contains $_.Name }).Count -gt 0
+      if (-not $isMod -and $kids.Count -eq 1 -and @(Get-ChildItem -LiteralPath $tmp -File).Count -eq 0) { $root = $kids[0].FullName; $name = $kids[0].Name }
+      $n = Copy-Tree $root (Join-Path ([string]$j.dest) $name)
+      Remove-Item -LiteralPath $tmp -Recurse -Force
+      Json $res @{ name = $name; files = $n }
     }
     '/api/open' { Start-Process 'explorer.exe' ('"' + $j.path + '"'); Json $res @{ ok = $true } }
     '/api/shortcut' {
