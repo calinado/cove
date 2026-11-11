@@ -1,5 +1,5 @@
 {
-  "version": "1.0.19",
+  "version": "1.0.20",
   "repo": "calinado/cove",
-  "notes": "Launch screen uses real disc and cartridge scans when your ES-DE folder has them (physicalmedia)."
+  "notes": "Dragging a game onto another quietly makes an Untitled folder. New edit mode: right-click the background, Edit home screen, then drag covers to rearrange. Cleaner folder tiles."
 }

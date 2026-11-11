@@ -151,10 +151,16 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .tile.playing .art{outline:3px solid var(--acc);outline-offset:-3px}
 .tile.playing{scale:1.16;margin:0 18px;z-index:1}
 .v-list .tile.playing,.v-wheel .tile.playing{scale:1;margin:0}
-.fold .art{background:rgba(var(--tint),.1);display:grid;place-items:center}
-.mini{position:absolute;inset:11%;display:grid;grid-template:1fr 1fr/1fr 1fr;gap:7%}.mini i{border-radius:16%;background:center/cover rgba(var(--tint),.12)}
-.fold .fi{position:absolute;right:7px;bottom:7px;width:20px;height:20px;color:var(--acc);filter:drop-shadow(0 1px 3px rgba(0,0,0,.7))}
+.fold .art{background:linear-gradient(145deg,rgba(var(--tint),.16),rgba(var(--tint),.05));box-shadow:inset 0 0 0 1px rgba(var(--tint),.16);display:grid;place-items:center}
+.mini{position:absolute;inset:9%;display:grid;grid-template:1fr 1fr/1fr 1fr;gap:6%}
+.mini i{border-radius:20%;background:center/cover rgba(var(--tint),.1);box-shadow:0 3px 10px rgba(0,0,0,.35)}
+.mini i:empty:not([style]){box-shadow:inset 0 0 0 1px rgba(var(--tint),.1)}
+.fold .big{width:44%;height:44%;color:var(--acc);stroke-width:1.5}
+.fold .name .ic{width:14px;height:14px;color:var(--acc);vertical-align:-2px;margin-right:6px}
 .fold .bk{width:38%;height:38%;color:var(--acc)}
+#editdone{position:fixed;left:50%;bottom:86px;translate:-50% 0;z-index:8;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.edit .tile{animation:wig .26s ease-in-out infinite alternate;cursor:grab}.edit .tile:nth-child(even){animation-delay:-.13s}
+@keyframes wig{from{rotate:-1.1deg}to{rotate:1.1deg}}
 .tile img{-webkit-user-drag:none}
 .dragging{user-select:none;cursor:grabbing}
 .tile.drop .art{outline:3px dashed var(--acc);outline-offset:4px}
@@ -359,6 +365,7 @@ code{font-family:var(--mono);font-size:12px;word-break:break-all;color:var(--dim
   <div id="hints"><span><b class="gl" data-x="A" data-p="✕" data-n="B"></b>Start</span><span><b class="gl" data-x="Y" data-p="△" data-n="X"></b>Options</span><span><b class="gl" data-x="X" data-p="□" data-n="Y"></b>Favourite</span><span><b class="gl w" data-x="LB RB" data-p="L1 R1" data-n="L R"></b>Systems</span><span><b class="gl w" data-x="LT" data-p="L2" data-n="ZL"></b>Layout</span><span><b class="gl w" data-x="RT" data-p="R2" data-n="ZR"></b>Theme</span><span><b class="gl w" data-x="START" data-p="OPTIONS" data-n="+"></b>Settings</span></div>
 </footer>
 <div id="toast" class="glass"></div>
+<button id="editdone" class="btn pri xl" hidden>Done arranging</button>
 <div id="layer"></div>
 
 <script>
@@ -734,7 +741,8 @@ const GLYPH={handheld:'<rect x="6" y="3" width="12" height="18" rx="2.5"/><rect 
   all:ICON.layout,fav:'<path d="M12 4l2.4 5 5.5.7-4 3.8 1 5.4-4.9-2.7-4.9 2.7 1-5.4-4-3.8 5.5-.7z"/>',recent:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/>',unsorted:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 16.5v.1"/>'};
 const glyph=id=>GLYPH[Object.keys(KIND).find(k=>KIND[k].includes(id))||'disc'];
 // drop <system id>.png into Library\Art\systems (gba.png, switch2.png ...) and it replaces the name everywhere
-const SORTS=[['console','By console','Grouped by system, A to Z inside each'],['az','A to Z',''],['za','Z to A',''],['new','Newest first','By release year'],['old','Oldest first','By release year'],['recent','Recently played',''],['most','Most played','']];
+const ord=g=>{const i=(S.order||[]).indexOf(g.id);return i<0?1e9:i};
+const SORTS=[['custom','My order','Arrange it yourself: right-click the background, Edit home screen'],['console','By console','Grouped by system, A to Z inside each'],['az','A to Z',''],['za','Z to A',''],['new','Newest first','By release year'],['old','Oldest first','By release year'],['recent','Recently played',''],['most','Most played','']];
 const FLOOK={folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',star:'<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9 6.8 19.6l1-5.8-4.3-4.1 5.9-.8z"/>',heart:'<path d="M12 20s-7-4.4-7-9.6A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.4C19 15.6 12 20 12 20z"/>',bolt:'<path d="M13 3L5 13.5h6L10 21l8-10.5h-6z"/>',stack:'<path d="M12 4l8 4-8 4-8-4zM4 12l8 4 8-4M4 16l8 4 8-4"/>'};
 let INF=null;   // the folder that is open, if any
 const fById=id=>(S.folders||[]).find(f=>f.id===id);
@@ -775,7 +783,7 @@ function visible(){
   if(tab==='recent')l=l.filter(g=>gs(g.id).last).sort((a,b)=>gs(b.id).last-gs(a.id).last).slice(0,40);
   l=q?l.filter(g=>g.title.toLowerCase().includes(q)):l;
   const so=S.ui.sort||'console', y=g=>+S.meta[artKey(g)]?.y||0, o=g=>gs(g.id);
-  if(tab!=='recent'&&so!=='console')l=[...l].sort({az:(a,b)=>a.title.localeCompare(b.title),za:(a,b)=>b.title.localeCompare(a.title),new:(a,b)=>y(b)-y(a),old:(a,b)=>(y(a)||9999)-(y(b)||9999),recent:(a,b)=>(o(b).last||0)-(o(a).last||0),most:(a,b)=>(o(b).time||0)-(o(a).time||0)}[so]);
+  if(tab!=='recent'&&so!=='console')l=[...l].sort({az:(a,b)=>a.title.localeCompare(b.title),za:(a,b)=>b.title.localeCompare(a.title),new:(a,b)=>y(b)-y(a),old:(a,b)=>(y(a)||9999)-(y(b)||9999),recent:(a,b)=>(o(b).last||0)-(o(a).last||0),most:(a,b)=>(o(b).time||0)-(o(a).time||0),custom:(a,b)=>ord(a)-ord(b)}[so]);
   const run=NOW?l.findIndex(g=>g.id===NOW.id):-1;
   if(run>0)l.unshift(l.splice(run,1)[0]);   // the running game is always first
   return l;
@@ -790,7 +798,7 @@ function render(keep){
   if(INF&&!fById(INF))INF=null;
   const inF=f=>GAMES.filter(g=>gs(g.id).dir===f.id), q0=$('#q').value.trim();
   const pre=INF?`<button class="tile fold" data-f="" title="Back"><span class="art" style="--ar:1"><svg class="ic bk" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span><span class="name">Back</span><span class="meta">${esc(fById(INF).name)}</span></button>`
-    :tab==='all'&&!q0?(S.folders||[]).map(f=>`<button class="tile fold" data-f="${f.id}" title="${esc(f.name)}"><span class="art" style="--ar:1"><span class="mini">${inF(f).slice(0,4).map(g=>`<i style="background-image:url('${esc(artUrl(g))}')"></i>`).join('')}</span><svg class="ic fi" viewBox="0 0 24 24">${FLOOK[f.look]||FLOOK.folder}</svg></span><span class="name">${esc(f.name)}</span><span class="meta">${inF(f).length} games</span></button>`).join(''):'';
+    :tab==='all'&&!q0?(S.folders||[]).map(f=>`<button class="tile fold" data-f="${f.id}" title="${esc(f.name)}"><span class="art" style="--ar:1">${inF(f).length?`<span class="mini">${[0,1,2,3].map(n=>{const g=inF(f)[n],u=g&&artUrl(g);return u?`<i style="background-image:url('${esc(u)}')"></i>`:g?`<i style="background:linear-gradient(140deg,hsl(${hue(g.title)} 70% 46%),hsl(${(hue(g.title)+60)%360} 65% 22%))"></i>`:'<i></i>'}).join('')}</span>`:`<svg class="ic big" viewBox="0 0 24 24">${FLOOK[f.look]||FLOOK.folder}</svg>`}</span><span class="name"><svg class="ic" viewBox="0 0 24 24">${FLOOK[f.look]||FLOOK.folder}</svg>${esc(f.name)}</span><span class="meta">${inF(f).length} game${inF(f).length===1?'':'s'}</span></button>`).join(''):'';
   $('#count').textContent=list.length+(list.length===1?' game':' games');
   let last='';
   $('#grid').classList.toggle('still',!!keep);
@@ -955,7 +963,7 @@ function launchFx(g,r){
   d.innerHTML=`<div>${media(g)}<h2>${esc(g.title)}</h2><p>Starting in ${esc(r.name)}${r.need?' &middot; F1 or Start + Select opens its menu':''}</p><div class="bar"><i></i></div></div>`;
   document.body.append(d);setTimeout(()=>d.classList.add('out'),2300);setTimeout(()=>d.remove(),2800);
 }
-$('#grid').addEventListener('click',e=>{if(dragged)return;const t=e.target.closest('.tile'),g=game(t);if(g)start(g);else if(t){INF=t.dataset.f||null;render();blip(INF?'open':'back')}});
+$('#grid').addEventListener('click',e=>{if(dragged||EDIT)return;const t=e.target.closest('.tile'),g=game(t);if(g)start(g);else if(t){INF=t.dataset.f||null;render();blip(INF?'open':'back')}});
 $('#grid').addEventListener('contextmenu',e=>{const t=e.target.closest('.tile'),g=game(t);if(!t)return;e.preventDefault();g?details(g):fById(t.dataset.f)&&folderEdit(fById(t.dataset.f))});
 // folders: drop a game on another game to start one, drop it on a folder to add it, right-click (long-press on a touch screen) the background to make one, right-click a folder to change it
 const newFolder=name=>{const f={id:uid(),name,look:'folder'};(S.folders=S.folders||[]).push(f);return f};
@@ -969,9 +977,17 @@ function folderEdit(f){
   onAct=a=>{if(a==='del'){S.folders=S.folders.filter(x=>x!==f);save()}closeModal()};
 }
 // dragging is done by hand (press, move, release) because the browser's own drag does not start from these tiles
-let drag=null, ghost=null, dragged=false;
+let drag=null, ghost=null, dragged=false, EDIT=false;
+// edit mode: the covers wiggle and dragging rearranges them, like a handheld's home screen
+function edit(on){
+  EDIT=on; document.body.classList.toggle('edit',on); $('#editdone').hidden=!on;
+  if(on&&S.ui.sort!=='custom'){const now=visible().map(g=>g.id);S.order=now.concat(GAMES.map(g=>g.id).filter(i=>!now.includes(i)));S.ui.sort='custom';save()}   // start from what is on screen
+  render(true); if(on)toast('Drag covers to rearrange them');
+}
+$('#editdone').onclick=()=>edit(false);
+const shift=(a,x,y)=>{const from=a.indexOf(x);a.splice(from,1);const to=a.indexOf(y);a.splice(from<=to?to+1:to,0,x)};   // x lands on the far side of y, the way it looks on screen
 const under=e=>{const t=document.elementFromPoint(e.clientX,e.clientY)?.closest('.tile');return t&&t!==drag.t?t:null};
-$('#grid').addEventListener('pointerdown',e=>{const t=e.target.closest('.tile');if(t&&!e.button&&game(t))drag={t,x:e.clientX,y:e.clientY}});
+$('#grid').addEventListener('pointerdown',e=>{const t=e.target.closest('.tile');if(t&&!e.button&&(game(t)||EDIT&&t.dataset.f))drag={t,x:e.clientX,y:e.clientY}});
 addEventListener('pointermove',e=>{
   if(!drag)return;
   if(!ghost){
@@ -986,14 +1002,16 @@ for(const ev of ['pointerup','pointercancel'])addEventListener(ev,e=>{
   if(!ghost)return; ghost.remove(); ghost=null; document.body.classList.remove('dragging'); dragged=true; setTimeout(()=>dragged=false,60);   // the release is not a click on the game
   if(!t)return render(true);
   const g=game(d.t), o=game(t);
-  if(o){const made=!fById(gs(o.id).dir), f=made?newFolder('New folder'):fById(gs(o.id).dir); gs(o.id).dir=gs(g.id).dir=f.id; save(); blip('ok'); return made?folderEdit(f):(render(true),toast('Added to '+f.name))}
+  if(!g){if(fById(t.dataset.f)){shift(S.folders,fById(d.t.dataset.f),fById(t.dataset.f));save();blip('ok')}return render(true)}   // a folder dragged onto a folder swaps their places
+  if(o&&EDIT){S.order=(S.order||[]).filter(i=>game({dataset:{id:i}})).concat(GAMES.map(x=>x.id).filter(i=>!(S.order||[]).includes(i)));shift(S.order,g.id,o.id);save();blip('ok');return render(true)}
+  if(o){const made=!fById(gs(o.id).dir), f=made?newFolder('Untitled folder'):fById(gs(o.id).dir); gs(o.id).dir=gs(g.id).dir=f.id; save(); blip('ok'); render(true); return toast(made?'Folder made. Right-click it to name it':'Added to '+f.name)}
   if(t.dataset.f){gs(g.id).dir=t.dataset.f;toast('Added to '+fById(t.dataset.f).name)}else{delete gs(g.id).dir;toast('Taken out of the folder')}
   save(); blip('ok'); render(true);
 });
 document.addEventListener('contextmenu',e=>{
   if(e.target.closest('.tile,#dock,#layer,#dd,input'))return; e.preventDefault();
-  $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${Math.min(e.clientX,innerWidth-340)}px;top:${Math.min(e.clientY,innerHeight-90)}px;transform-origin:top left"><div class="body list"><button class="item" data-act="new"><svg class="ic" style="color:var(--acc)" viewBox="0 0 24 24">${FLOOK.folder}</svg><b>Create new folder</b></button></div></div></div>`;
-  focusables()[0].focus(); onChange=()=>{}; onAct=()=>{const f=newFolder('New folder');save();folderEdit(f)};
+  $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${Math.min(e.clientX,innerWidth-340)}px;top:${Math.min(e.clientY,innerHeight-140)}px;transform-origin:top left"><div class="body list"><button class="item" data-act="new"><svg class="ic" style="color:var(--acc)" viewBox="0 0 24 24">${FLOOK.folder}</svg><b>Create new folder</b></button><button class="item" data-act="edit"><svg class="ic" style="color:var(--acc)" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/></svg><b>${EDIT?'Done arranging':'Edit home screen'}</b></button></div></div></div>`;
+  focusables()[0].focus(); onChange=()=>{}; onAct=a=>{if(a==='edit'){$('#layer').innerHTML='';return edit(!EDIT)}const f=newFolder('Untitled folder');save();folderEdit(f)};
 });
 // Wheel layout: tell each title how far it is from the selected one, so the CSS can bend the list
 function wheel(){if(S.ui.view!=='wheel')return;const t=tiles(),i=t.indexOf(document.activeElement);t.forEach((x,n)=>x.style.setProperty('--d',i<0?0:Math.min(9,Math.abs(n-i))))}
@@ -1017,7 +1035,7 @@ document.addEventListener('keydown',e=>{
   if($('#dd')&&e.key==='Escape')return $('#dd').click();
   if($('#layer').children.length){if(e.key==='Escape')closeModal();const a={ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r'}[e.key],el=document.activeElement;if(a&&!(el.tagName==='SELECT'||(el.tagName==='INPUT'&&el.type!=='checkbox'))){e.preventDefault();navKey(a)}return}
   const typing=document.activeElement===$('#q');
-  if(e.key==='Escape'){$('#q').value='';INF=null;render();return}
+  if(e.key==='Escape'){if(EDIT)return edit(false);$('#q').value='';INF=null;render();return}
   if(typing){if(e.key==='ArrowDown'||e.key==='Enter'){e.preventDefault();$('.tile')?.focus()}return}
   const k=e.key.toLowerCase(), g=game(document.activeElement);
   const m={arrowleft:[-1,0],arrowright:[1,0],arrowup:[0,-1],arrowdown:[0,1]}[k];
@@ -1070,7 +1088,7 @@ window.navKey=k=>{
     if(k==='a'){const e=document.activeElement;e.tagName==='SELECT'?dropdown(e):e.click?.()} if(k==='bk')closeModal(); if(k==='lb')mtab(-1); if(k==='rb')mtab(1);
   }else{
     const m={l:[-1,0],r:[1,0],u:[0,-1],d:[0,1]}[k]; if(m)move(...m);
-    if(k==='a'){if(g)start(g);else document.activeElement.closest?.('#quick button,.fold')?.click()} if(k==='x'&&g)fav(g); if(k==='bk'&&INF){INF=null;render();blip('back')} if(k==='y'&&g)details(g);
+    if(k==='a'){if(g)start(g);else document.activeElement.closest?.('#quick button,.fold')?.click()} if(k==='x'&&g)fav(g); if(k==='bk'&&EDIT)edit(false); else if(k==='bk'&&INF){INF=null;render();blip('back')} if(k==='y'&&g)details(g);
     if(k==='lb')cycle(-1); if(k==='rb')cycle(1); if(k==='start')settings(); if(k==='sel'||k==='lt')menu('layout'); if(k==='rt')menu('theme');
   }
 };
