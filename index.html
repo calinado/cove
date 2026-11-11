@@ -1,0 +1,1080 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cove</title>
+<link rel="icon" href="/cove.ico">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;600&family=Nunito:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+/* Everything is frosted glass floating over soft moving light. A theme only swaps the variables below. */
+:root{--acc:#CCFF00;--on:#0a0a0a;--bg:#040404;--fg:#fff;--dim:rgba(255,255,255,.64);--o1:#CCFF00;--o2:#1f6b3a;--o3:#d9ffe9;--tint:255,255,255;--ga:.17;--gb:.04;--edge:.2;--shine:.42;--shade:rgba(0,0,0,.5);--field:rgba(0,0,0,.28);
+  --tile:150px;--r:26px;--spring:cubic-bezier(.34,1.56,.64,1);--font:"Roboto","Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;--mono:"Roboto Mono",Consolas,monospace}
+[data-theme=aurora]{--acc:#b9a2ff;--bg:#090818;--o1:#7c3aed;--o2:#2563eb;--o3:#ec4899}
+[data-theme=joy]{--acc:#ff4554;--on:#fff;--bg:#0f0f13;--o1:#ff3c28;--o2:#0ab9e6;--o3:#ff3c28;--font:"Nunito","Segoe UI",system-ui,sans-serif}
+[data-theme=midnight]{--acc:#ffd166;--bg:#050a1c;--o1:#1d4ed8;--o2:#0ea5e9;--o3:#fde68a}
+[data-theme=mint]{--acc:#5eead4;--bg:#03110f;--o1:#0d9488;--o2:#22c55e;--o3:#a7f3d0}
+[data-theme=sunset]{--acc:#ffb347;--bg:#160910;--o1:#ff5e62;--o2:#7b2ff7;--o3:#ff9966}
+[data-theme=mono]{--acc:#fff;--bg:#070707;--o1:#5a5a5a;--o2:#2a2a2a;--o3:#9a9a9a}
+[data-theme=daylight],[data-theme=channel],[data-theme=pocket],[data-theme=sakura]{--on:#fff;--fg:#141a2b;--dim:rgba(20,26,43,.62);--ga:.72;--gb:.42;--edge:.9;--shine:1;--shade:rgba(40,60,110,.18);--field:rgba(255,255,255,.7)}
+[data-theme=daylight]{--acc:#2563eb;--bg:#dde6f6;--o1:#8ec5ff;--o2:#c4b5fd;--o3:#ffe08a}
+[data-theme=channel]{--acc:#00a3e0;--bg:#eef4f8;--o1:#b8e6ff;--o2:#fff;--o3:#cdeffd;--font:"Nunito","Segoe UI",system-ui,sans-serif}
+[data-theme=pocket]{--acc:#f26b1d;--bg:#f5ede2;--o1:#ffd2a6;--o2:#fff0b8;--o3:#ffc4c4;--font:"Nunito","Segoe UI",system-ui,sans-serif}
+[data-theme=sakura]{--acc:#e2457f;--bg:#fbeaf1;--o1:#ffc2d9;--o2:#e9d5ff;--o3:#fff0c9;--font:"Nunito","Segoe UI",system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:var(--font);color:var(--fg);background:var(--bg);overflow:hidden;user-select:none;display:flex;flex-direction:column}
+button,input,select{font:inherit;color:inherit}
+#orbs,#bg{position:fixed;inset:0;z-index:-1;overflow:hidden}
+#orbs i{position:absolute;width:84vmax;height:84vmax;border-radius:50%;opacity:.62;will-change:transform;animation:drift 26s ease-in-out infinite alternate}   /* soft gradients, no blur filter: far cheaper to animate */
+#orbs i:nth-child(1){background:radial-gradient(circle,var(--o1),transparent 62%);left:-32vmax;top:-40vmax}
+#orbs i:nth-child(2){background:radial-gradient(circle,var(--o2),transparent 62%);right:-34vmax;top:-14vmax;animation-duration:34s;animation-direction:alternate-reverse}
+#orbs i:nth-child(3){background:radial-gradient(circle,var(--o3),transparent 62%);left:8vw;bottom:-56vmax;opacity:.36;animation-duration:42s}
+@keyframes drift{to{transform:translate(9vmax,7vmax) scale(1.18)}}
+#bg{inset:-80px;background-size:cover;background-position:center;filter:blur(60px) saturate(1.5);opacity:.5;transition:opacity .35s;will-change:opacity}
+#bg.swap{opacity:0}
+.glass{background:linear-gradient(135deg,rgba(var(--tint),var(--ga)),rgba(var(--tint),var(--gb)));border:1px solid rgba(var(--tint),var(--edge));box-shadow:inset 0 1px 0 rgba(var(--tint),var(--shine)),inset 0 -1px 0 rgba(var(--tint),.06),0 14px 40px var(--shade)}
+.menu,#toast{backdrop-filter:blur(30px) saturate(1.6)}
+@keyframes pop{from{opacity:0;transform:translateY(18px) scale(.9)}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@keyframes fade{from{opacity:0}}
+
+/* top bar */
+header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center;padding:16px 24px 8px;animation:rise .5s both}
+.right{display:flex;gap:12px;justify-self:end;align-items:center;min-width:0}
+#now{display:flex;gap:8px;align-items:center;border-radius:999px;padding:10px 16px;font-size:12px;font-weight:700;white-space:nowrap;min-width:0;max-width:340px}
+#now[hidden]{display:none}
+#now b{overflow:hidden;text-overflow:ellipsis}
+#now i{width:9px;height:9px;border-radius:50%;background:var(--acc);box-shadow:0 0 10px var(--acc);flex:none;animation:beat 1.4s ease-in-out infinite}
+#now span{font-family:var(--mono);color:var(--dim)}
+#brand{font-weight:900;font-size:17px;letter-spacing:.14em;display:flex;gap:10px;align-items:center;border-radius:999px;padding:11px 20px;justify-self:start}
+#brand{padding:7px 20px 7px 8px}
+#brand img{width:32px;height:32px;border-radius:10px;box-shadow:0 2px 10px var(--shade)}
+@keyframes beat{50%{transform:scale(1.07)}}
+#dock{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:6px;border-radius:999px;min-width:0;max-width:100%;justify-self:center}
+#dock button{display:flex;align-items:center;gap:7px;white-space:nowrap;cursor:pointer;font-weight:700;font-size:13px;border:0;background:none;border-radius:999px;padding:9px 16px;color:var(--dim);transition:background .2s,color .2s,transform .2s var(--spring)}
+#dock button:hover{color:var(--fg);background:rgba(var(--tint),.1)}
+#dock button.on{background:var(--acc);color:var(--on);box-shadow:0 0 22px color-mix(in srgb,var(--acc) 55%,transparent);transform:scale(1.06)}
+.ic{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.lg{height:20px;max-width:110px;object-fit:contain;display:block}
+.lg.big{height:34px;max-width:240px}
+/* pop-up menus open from the button that called them */
+.scrim.pop{display:block;background:none;backdrop-filter:none;animation:none}
+.menu{position:fixed;min-width:320px;max-width:400px;border-radius:24px;transform-origin:bottom left;animation:menuin .16s ease-out both;user-select:none}
+@keyframes menuin{from{opacity:0;transform:scale(.95) translateY(8px)}}
+.menu h2{margin:0;font:600 12px var(--mono);padding:16px 24px 0;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.menu .body{padding:12px 16px 16px}
+.menu .sws{display:grid;grid-template-columns:repeat(4,74px);gap:8px}
+.menu .list{margin:0;gap:4px}
+/* the card you see before a game starts */
+.pv{display:flex;gap:24px;align-items:flex-start;padding-top:24px}
+.pv .cover{width:220px;aspect-ratio:1;border-radius:var(--r);overflow:hidden;position:relative;flex:none;box-shadow:0 14px 34px var(--shade)}
+.pv .cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pv h1{font-size:30px;font-weight:900;margin:12px 0 16px;line-height:1.05}
+.chk{display:flex;gap:12px;align-items:baseline;margin:8px 0;font-size:14px}
+.chk i{width:10px;height:10px;border-radius:50%;flex:none;background:#4ade80;transform:translateY(1px)}
+.chk i.warn{background:#fbbf24}.chk i.bad{background:#f87171}
+.chk small{display:block}
+.lp{width:38px;height:26px;fill:var(--acc);flex:none}
+.item.on{border-color:var(--acc);background:rgba(var(--tint),.12)}
+.item small{margin-left:auto;padding-left:14px}
+#q{width:210px;flex:0 1 auto;min-width:120px;outline:none;border-radius:999px;padding:10px 18px;transition:width .25s}
+#q:focus{border-color:var(--acc);width:300px}
+#q::placeholder{color:var(--dim)}
+#clock{white-space:nowrap;flex:none;border-radius:999px;padding:10px 16px;font:600 12px var(--mono);letter-spacing:.06em}
+
+/* stage: hero card + games */
+.stage{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:8px 24px 0}
+#hero{display:flex;gap:26px;align-items:center;padding:18px;border-radius:calc(var(--r) + 10px);flex:none;position:relative;overflow:hidden}
+#hero.none{display:none}
+#hero::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 1px 1px,rgba(var(--tint),.16) 1px,transparent 0) 0 0/18px 18px;mask:linear-gradient(100deg,transparent 30%,#000);pointer-events:none}
+#hero .cover{width:clamp(110px,21vh,210px);aspect-ratio:1;border-radius:var(--r);overflow:hidden;position:relative;flex:none;box-shadow:0 14px 34px var(--shade),inset 0 0 0 1px rgba(255,255,255,.2)}
+#hero .cover img,.art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:fade .35s}
+#hero .info{min-width:0;position:relative}
+#hero h1{font-size:clamp(24px,4.6vh,48px);font-weight:900;margin:10px 0 6px;line-height:1.04;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hero p{margin:0;color:var(--dim);font-size:14px}
+#hero.in .info>*{animation:rise .26s both}
+#hero.in .info>:nth-child(2){animation-delay:.05s}#hero.in .info>:nth-child(3){animation-delay:.1s}#hero.in .info>:nth-child(4){animation-delay:.15s}
+.chip{display:inline-block;font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#fff;background:hsl(var(--h,250) 65% 42%);padding:4px 11px;border-radius:99px}
+.chip.yr{background:rgba(var(--tint),.18);color:var(--fg)}
+#hero .about{margin-top:8px;max-width:70ch;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px}
+.v-shelf #hero .about{max-width:60ch}
+.cta{margin-top:14px;display:flex;gap:16px;align-items:center;font-size:13px;font-weight:700}
+.gl{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--fg);color:var(--bg);font:700 11px var(--mono);margin-right:6px}
+.ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 44px var(--font);color:rgba(255,255,255,.92);text-shadow:0 2px 14px rgba(0,0,0,.35)}
+main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:thin;scrollbar-color:rgba(var(--tint),.3) transparent}
+.tile{position:relative;display:flex;flex-direction:column;gap:8px;padding:8px;border-radius:var(--r);cursor:pointer;text-align:left;outline:none;min-width:0;
+  background:linear-gradient(150deg,rgba(var(--tint),calc(var(--ga) + .03)),rgba(var(--tint),var(--gb)));border:1px solid rgba(var(--tint),var(--edge));
+  box-shadow:inset 0 1px 0 rgba(var(--tint),var(--shine)),0 10px 28px var(--shade);transition:transform .3s var(--spring),opacity .25s;will-change:transform;animation:pop .45s var(--spring) both;animation-delay:calc(var(--i)*22ms)}   /* only transform and opacity ever animate */
+.still .tile{animation:none}
+.tile:hover{transform:translateY(-4px) scale(1.03)}
+.tile:focus{transform:scale(1.08);z-index:2}
+.tile:focus::after{content:"";position:absolute;inset:-7px;border-radius:calc(var(--r) + 7px);border:3px solid var(--acc);box-shadow:0 0 32px color-mix(in srgb,var(--acc) 50%,transparent);animation:cursor 1s ease-in-out infinite alternate;pointer-events:none}
+@keyframes cursor{from{opacity:.55}to{opacity:1}}
+.art{position:relative;aspect-ratio:1;border-radius:calc(var(--r) - 8px);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);flex:none}
+.art::after,#hero .cover::after{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.3),transparent 40%);pointer-events:none}
+.fav{position:absolute;z-index:1;top:5px;right:8px;color:var(--acc);font-size:17px;text-shadow:0 0 8px #000}
+.new{position:absolute;z-index:3;right:-5px;top:-5px;width:15px;height:15px;border-radius:50%;background:var(--acc);border:3px solid var(--bg)}   /* never played yet */
+.v-list .new{display:none}
+.tile.playing .art{outline:3px solid var(--acc);outline-offset:-3px}
+.tile .name{font-weight:700;font-size:13px;padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .meta{font:500 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--dim);padding:0 4px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sec{grid-column:1/-1;margin:14px 4px -8px;font:600 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.sec:first-child{margin-top:0}
+#empty{text-align:center;color:var(--dim);margin:auto;line-height:1.8}
+
+/* layout: Home (hero + two rows of icons that scroll sideways) */
+.v-home main,.v-shelf main{overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none}
+.v-home #grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:var(--tile);gap:18px;margin:auto 0;padding:0 6px}
+.v-home .tile .name,.v-home .tile .meta,.v-home .sec,.v-shelf .sec,.v-shelf .tile .meta{display:none}
+@media (max-height:780px){.v-home #grid{grid-template-rows:auto}}
+/* layout: Grid (everything, grouped by system) */
+.v-grid #hero{display:none}
+.v-grid #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--tile),1fr));gap:22px}
+/* layout: Shelf (one row of big covers) */
+.v-shelf #hero{background:none;border:0;box-shadow:none;backdrop-filter:none;padding:4px 14px}
+.v-shelf #hero::before,.v-shelf #hero .cover{display:none}
+.v-shelf #grid{display:flex;gap:26px;padding:0 10px;align-items:center}
+.v-shelf .tile{flex:0 0 calc(var(--tile)*1.75)}
+.v-shelf .tile:not(:focus){opacity:.72;transform:scale(.94)}
+/* layout: List (cover on the left, rows on the right) */
+.v-list .stage{flex-direction:row;gap:24px;padding-bottom:8px}
+.v-list main{padding:16px 12px 24px 8px}
+.v-list #hero{flex:0 0 clamp(280px,26vw,380px);flex-direction:column;align-items:stretch;justify-content:flex-start;gap:16px;padding:16px 16px 24px;align-self:flex-start;margin-top:16px}
+.v-list #hero .cover{width:100%}
+.v-list #hero h1{white-space:normal;font-size:clamp(22px,2.1vw,32px);margin:12px 0 8px}
+.v-list #hero .info{padding:0 8px}
+.v-list #grid{display:flex;flex-direction:column;gap:8px}
+.v-list .tile{flex-direction:row;align-items:center;gap:16px;padding:8px 24px 8px 8px;border-radius:calc(var(--r)*.7)}
+.v-list .tile:focus{transform:translateX(8px)}
+.v-list .tile:focus::after{inset:-5px;border-radius:calc(var(--r)*.7 + 5px)}
+.v-list .art{width:52px;border-radius:12px}
+.v-list .tile .ph{font-size:20px}
+.v-list .tile .name{flex:1;font-size:15px}
+.v-list .sec{margin:16px 8px 0}
+
+/* bottom bar */
+footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:rise .5s .1s both}
+#quick{display:flex;gap:10px}
+#quick button{position:relative;width:46px;height:46px;border-radius:50%;cursor:pointer;display:grid;place-items:center;padding:0;transition:transform .2s var(--spring),border-color .2s}
+#quick button:hover,#quick button:focus-visible{transform:scale(1.14);border-color:var(--acc);outline:none}
+#quick svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#quick button::after{content:attr(title);position:absolute;bottom:54px;left:50%;transform:translateX(-50%) translateY(6px);white-space:nowrap;font-size:12px;font-weight:700;background:var(--fg);color:var(--bg);padding:4px 10px;border-radius:99px;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s}
+#quick button:hover::after{opacity:1;transform:translateX(-50%)}
+#count{color:var(--dim);font:500 12px var(--mono);letter-spacing:.04em;text-transform:uppercase}
+#hints{margin-left:auto;color:var(--dim);font-size:12px;white-space:nowrap;display:flex;gap:14px;align-items:center}
+#hints .gl{width:20px;height:20px;font-size:10px;background:rgba(var(--tint),.2);color:var(--fg);border:1px solid rgba(var(--tint),.35)}
+#hints .gl.w{width:auto;padding:0 7px;border-radius:99px}
+
+/* start-up and launch moments */
+#splash{position:fixed;inset:0;z-index:60;background:var(--bg);display:grid;place-items:center;transition:opacity .5s,visibility .5s}
+#splash.gone{opacity:0;visibility:hidden}
+#splash div{font:900 46px var(--font);letter-spacing:.2em;display:flex;gap:18px;align-items:center;animation:pop .7s var(--spring) both}
+#splash div{flex-direction:column;gap:26px}
+#splash img{width:132px;height:132px;border-radius:34px;box-shadow:0 20px 60px var(--shade);animation:beat 1.2s ease-in-out infinite}
+#fx{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:rgba(0,0,0,.5);backdrop-filter:blur(30px);animation:fade .25s;transition:opacity .45s;color:#fff;text-align:center}
+#fx.out{opacity:0}
+#fx .cover{width:min(34vh,300px);aspect-ratio:1;border-radius:36px;overflow:hidden;position:relative;margin:auto;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 4px var(--acc);animation:pop .6s var(--spring) both}
+#fx .cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#fx h2{font-size:30px;font-weight:900;margin:26px 0 4px;animation:rise .4s .15s both}
+#fx p{margin:0;opacity:.75;animation:rise .4s .22s both}
+#fx .bar{width:220px;height:5px;border-radius:9px;background:rgba(255,255,255,.2);margin:22px auto 0;overflow:hidden}
+#fx .bar i{display:block;height:100%;background:var(--acc);animation:fill 1.5s ease-out both}
+@keyframes fill{from{width:0}to{width:100%}}
+
+/* motion settings */
+.m-calm #orbs i,.m-calm .tile:focus::after{animation:none}
+.m-off *,.m-off *::before,.m-off *::after{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion:reduce){#orbs i,.tile,.tile:focus::after,#brand img,#now i{animation:none}}
+
+/* panels */
+.btn{background:linear-gradient(135deg,rgba(var(--tint),calc(var(--ga) + .04)),rgba(var(--tint),var(--gb)));border:1px solid rgba(var(--tint),var(--edge));box-shadow:inset 0 1px 0 rgba(var(--tint),var(--shine));border-radius:999px;padding:8px 16px;cursor:pointer;font-weight:600;transition:border-color .15s,transform .2s var(--spring)}
+.btn:hover,.btn:focus-visible{border-color:var(--acc);outline:none;transform:scale(1.04)}
+.btn:active{transform:scale(.96)}
+.btn.pri,.tabs .btn.on{background:var(--acc);color:var(--on);border-color:var(--acc);font-weight:700;box-shadow:0 0 22px color-mix(in srgb,var(--acc) 40%,transparent)}
+.btn.xl{font-size:17px;padding:14px 26px}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;z-index:10;animation:fade .2s}
+.modal{width:min(900px,94vw);max-height:88vh;display:flex;flex-direction:column;border-radius:32px;user-select:text;backdrop-filter:blur(44px) saturate(1.8);animation:pop .35s var(--spring) both}
+.modal h2{margin:0;padding:24px 28px 6px;font-size:24px;font-weight:900;letter-spacing:.01em}
+.modal h3{margin:22px 0 4px;font-size:12px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--fg);opacity:.8}
+.modal .body{padding:10px 28px 24px;overflow:auto;overscroll-behavior:contain;line-height:1.55;scrollbar-width:thin;scrollbar-color:rgba(var(--tint),.3) transparent}
+.modal .foot{display:flex;gap:10px;justify-content:flex-end;padding:16px 28px;border-top:1px solid rgba(var(--tint),.14);flex-wrap:wrap}
+.tabs{display:flex;gap:6px;padding:10px 28px 4px;flex-wrap:wrap}
+.row{display:flex;gap:10px;align-items:center;margin:9px 0;flex-wrap:wrap}
+.row label{min-width:120px;color:var(--dim);font-size:13px}
+.card{border:1px solid rgba(var(--tint),.16);border-radius:20px;padding:14px 16px;margin:12px 0;background:rgba(var(--tint),.06);box-shadow:inset 0 1px 0 rgba(var(--tint),.18)}
+input[type=text],select{background:var(--field);border:1px solid rgba(var(--tint),.18);border-radius:12px;padding:8px 12px;min-width:0;outline:none}
+select option{background:#16181d;color:#fff}
+input[type=range],input[type=checkbox]{accent-color:var(--acc)}
+input.w{flex:1}
+small,.dim{color:var(--dim);font-size:12.5px}
+code{font-family:var(--mono);font-size:12px;word-break:break-all;color:var(--dim)}
+.list{display:flex;flex-direction:column;gap:4px;margin-top:12px}
+.item{display:flex;gap:10px;align-items:center;text-align:left;background:rgba(var(--tint),.05);border:1px solid transparent;border-radius:12px;padding:9px 12px;cursor:pointer}
+.item:hover{background:rgba(var(--tint),.12)}
+.item i{width:14px;height:11px;border-radius:3px;background:var(--acc);flex:none}
+.sw{width:74px;height:74px;border-radius:22px;border:2px solid rgba(var(--tint),.25);cursor:pointer;display:flex;align-items:flex-end;justify-content:center;padding:6px;font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 4px #000;transition:transform .2s var(--spring)}
+.sw:hover{transform:scale(1.08)}
+.sw.on{border-color:var(--fg);box-shadow:0 0 0 3px var(--acc)}
+#layer :is(button,select,input):focus{outline:2px solid var(--acc);outline-offset:2px}
+#toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%) translateY(10px);z-index:70;opacity:0;transition:opacity .2s,transform .3s var(--spring);pointer-events:none;border-radius:999px;padding:10px 20px;font-weight:600}
+#toast.on{opacity:1;transform:translateX(-50%)}
+</style>
+
+</head>
+<body>
+<div id="orbs"><i></i><i></i><i></i></div><div id="bg"></div>
+<div id="splash"><div><img src="/cove.ico" alt="">COVE</div></div>
+<header>
+  <div id="brand" class="glass"><img src="/cove.ico" alt="">COVE</div>
+  <div id="dock" class="glass"></div>
+  <div class="right"><div id="now" class="glass" hidden></div><input id="q" class="glass" type="text" placeholder="Search  ( / )"><span id="clock" class="glass"></span></div>
+</header>
+<div class="stage">
+  <section id="hero" class="glass none"></section>
+  <main><div id="grid"></div><div id="empty" hidden></div></main>
+</div>
+<footer>
+  <div id="quick"></div><span id="count"></span>
+  <div id="hints"><span><b class="gl">A</b>Start</span><span><b class="gl">Y</b>Options</span><span><b class="gl">X</b>Favourite</span><span><b class="gl w">LB RB</b>Systems</span><span><b class="gl w">SELECT</b>Layout</span><span><b class="gl w">START</b>Settings</span><span id="padhint"></span></div>
+</footer>
+<div id="toast" class="glass"></div>
+<div id="layer"></div>
+
+<script>
+'use strict';
+const T='__TOKEN__';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+const api=async(p,b)=>{
+  const r=await fetch('/api/'+p,{method:b===undefined?'GET':'POST',headers:{'X-Token':T},body:b===undefined?undefined:typeof b==='string'?b:JSON.stringify(b)});
+  const j=await r.json(); if(!r.ok)throw Error(j.error==='unknown'?'Almost there: close Cove, wait 10 seconds and reopen it to finish updating':j.error||r.status); return j;
+};
+
+/* ---------- definitions: edit these to teach Cove new systems or emulators ---------- */
+// [folder id, name, dock label, extensions sorted automatically, extensions accepted but ambiguous, libretro thumbnail set]
+const SYS=[
+ ['switch','Nintendo Switch','Switch',['.nsp','.xci','.nsz','.xcz'],['.nca','.nro'],''],
+ ['switch2','Nintendo Switch 2','Switch 2',['.nup'],['.nsp','.xci','.nsz','.xcz','.nca','.nro'],''],
+ ['wiiu','Wii U','Wii U',['.wua','.wux','.wud','.rpx'],[],''],
+ ['wii','Wii','Wii',['.wbfs','.wia'],['.iso','.rvz','.ciso','.gcz','.wad'],'Nintendo - Wii'],
+ ['gc','GameCube','GC',['.gcm'],['.iso','.rvz','.ciso','.gcz','.dol'],'Nintendo - GameCube'],
+ ['n3ds','Nintendo 3DS','3DS',['.3ds','.cci','.cxi','.3dsx'],[],'Nintendo - Nintendo 3DS'],
+ ['nds','Nintendo DS','DS',['.nds','.dsi'],[],'Nintendo - Nintendo DS'],
+ ['gba','Game Boy Advance','GBA',['.gba'],[],'Nintendo - Game Boy Advance'],
+ ['gbc','Game Boy Color','GBC',['.gbc'],[],'Nintendo - Game Boy Color'],
+ ['gb','Game Boy','GB',['.gb'],[],'Nintendo - Game Boy'],
+ ['n64','Nintendo 64','N64',['.z64','.n64','.v64'],[],'Nintendo - Nintendo 64'],
+ ['snes','Super Nintendo','SNES',['.sfc','.smc'],[],'Nintendo - Super Nintendo Entertainment System'],
+ ['nes','NES','NES',['.nes','.fds'],[],'Nintendo - Nintendo Entertainment System'],
+ ['ps3','PlayStation 3','PS3',[],['.iso'],'Sony - PlayStation 3'],
+ ['ps2','PlayStation 2','PS2',['.zso'],['.iso','.chd','.cso','.bin','.m3u'],'Sony - PlayStation 2'],
+ ['psx','PlayStation','PS1',['.ecm'],['.cue','.chd','.bin','.iso','.m3u','.pbp','.img'],'Sony - PlayStation'],
+ ['psp','PSP','PSP',[],['.iso','.cso','.pbp','.chd'],'Sony - PlayStation Portable'],
+ ['xbox360','Xbox 360','360',['.xex','.zar'],['.iso'],'Microsoft - Xbox 360'],
+ ['xbox','Xbox','Xbox',['.xiso'],['.iso'],'Microsoft - Xbox'],
+ ['dreamcast','Dreamcast','DC',['.gdi','.cdi'],['.chd','.cue','.bin','.m3u'],'Sega - Dreamcast'],
+ ['saturn','Saturn','Saturn',[],['.cue','.chd','.bin','.iso','.ccd','.mds','.m3u'],'Sega - Saturn'],
+ ['genesis','Genesis / Mega Drive','Genesis',['.gen','.smd'],['.md'],'Sega - Mega Drive - Genesis'],
+ ['mastersystem','Master System','SMS',['.sms'],[],'Sega - Master System - Mark III'],
+ ['gamegear','Game Gear','GG',['.gg'],[],'Sega - Game Gear'],
+ ['arcade','Arcade (MAME)','Arcade',[],['.zip','.7z'],'MAME'],
+ ['pc','PC games & shortcuts','PC',['.lnk','.url'],['.exe','.bat'],''],
+].map(a=>({id:a[0],name:a[1],label:a[2],auto:a[3],exts:a[3].concat(a[4]),lr:a[5]}));
+const ZIPPED=['gb','gbc','gba','nes','snes','n64','nds','genesis','mastersystem','gamegear'];  // these also accept .zip/.7z
+SYS.forEach(s=>{if(ZIPPED.includes(s.id))s.exts.push('.zip','.7z')});
+const SIDECAR=/\.(sav|srm|dsv|sps|eep|fla|sra|mpk|state|ss\d)$/i;   // save files that travel with their game
+
+// {rom} game path  {dir} its folder  {name} file name without extension  {emudir} emulator folder  {core} RetroArch core
+// data: where the emulator keeps its files (first that exists wins). saves/cfg: sub-paths inside it.
+const KINDS=[
+ {id:'yuzu',name:'Switch / Switch 2 (Eden family: Eden, Citron, Eglantine, Lichii, Fritchii, PokeDinner)',rx:/^(eden|citron|eglantine|lichii|fritchii|yuzu|suyu|sudachi)\.exe$/,args:'-f -g "{rom}"',sys:['switch','switch2'],
+  data:['{emudir}\\user','%APPDATA%\\{exe}','%APPDATA%\\eden'],saves:['nand\\user\\save','nand\\system\\save\\8000000000000010'],cfg:['config']},
+ {id:'ryujinx',name:'Switch (Ryujinx family: Ryubing, Kenji-NX)',rx:/^(ryujinx(\.ava)?|kenji-nx)\.exe$/,args:'--fullscreen "{rom}"',sys:['switch'],
+  data:['{emudir}\\portable','%APPDATA%\\Ryujinx'],saves:['bis\\user\\save','bis\\user\\saveMeta','bis\\system\\save'],cfg:['Config.json','profiles','system\\Profiles.json']},
+ {id:'dolphin',name:'Dolphin',rx:/^dolphin\.exe$/,args:'-b -e "{rom}"',sys:['gc','wii'],
+  data:['{emudir}\\User','%DOCS%\\Dolphin Emulator','%APPDATA%\\Dolphin Emulator'],saves:['GC','Wii','StateSaves'],cfg:['Config','GameSettings']},
+ {id:'cemu',name:'Cemu',rx:/^cemu\.exe$/,args:'-f -g "{rom}"',sys:['wiiu'],data:['{emudir}\\portable','%APPDATA%\\Cemu'],saves:['mlc01\\usr\\save'],cfg:['settings.xml','controllerProfiles']},
+ {id:'azahar',name:'Azahar / Lime3DS / Citra',rx:/^(azahar|lime3ds|lime-qt|citra-qt)\.exe$/,args:'-f "{rom}"',sys:['n3ds'],data:['{emudir}\\user','%APPDATA%\\Azahar','%APPDATA%\\Citra'],saves:['sdmc','nand','states'],cfg:['config']},
+ {id:'melonds',name:'melonDS',rx:/^melonds\.exe$/,args:'-f "{rom}"',sys:['nds']},
+ {id:'desmume',name:'DeSmuME',rx:/^desmume.*\.exe$/,args:'"{rom}"',sys:['nds']},
+ {id:'mgba',name:'mGBA',rx:/^mgba\.exe$/,args:'-f "{rom}"',sys:['gba','gbc','gb']},
+ {id:'duckstation',name:'DuckStation',rx:/^duckstation.*\.exe$/,args:'-batch -fullscreen -- "{rom}"',sys:['psx'],data:['%DOCS%\\DuckStation','{emudir}'],saves:['memcards','savestates'],cfg:['settings.ini','inputprofiles']},
+ {id:'pcsx2',name:'PCSX2',rx:/^pcsx2.*\.exe$/,args:'-batch -fullscreen -- "{rom}"',sys:['ps2'],data:['%DOCS%\\PCSX2','{emudir}'],saves:['memcards','sstates'],cfg:['inis']},
+ {id:'rpcs3',name:'RPCS3',rx:/^rpcs3\.exe$/,args:'--no-gui --fullscreen "{rom}"',sys:['ps3'],data:['{emudir}'],saves:['dev_hdd0\\home'],cfg:['config']},
+ {id:'ppsspp',name:'PPSSPP',rx:/^ppsspp.*\.exe$/,args:'--fullscreen --pause-menu-exit "{rom}"',sys:['psp'],data:['{emudir}\\memstick','%DOCS%\\PPSSPP'],saves:['PSP\\SAVEDATA','PSP\\PPSSPP_STATE'],cfg:['PSP\\SYSTEM']},
+ {id:'xemu',name:'xemu',rx:/^xemu\.exe$/,args:'-full-screen -dvd_path "{rom}"',sys:['xbox']},
+ {id:'xenia',name:'Xenia',rx:/^xenia.*\.exe$/,args:'--fullscreen "{rom}"',sys:['xbox360']},
+ {id:'flycast',name:'Flycast',rx:/^flycast\.exe$/,args:'"{rom}"',sys:['dreamcast']},
+ {id:'ymir',name:'Ymir',rx:/^ymir.*\.exe$/,args:'-f "{rom}"',sys:['saturn']},
+ {id:'mesen',name:'Mesen',rx:/^mesen\.exe$/,args:'--fullscreen "{rom}"',sys:['nes','snes','gb','gbc','gba','mastersystem','gamegear']},
+ {id:'snes9x',name:'Snes9x',rx:/^snes9x.*\.exe$/,args:'-fullscreen "{rom}"',sys:['snes']},
+ {id:'project64',name:'Project64',rx:/^project64\.exe$/,args:'"{rom}"',sys:['n64']},
+ {id:'rmg',name:"Rosalie's Mupen GUI",rx:/^rmg\.exe$/,args:'-f -n -q "{rom}"',sys:['n64']},
+ {id:'mame',name:'MAME',rx:/^mame(64)?\.exe$/,args:'-rompath "{dir}" {name}',sys:['arcade']},
+ {id:'retroarch',name:'RetroArch',rx:/^retroarch\.exe$/,args:'-f -L "{emudir}\\cores\\{core}_libretro.dll" "{rom}"',data:['{emudir}'],saves:['saves','states'],cfg:['retroarch.cfg','config'],
+  cores:{gb:'gambatte',gbc:'gambatte',gba:'mgba',nes:'mesen',snes:'snes9x',n64:'mupen64plus_next',nds:'melondsds',psx:'mednafen_psx_hw',psp:'ppsspp',dreamcast:'flycast',saturn:'mednafen_saturn',genesis:'genesis_plus_gx',mastersystem:'genesis_plus_gx',gamegear:'genesis_plus_gx',arcade:'mame'}},
+ {id:'custom',name:'Custom (write the arguments yourself)',rx:/^$/,args:'"{rom}"',sys:[]},
+];
+KINDS.find(k=>k.id==='retroarch').sys=Object.keys(KINDS.find(k=>k.id==='retroarch').cores);
+const VER=5;
+const DISCORD_APP='';                                    // Cove's own Discord Application ID; when set, Discord is one button for everyone
+const did=()=>S.discord.id||DISCORD_APP;                                              // bump with server.ps1's info.v when the helper changes
+const SW=['.nsp','.xci','.nsz','.xcz','.nup'];            // Switch-family files: told apart by "Switch 2"/"NX2" in the path
+const NOISY=['.zip','.7z','.bin','.exe','.bat','.lnk','.url','.img','.m3u','.dol','.nca','.nro','.ccd','.mds','.md','.wad'];  // only count inside a folder named after a system
+const UNSORTED={id:'unsorted',name:'Unsorted',label:'Unsorted',auto:[],exts:[],lr:''};
+const NOT_MAIN=/(cli|cmd|room|tests?|precompile|redist|crash|updat|unins|setup)/i;
+
+/* ---------- state ---------- */
+let S, INFO, GAMES=[], HIDDEN=[], ART={}, NOW=null, tab='all', saveT;
+const DEF={setup:false,library:'',roots:[],emus:[],defaults:{},games:{},systems:[],art:{},meta:{},discord:{on:false,id:'',art:true},ui:{theme:'frost',accent:'',wall:'',size:150,view:'shelf',corners:'soft',motion:'full',sound:true,confirm:true}};
+const save=()=>{clearTimeout(saveT);saveT=setTimeout(()=>api('state',JSON.stringify(S,null,1)).catch(e=>toast('Could not save settings: '+e.message)),250)};
+const systems=()=>SYS.concat(S.systems.map(s=>({...s,auto:s.exts,lr:''})));
+const sysOf=id=>systems().find(s=>s.id===id)||(id==='unsorted'?UNSORTED:undefined);
+const kindOf=e=>KINDS.find(k=>k.id===e.kind)||KINDS[KINDS.length-1];
+const emuSys=e=>e.sys&&e.sys.length?e.sys:kindOf(e).sys;
+const J=(...a)=>a.filter(Boolean).join(INFO.sep);
+const dir=p=>/[\\/]/.test(p)?p.replace(/[\\/][^\\/]*$/,''):'';
+const file=p=>p.split(/[\\/]/).pop();
+const ext=p=>(/\.[^.\\/]+$/.exec(p)||[''])[0].toLowerCase();
+const stem=p=>file(p).replace(/\.[^.]+$/,'');
+const pretty=n=>n.replace(/\s*[\[(][^\])]*[\])]/g,'').replace(/\s+(switch ?2|nx2)\b.*$/i,'').replace(/[_\u2122\u00ae]/g,' ').replace(/\s+/g,' ').trim()||n;
+const uid=()=>Math.random().toString(36).slice(2,9);
+const gs=id=>S.games[id]||(S.games[id]={});
+const romRoots=()=>[J(S.library,'ROMs')].concat(S.roots);
+const fill=(t,v)=>t.replace(/\{(\w+)\}|%(\w+)%/g,(m,a,b)=>v[a||b]??m);
+
+/* ---------- library ---------- */
+// Games are read where they already are. A file's system comes from, in order: your own choice, a parent folder
+// named after a system (gba, switch2...), then its file type. Anything still ambiguous lands in Unsorted.
+function classify(rel,folderGame){
+  const segs=rel.toLowerCase().split('/').slice(0,-1), e=folderGame?'':ext(rel), all=systems();
+  const named=all.find(s=>segs.includes(s.id)&&(folderGame?/^switch/.test(s.id):s.exts.includes(e)));
+  if(named)return named.id;
+  if(folderGame||SW.includes(e))return e==='.nup'||/switch ?2|nx2|ns2/i.test(rel)?'switch2':'switch';
+  if(NOISY.includes(e))return '';
+  const sure=all.filter(s=>s.auto.includes(e)&&s.id!=='pc');
+  return sure.length===1?sure[0].id:all.some(s=>s.exts.includes(e))?'unsorted':'';
+}
+async function scan(){
+  GAMES=[];HIDDEN=[];ART={};
+  if(!S.library)return;
+  const art=await api('ls',{path:J(S.library,'Art'),depth:2});
+  art.items.forEach(i=>{const p=i.p.split(/[\\/]/);ART[p[0]+'/'+stem(i.p)]=J(art.root,i.p)});
+  const exts=[...new Set(systems().flatMap(s=>s.exts))].concat(['']), seen=new Set();
+  for(const root of romRoots()){
+    let r; try{r=await api('ls',{path:root,depth:5,exts})}catch(e){toast('Could not read '+root);continue}
+    const cue=new Set(r.items.filter(i=>/\.(cue|gdi|ccd|mds)$/i.test(i.p)).map(i=>dir(i.p)));
+    for(const i of r.items){
+      const rel=i.p.replace(/\\/g,'/'); let folder=false;
+      if(/(^|\/)romfs\//i.test(rel))continue;
+      if(/(^|\/)exefs\//i.test(rel)){if(!/\/exefs\/main$/i.test(rel))continue;folder=true}   // an unpacked Switch game: the folder is the game
+      else if(!ext(rel))continue;
+      if(ext(rel)==='.bin'&&cue.has(dir(i.p)))continue;       // the .cue is the game, the .bin is its data
+      const id=root+'|'+rel; if(seen.has(id))continue; seen.add(id);
+      const o=S.games[id]||{}, sys=o.sys||classify(rel,folder); if(!sys)continue;
+      const full=J(r.root,i.p), gdir=folder?dir(dir(full)):'', base=folder?file(gdir):stem(rel);
+      (o.hide?HIDDEN:GAMES).push({id,sys,path:full,folder:gdir,base,title:o.title||pretty(base)});
+    }
+  }
+  for(const id in S.games)if(!Object.keys(S.games[id]).length)delete S.games[id];
+  const order=['unsorted'].concat(systems().map(s=>s.id).reverse()).reverse();   // Unsorted goes last
+  GAMES.sort((a,b)=>order.indexOf(a.sys)-order.indexOf(b.sys)||a.title.localeCompare(b.title));
+}
+const artKey=g=>g.sys+'|'+g.title.toLowerCase();
+const LRFAIL=new Set();
+function artUrl(g){
+  const custom=gs(g.id).art||ART[g.sys+'/'+g.base];
+  if(custom)return '/file?t='+T+'&p='+encodeURIComponent(custom);
+  const k=artKey(g); if(S.art[k])return S.art[k];
+  const lr=sysOf(g.sys).lr;
+  return lr&&S.art[k]!==0&&!LRFAIL.has(k)&&!HACKS.some(h=>h[0].test(g.title))?`https://thumbnails.libretro.com/${encodeURIComponent(lr)}/Named_Boxarts/${encodeURIComponent(g.base.replace(/[&*/:`<>?\\|"]/g,'_'))}.png`:'';
+}
+// cover lookup by name on Wikipedia (no key needed); the answer is remembered, including "nothing found"
+const nrm=x=>x.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+// fan-made hacks have no official cover, so they borrow the cover of the game they are built on. Add your own lines here.
+const HACKS=[[/storm ?silver|sacred ?gold/i,'Pokemon HeartGold and SoulSilver'],[/blaze ?black ?2|volt ?white ?2/i,'Pokemon Black 2 and White 2'],[/blaze ?black|volt ?white/i,'Pokemon Black and White'],
+  [/renegade ?platinum/i,'Pokemon Platinum'],[/radical ?red|unbound|rocket ?edition|gaia/i,'Pokemon FireRed and LeafGreen'],[/seaglass|emerald ?(rogue|kaizo|imperium)|inclement/i,'Pokemon Emerald'],
+  [/crystal ?clear|polished ?crystal/i,'Pokemon Crystal'],[/rising ?ruby|sinking ?sapphire/i,'Pokemon Omega Ruby and Alpha Sapphire'],[/eternal ?x|wilting ?y/i,'Pokemon X and Y'],[/photonic ?sun|prismatic ?moon/i,'Pokemon Ultra Sun and Ultra Moon']];
+const lookFor=g=>(HACKS.find(h=>h[0].test(g.title))||[0,g.title.replace(/[-:]/g,' ')])[1];
+// scraper: looks each game up by name on Wikipedia (no key) for a cover, a short description and the year.
+// Answers are remembered in settings, including "nothing found", so each game is only asked about once.
+async function wikiSearch(q){
+  const res=await fetch('https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrlimit=5&prop=pageimages|extracts|description&piprop=thumbnail&pithumbsize=600&pilicense=any&exintro=1&explaintext=1&exsentences=2&exlimit=max&format=json&origin=*&gsrsearch='+encodeURIComponent(q));
+  if(!res.ok)throw 0;                                        // busy or offline: try again later, do not record a miss
+  const r=await res.json();
+  return Object.values(r.query?.pages||{}).sort((a,b)=>a.index-b.index).map(p=>({title:p.title,img:p.thumbnail?.source||'',about:(p.extract||'').trim(),kind:p.description||''}));
+}
+const needsArt=g=>{const k=artKey(g),lr=sysOf(g.sys).lr;return !gs(g.id).art&&!ART[g.sys+'/'+g.base]&&!S.art[k]&&(!lr||LRFAIL.has(k)||HACKS.some(h=>h[0].test(g.title)))};
+function applyMatch(g,hit){
+  const k=artKey(g);
+  S.meta[k]=hit?{t:hit.title,d:hit.about,y:(/\b(19|20)\d\d\b/.exec(hit.kind+' '+hit.about)||[''])[0]}:0;
+  if(hit&&hit.img&&(needsArt(g)||hit.force))S.art[k]=hit.img; else if(!(k in S.art)&&needsArt(g))S.art[k]=0;
+  save();
+  for(const x of GAMES.filter(x=>artKey(x)===k)){
+    const a=tiles().find(t=>t.dataset.id===x.id)?.querySelector('.art');
+    if(a&&S.art[k]){a.querySelector('img')?.remove();a.insertAdjacentHTML('beforeend',`<img alt="" src="${esc(S.art[k])}" onerror="this.remove()">`)}
+    if(game(document.activeElement)===x)hero(x);
+  }
+}
+const artQ=[], artPending=new Set(); let artBusy=0;
+const scraped=g=>{const k=artKey(g);return k in S.meta&&!(needsArt(g)&&!(k in S.art))};
+function findArt(g){const k=artKey(g);if(scraped(g)||artPending.has(k))return;artPending.add(k);artQ.push(g);pumpArt()}
+async function pumpArt(){
+  if(artBusy||!artQ.length)return;
+  const g=artQ.shift(), k=artKey(g); artBusy=1;
+  try{
+    const pages=await wikiSearch(lookFor(g)+' video game');
+    const words=(nrm(lookFor(g)).match(/[a-z0-9]{4,}/g)||[]).filter(w=>!['game','video','version','edition','with','from','base'].includes(w));
+    applyMatch(g,pages.find(p=>!words.length||words.some(w=>nrm(p.title).includes(w)))); artPending.delete(k);
+  }catch{
+    g.tries=(g.tries||0)+1;
+    if(g.tries<5)setTimeout(()=>{artQ.push(g);pumpArt()},5000*g.tries); else artPending.delete(k);
+  }
+  setTimeout(()=>{artBusy=0;pumpArt()},400);
+}
+// a cover that has not arrived after a few seconds counts as missing, so the next source gets a turn
+setInterval(()=>document.querySelectorAll('.art img').forEach(i=>{if(i.complete)return;i.dataset.w=(+i.dataset.w||0)+1;if(i.dataset.w>2&&/libretro/.test(i.src))artFail(i)}),2000);
+function artFail(img){const g=GAMES.find(x=>x.id===img.dataset.id);img.remove();if(g&&!/^\/file/.test(img.getAttribute('src'))){LRFAIL.add(artKey(g));findArt(g)}}
+const hue=s=>[...s].reduce((h,c)=>(h*31+c.charCodeAt(0))%360,7);
+
+/* ---------- launching ---------- */
+function resolve(g){
+  if(g.sys==='unsorted')return null;
+  if(g.sys==='pc')return{exe:g.path,args:'',cwd:dir(g.path),name:'Windows'};
+  const o=gs(g.id), fits=S.emus.filter(e=>emuSys(e).includes(g.sys));
+  const e=fits.find(e=>e.id===o.emu)||fits.find(e=>e.id===S.defaults[g.sys])||fits[0];
+  if(!e)return null;
+  const k=kindOf(e), v={rom:g.path,dir:dir(g.path),name:g.base,emudir:dir(e.exe),core:(k.cores||{})[g.sys]||''};
+  return{exe:e.exe,args:fill((e.args||k.args)+(o.args?' '+o.args:''),v),cwd:dir(e.exe),name:e.name};
+}
+async function launch(g){
+  if(g.sys==='unsorted'){toast('Pick which system this one is for');return details(g)}
+  const r=resolve(g);
+  if(!r){toast('No emulator set up for '+sysOf(g.sys).name+' yet. Opening Settings.');return settings('emus')}
+  try{
+    await api('launch',{id:g.id,exe:r.exe,args:r.args,cwd:r.cwd});
+    gs(g.id).last=Date.now();save();blip('launch');launchFx(g,r);
+    NOW={id:g.id,title:g.title,t:Date.now()};nowUI();render(true);
+    if(S.discord.on&&did())presence(g,r).catch(e=>toast('Discord: '+e.message));
+  }catch(e){toast('Could not launch: '+e.message)}
+}
+function nowUI(){
+  const n=$('#now'); n.hidden=!NOW; document.title=NOW?'Cove — playing '+NOW.title:'Cove';
+  if(!NOW)return; const m=Math.floor((Date.now()-NOW.t)/60000);
+  n.innerHTML=`<i></i>Now playing <b>${esc(NOW.title)}</b><span>${m<60?m+' min':Math.floor(m/60)+'h '+m%60+'m'}</span>`;
+}
+setInterval(nowUI,20000);
+// Discord status: "Playing <game>", with system and emulator underneath and box art when it is a web image
+function presence(g,r){
+  const s=sysOf(g.sys), u=artUrl(g), a={type:0,status_display_type:2,details:(g.title+'  ').slice(0,120),state:(s.name+' \u00b7 '+r.name).slice(0,120),timestamps:{start:Date.now()}};
+  a.assets=S.discord.art&&/^https:/.test(u)?{large_image:u,large_text:s.name,small_image:'cove',small_text:'Cove'}:{large_image:'cove',large_text:'Cove'};
+  return api('discord',{clientId:did(),activity:a});
+}
+setInterval(async()=>{
+  try{
+    const r=await api('ping');r.done.forEach(d=>{gs(d.id).time=(gs(d.id).time||0)+d.s});if(r.done.length)save();
+    // the game counts as closed once the helper no longer lists it (older helper: once nothing is running)
+    if(NOW&&Date.now()-NOW.t>6000&&(r.ids?!r.ids.includes(NOW.id):!r.running)){NOW=null;nowUI();render(true)}
+  }catch{}
+},5000);
+addEventListener('pagehide',()=>navigator.sendBeacon('/api/quit?t='+T));
+
+/* ---------- main view ---------- */
+const LAYOUTS=[['shelf','Shelf','One row of large covers'],['home','Home','Big card over two rows of icons'],['grid','Grid','Everything, grouped by system'],['list','List','Cover on the left, rows on the right']];
+const THEMES=[['frost','Frost','#CCFF00','#040404'],['aurora','Aurora','#7c3aed','#090818'],['joy','Joy','#ff3c28','#0f0f13'],['midnight','Midnight','#1d4ed8','#050a1c'],['mint','Mint','#0d9488','#03110f'],['sunset','Sunset','#ff5e62','#160910'],['mono','Mono','#777','#070707'],
+  ['daylight','Daylight','#8ec5ff','#dde6f6'],['channel','Channel','#7fd4f7','#eef4f8'],['pocket','Pocket','#ffb877','#f5ede2'],['sakura','Sakura','#ff9cc2','#fbeaf1']];
+const ICON={settings:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',layout:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+  theme:'<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17z" fill="currentColor"/>',add:'<path d="M12 5v14M5 12h14"/>',random:'<rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r=".8" fill="currentColor"/><circle cx="15" cy="15" r=".8" fill="currentColor"/><circle cx="12" cy="12" r=".8" fill="currentColor"/>'};
+$('#quick').innerHTML=[['settings','Settings'],['layout','Change layout'],['theme','Change theme'],['random','Surprise me'],['add','Add games']].map(q=>`<button class="glass" data-q="${q[0]}" title="${q[1]}" tabindex="-1"><svg viewBox="0 0 24 24">${ICON[q[0]]}</svg></button>`).join('');
+const KIND={handheld:['gb','gbc','gba','nds','n3ds','psp','gamegear'],hybrid:['switch','switch2'],cart:['nes','snes','n64','genesis','mastersystem'],arcade:['arcade'],pc:['pc'],all:['all'],fav:['fav'],recent:['recent'],unsorted:['unsorted']};
+const GLYPH={handheld:'<rect x="6" y="3" width="12" height="18" rx="2.5"/><rect x="8.5" y="5.5" width="7" height="6" rx="1"/><circle cx="12" cy="16" r="1.3"/>',hybrid:'<rect x="2.5" y="7" width="19" height="10" rx="3"/><path d="M7.5 7v10M16.5 7v10"/>',
+  disc:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.2"/>',cart:'<path d="M5 5h14v14h-3v-3H8v3H5z"/><path d="M9 9h6"/>',arcade:'<circle cx="12" cy="6" r="2.5"/><path d="M12 8.5V15M6 15h12v4H6z"/>',pc:'<rect x="3.5" y="5" width="17" height="11" rx="1.5"/><path d="M9 20h6M12 16v4"/>',
+  all:ICON.layout,fav:'<path d="M12 4l2.4 5 5.5.7-4 3.8 1 5.4-4.9-2.7-4.9 2.7 1-5.4-4-3.8 5.5-.7z"/>',recent:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/>',unsorted:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 16.5v.1"/>'};
+const glyph=id=>GLYPH[Object.keys(KIND).find(k=>KIND[k].includes(id))||'disc'];
+// drop <system id>.png into Library\Art\systems (gba.png, switch2.png ...) and it replaces the name everywhere
+const mark=(id,label)=>ART['systems/'+id]?`<img class="lg" alt="${esc(label)}" src="/file?t=${T}&p=${encodeURIComponent(ART['systems/'+id])}">`:`<svg class="ic" viewBox="0 0 24 24">${glyph(id)}</svg><span>${esc(label)}</span>`;
+// little pictures of each layout for the layout menu
+const LAYPIC={shelf:'<rect x="1" y="6" width="7" height="10" rx="1.5" opacity=".5"/><rect x="10" y="3" width="12" height="16" rx="2"/><rect x="24" y="6" width="7" height="10" rx="1.5" opacity=".5"/>',
+  home:'<rect x="1" y="1" width="30" height="8" rx="2"/><rect x="1" y="11" width="6" height="4.5" rx="1"/><rect x="9" y="11" width="6" height="4.5" rx="1"/><rect x="17" y="11" width="6" height="4.5" rx="1"/><rect x="25" y="11" width="6" height="4.5" rx="1"/><rect x="1" y="16.5" width="6" height="4.5" rx="1"/><rect x="9" y="16.5" width="6" height="4.5" rx="1"/><rect x="17" y="16.5" width="6" height="4.5" rx="1"/><rect x="25" y="16.5" width="6" height="4.5" rx="1"/>',
+  grid:'<rect x="1" y="1" width="8.5" height="9" rx="1.5"/><rect x="11.75" y="1" width="8.5" height="9" rx="1.5"/><rect x="22.5" y="1" width="8.5" height="9" rx="1.5"/><rect x="1" y="12" width="8.5" height="9" rx="1.5"/><rect x="11.75" y="12" width="8.5" height="9" rx="1.5"/><rect x="22.5" y="12" width="8.5" height="9" rx="1.5"/>',
+  list:'<rect x="1" y="1" width="11" height="20" rx="2"/><rect x="14" y="1" width="17" height="5" rx="1.5"/><rect x="14" y="8.5" width="17" height="5" rx="1.5"/><rect x="14" y="16" width="17" height="5" rx="1.5"/>'};
+const ago=t=>{if(!t)return 'Never played';const d=Math.floor((Date.now()-t)/864e5);return 'Last played '+(d<1?'today':d<2?'yesterday':d+' days ago')};
+const played=x=>{const m=Math.round((x||0)/60);return m<1?'':m<60?m+' min':(m/60).toFixed(1)+' h'};
+const cover=g=>{const u=artUrl(g),h=hue(g.title);return `style="background:linear-gradient(140deg,hsl(${h} 70% 46%),hsl(${(h+60)%360} 65% 22%))"><span class="ph">${esc(g.title[0].toUpperCase())}</span>${u?`<img loading="lazy" data-id="${esc(g.id)}" alt="" src="${esc(u)}" onerror="artFail(this)">`:''}`};
+function visible(){
+  const q=$('#q').value.trim().toLowerCase();
+  let l=GAMES.filter(g=>tab==='all'||tab==='recent'?true:tab==='fav'?gs(g.id).fav:g.sys===tab);
+  if(tab==='recent')l=l.filter(g=>gs(g.id).last).sort((a,b)=>gs(b.id).last-gs(a.id).last).slice(0,40);
+  return q?l.filter(g=>g.title.toLowerCase().includes(q)):l;
+}
+function render(keep){
+  const used=systems().concat(UNSORTED).filter(s=>GAMES.some(g=>g.sys===s.id));
+  const tabs=[['all','All'],['fav','Favourites'],['recent','Recent']].concat(used.map(s=>[s.id,s.label||s.name]));
+  if(!tabs.some(t=>t[0]===tab))tab='all';
+  $('#dock').innerHTML=tabs.map(t=>`<button class="${t[0]===tab?'on':''}" data-tab="${esc(t[0])}" title="${esc(t[1])}" tabindex="-1">${mark(t[0],t[1])}</button>`).join('');
+  $('#dock .on')?.scrollIntoView({inline:'center',block:'nearest'});
+  const list=visible(), focusId=keep&&document.activeElement.dataset.id, heads=tab==='all'&&used.length>1;
+  $('#count').textContent=list.length+(list.length===1?' game':' games');
+  let last='';
+  $('#grid').classList.toggle('still',!!keep);
+  $('#grid').innerHTML=list.map((g,i)=>{
+    const s=sysOf(g.sys), o=gs(g.id), head=heads&&g.sys!==last?`<div class="sec">${esc(s.name)}</div>`:''; last=g.sys;
+    findArt(g);
+    return `${head}<button class="tile ${NOW&&NOW.id===g.id?'playing':''}" data-id="${esc(g.id)}" title="${esc(g.title)}" style="--i:${Math.min(i,28)}">
+      <span class="art" ${cover(g)}${o.fav?'<span class="fav">&#9733;</span>':''}</span>${o.last?'':'<span class="new"></span>'}
+      <span class="name">${esc(g.title)}</span><span class="meta">${esc(s.label||s.name)}${played(o.time)?' &middot; '+played(o.time):''}</span></button>`}).join('');
+  const em=$('#empty'); em.hidden=list.length>0;
+  if(!list.length)em.innerHTML=GAMES.length?'Nothing here yet.':'No games yet.<br>Point Cove at the folder where your games are and they show up here. Nothing gets moved.<br><br><button class="btn pri xl" data-act="addgames">Add a games folder</button>';
+  const t=focusId&&tiles().find(x=>x.dataset.id===focusId);
+  (t||$('.tile'))?.focus({preventScroll:!!keep});
+  if(!list.length)hero(null);
+}
+const game=el=>GAMES.find(g=>g.id===el?.dataset?.id);
+const tiles=()=>[...document.querySelectorAll('.tile')];
+function hero(g){
+  const h=$('#hero'); h.classList.toggle('none',!g); if(!g)return;
+  const o=gs(g.id), s=sysOf(g.sys), r=resolve(g), u=artUrl(g);
+  h.innerHTML=`<div class="cover" ${cover(g)}</div><div class="info">${ART['systems/'+g.sys]?`<img class="lg big" alt="" src="/file?t=${T}&p=${encodeURIComponent(ART['systems/'+g.sys])}">`:`<span class="chip" style="--h:${hue(g.sys)}">${esc(s.name)}</span>`}${S.meta[artKey(g)]?.y?` <span class="chip yr">${S.meta[artKey(g)].y}</span>`:''}<h1>${esc(g.title)}</h1>
+    <p>${esc([played(o.time)&&'Played '+played(o.time),ago(o.last),r?r.name:g.sys==='unsorted'?'Pick a system to play':'No emulator set up yet'].filter(Boolean).join('   ·   '))}</p>
+    ${S.meta[artKey(g)]?.d?`<p class="about">${esc(S.meta[artKey(g)].d)}</p>`:''}
+    <div class="cta"><span><b class="gl">A</b>Start</span><span><b class="gl">Y</b>Options</span>${o.fav?'<span>&#9733; Favourite</span>':''}</div></div>`;
+  h.classList.remove('in'); void h.offsetWidth; h.classList.add('in');
+  const bg=$('#bg'), img=S.ui.wall?`url("/file?t=${T}&p=${encodeURIComponent(S.ui.wall)}")`:u?`url("${u}")`:'';
+  if(bg.dataset.img!==img){bg.dataset.img=img;bg.classList.add('swap');setTimeout(()=>{bg.style.backgroundImage=img;bg.classList.remove('swap')},240)}
+}
+// eased scrolling that can be redirected mid-flight (wheel, keys and controller all feed the same target)
+const glides=new Map();
+function glide(el,x,y){
+  const g=glides.get(el)||{px:el.scrollLeft,py:el.scrollTop};
+  if(x!=null)g.x=Math.max(0,Math.min(el.scrollWidth-el.clientWidth,x));
+  if(y!=null)g.y=Math.max(0,Math.min(el.scrollHeight-el.clientHeight,y));
+  glides.set(el,g);
+  if(S.ui.motion==='off'){if(g.x!=null)el.scrollLeft=g.x;if(g.y!=null)el.scrollTop=g.y;glides.delete(el);return}
+  if(g.on)return; g.on=1; g.px=el.scrollLeft; g.py=el.scrollTop;
+  const step=()=>{
+    let busy=false;
+    if(g.x!=null){const d=g.x-g.px;if(Math.abs(d)>.5){g.px+=d*.17;busy=true}else g.px=g.x;el.scrollLeft=g.px}
+    if(g.y!=null){const d=g.y-g.py;if(Math.abs(d)>.5){g.py+=d*.17;busy=true}else g.py=g.y;el.scrollTop=g.py}
+    busy?requestAnimationFrame(step):glides.delete(el);
+  };
+  requestAnimationFrame(step);
+}
+function goto(t){
+  t.focus({preventScroll:true});
+  const m=$('main'), a=m.getBoundingClientRect(), b=t.getBoundingClientRect();
+  glide(m,m.scrollLeft+b.left+b.width/2-a.left-a.width/2,m.scrollTop+b.top+b.height/2-a.top-a.height/2);
+  blip('move');
+}
+function move(dx,dy){
+  const t=tiles(), cur=document.activeElement; if(!t.length)return;
+  if(!t.includes(cur))return goto(t[0]);
+  const box=x=>{const r=x.getBoundingClientRect();return{x,cx:r.left+r.width/2,cy:r.top+r.height/2}}, me=box(cur), all=t.filter(x=>x!==cur).map(box);
+  let n;
+  if(dx){   // stay in the row; at the end of a row carry on in reading order
+    n=all.filter(o=>(o.cx-me.cx)*dx>30&&Math.abs(o.cy-me.cy)<60).sort((a,b)=>Math.abs(a.cx-me.cx)-Math.abs(b.cx-me.cx))[0]?.x||t[t.indexOf(cur)+dx];
+  }else{    // nearest row up or down, then the closest tile in it
+    const rows=all.filter(o=>(o.cy-me.cy)*dy>40);
+    if(rows.length){const edge=Math.min(...rows.map(o=>Math.abs(o.cy-me.cy)));n=rows.filter(o=>Math.abs(Math.abs(o.cy-me.cy)-edge)<40).sort((a,b)=>Math.abs(a.cx-me.cx)-Math.abs(b.cx-me.cx))[0].x}
+  }
+  if(n)goto(n);
+}
+function cycle(d){const b=[...$('#dock').children],i=b.findIndex(x=>x.classList.contains('on'));tab=b[(i+d+b.length)%b.length].dataset.tab;render();blip('tab')}
+function fav(g){if(!g)return;const o=gs(g.id);o.fav=!o.fav;save();render(true);hero(g);blip('ok')}
+function menu(kind){
+  const isT=kind==='theme', key=isT?'theme':'view', cur=S.ui[key];
+  const b=$(`#quick [data-q=${isT?'theme':'layout'}]`).getBoundingClientRect();
+  $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${b.left}px;bottom:${innerHeight-b.top+12}px"><h2>${isT?'Theme':'Layout'}</h2><div class="body ${isT?'sws':'list'}">${
+    isT?THEMES.map(x=>`<button class="sw ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}" style="background:radial-gradient(circle at 30% 25%,${x[2]},${x[3]} 75%)">${x[1]}</button>`).join('')
+       :LAYOUTS.map(x=>`<button class="item ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}"><svg class="lp" viewBox="0 0 32 22">${LAYPIC[x[0]]}</svg><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')}</div></div></div>`;
+  ($('#layer .on')||focusables()[0])?.focus();
+  onChange=()=>{};
+  onAct=(a,arg)=>{S.ui[key]=arg;look();save();closeModal();blip('ok')};
+  blip('tab');
+}
+function surprise(){const l=visible();if(!l.length)return;const g=l[Math.floor(Math.random()*l.length)],t=tiles().find(x=>x.dataset.id===g.id);if(t){goto(t);blip('ok')}}
+// the card shown before a game starts: confirms the game, the emulator, and that its saves are where they should be
+const start=g=>S.ui.confirm===false?launch(g):preview(g);
+async function preview(g){
+  if(g.sys==='unsorted'){toast('Pick which system this one is for');return details(g)}
+  const o=gs(g.id), s=sysOf(g.sys), r=resolve(g), fits=S.emus.filter(e=>emuSys(e).includes(g.sys)), emu=r&&S.emus.find(e=>e.exe===r.exe);
+  const side=['.sav','.srm','.dsv'].map(x=>g.path.replace(/\.[^.\\/]+$/,x)), data=emu?await dataDir(emu):'';
+  let ok=[]; try{ok=(await api('exists',{paths:[g.folder||g.path,r?r.exe:'',data].concat(side)})).r}catch{}
+  const sav=side.find((p,i)=>ok[3+i]), line=(cls,t,sub)=>`<div class="chk"><i class="${cls}"></i><span>${t}${sub?`<small class="dim">${esc(sub)}</small>`:''}</span></div>`;
+  modal('',`<div class="pv"><div class="cover" ${cover(g)}</div><div style="min-width:0;flex:1">
+      <span class="chip" style="--h:${hue(g.sys)}">${esc(s.name)}</span>${S.meta[artKey(g)]?.y?` <span class="chip yr">${S.meta[artKey(g)].y}</span>`:''}<h1>${esc(g.title)}</h1>
+      ${S.meta[artKey(g)]?.d?`<p class="dim" style="margin:-8px 0 12px">${esc(S.meta[artKey(g)].d)}</p>`:''}
+      ${NOW&&NOW.id===g.id?line('warn','Already running','Starting it again opens a second copy'):''}
+      ${line(ok[0]?'':'bad',ok[0]?'Game file found':'Game file is missing',g.folder||g.path)}
+      ${g.sys==='pc'?'':r?line(ok[1]?'':'bad',ok[1]?'Opens in '+esc(r.name):esc(r.name)+' could not be found',r.exe):line('bad','No emulator set up for '+esc(s.name),'Add one in Settings')}
+      ${g.sys==='pc'?'':sav?line('','Save file found',file(sav)):data&&ok[2]?line('','Save data found',data):line('warn','No save data yet','A new save is created the first time you play')}
+      ${line(o.last?'':'warn',o.last?esc(ago(o.last)+(played(o.time)?' · played '+played(o.time):'')):'Never played')}
+      ${fits.length>1?`<div class="row"><label>Launch with</label><select data-set="emu">${opt('','System default',o.emu||'')}${fits.map(e=>opt(e.id,e.name,o.emu)).join('')}</select></div>`:''}
+    </div></div>`,
+    `<button class="btn" data-act="no">Back</button><button class="btn" data-act="opts">Options</button>${r?'<button class="btn pri xl" data-act="go">Play</button>':'<button class="btn pri" data-act="emus">Set up an emulator</button>'}`);
+  $('#layer h2').remove();
+  onChange=(k,v)=>{v?o[k]=v:delete o[k];save();preview(g)};
+  onAct=a=>{if(a==='go'){closeModal();launch(g)}else if(a==='opts')details(g);else if(a==='emus')settings('emus');else closeModal()};
+}
+function launchFx(g,r){
+  const d=document.createElement('div');d.id='fx';
+  d.innerHTML=`<div><div class="cover" ${cover(g)}</div><h2>${esc(g.title)}</h2><p>Starting in ${esc(r.name)}</p><div class="bar"><i></i></div></div>`;
+  document.body.append(d);setTimeout(()=>d.classList.add('out'),1700);setTimeout(()=>d.remove(),2200);
+}
+$('#grid').addEventListener('click',e=>{const g=game(e.target.closest('.tile'));if(g)start(g)});
+$('#grid').addEventListener('contextmenu',e=>{const g=game(e.target.closest('.tile'));if(g){e.preventDefault();details(g)}});
+let heroT;
+$('#grid').addEventListener('focusin',e=>{clearTimeout(heroT);heroT=setTimeout(()=>hero(game(e.target)),70)});   // settle before redrawing, so fast scrolling stays light
+$('#grid').addEventListener('mousemove',e=>{const t=e.target.closest('.tile');if(t&&t!==document.activeElement&&!$('#layer').children.length)t.focus({preventScroll:true})});
+$('#dock').addEventListener('click',e=>{const b=e.target.closest('button');if(b){tab=b.dataset.tab;render();blip('tab')}});
+$('#quick').addEventListener('click',async e=>{
+  const q=e.target.closest('button')?.dataset.q;
+  if(q==='settings')settings(); if(q==='layout')menu('layout'); if(q==='theme')menu('theme'); if(q==='random')surprise();
+  if(q==='add'){const p=await pick('folder');if(p){addRoot(p);await scan();render();toast(GAMES.length+' games in your library')}}
+});
+for(const el of [$('main'),$('#dock')])el.addEventListener('wheel',e=>{
+  if(el.scrollWidth<=el.clientWidth||e.shiftKey||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;   // nothing sideways to scroll, or already a sideways gesture
+  if(el===$('main')&&!/v-(shelf|home)/.test(document.body.className))return;
+  e.preventDefault();glide(el,(glides.get(el)?.x??el.scrollLeft)+e.deltaY*1.2);
+},{passive:false});
+$('#q').addEventListener('input',()=>render());
+document.addEventListener('keydown',e=>{
+  if($('#layer').children.length){if(e.key==='Escape')closeModal();return}
+  const typing=document.activeElement===$('#q');
+  if(e.key==='Escape'){$('#q').value='';render();return}
+  if(typing){if(e.key==='ArrowDown'||e.key==='Enter'){e.preventDefault();$('.tile')?.focus()}return}
+  const k=e.key.toLowerCase(), g=game(document.activeElement);
+  const m={arrowleft:[-1,0],arrowright:[1,0],arrowup:[0,-1],arrowdown:[0,1]}[k];
+  if(m){e.preventDefault();move(...m)}
+  else if(k==='/'){e.preventDefault();$('#q').focus()}
+  else if(k==='q')cycle(-1); else if(k==='e')cycle(1);
+  else if(k==='f')fav(g); else if((k==='o'||k==='delete')&&g)details(g); else if(k==='s')settings();
+  else if(k==='l')menu('layout'); else if(k==='t')menu('theme'); else if(k==='r')surprise();
+});
+// controller: works everywhere, including settings and the folder browser
+// main: d-pad/stick move, A start, X favourite, Y options, LB/RB systems, Select layout, Start settings
+// panels: up/down move between controls, left/right change a dropdown or slider, A press, B back, LB/RB switch settings tab
+const focusables=()=>[...document.querySelectorAll('#layer button,#layer select,#layer input')].filter(e=>e.offsetParent);
+function mstep(d){const f=focusables(), i=f.indexOf(document.activeElement);f[Math.max(0,Math.min(f.length-1,i<0?0:i+d))]?.focus();document.activeElement.scrollIntoView({block:'nearest'});blip('move')}
+function madjust(d){
+  const e=document.activeElement, fire=()=>e.dispatchEvent(new Event('change',{bubbles:true}));
+  if(e.tagName==='SELECT'){const n=e.selectedIndex+d;if(n>=0&&n<e.options.length){e.selectedIndex=n;fire();blip('tab')}}
+  else if(e.type==='range'){e.value=+e.value+d*10;fire()}
+  else mstep(d);
+}
+function mtab(d){const b=[...document.querySelectorAll('#layer .tabs .btn')], i=b.findIndex(x=>x.classList.contains('on'));b[i+d]?.click()}
+let padPrev={},padT=0;
+addEventListener('gamepadconnected',e=>toast('Controller connected: '+e.gamepad.id.replace(/\s*\(.*$/,'')));
+(function pad(){
+  // every connected pad counts (a wheel, a stream deck or a virtual pad can sit in slot 0 and hide the real one)
+  const pads=[...navigator.getGamepads()].filter(p=>p&&p.connected);
+  if(pads.length&&document.hasFocus()){
+    const now=performance.now(), st={};
+    for(const p of pads){
+      const b=i=>p.buttons[i]?.pressed, ax=p.axes, std=p.mapping==='standard';
+      // pads the browser cannot map report the d-pad as a "hat" on the last axis: 8 directions from -1 (up) clockwise to 1
+      const hat=!std&&ax.length>=10?Math.round((ax[9]+1)*3.5):-1, H=(...v)=>v.includes(hat);
+      const cur={l:(std&&b(14))||ax[0]<-.5||H(5,6,7),r:(std&&b(15))||ax[0]>.5||H(1,2,3),u:(std&&b(12))||ax[1]<-.5||H(7,0,1),d:(std&&b(13))||ax[1]>.5||H(3,4,5),
+        a:b(std?0:1),bk:b(std?1:2),x:b(std?2:0),y:b(3),lb:b(4),rb:b(5),sel:b(8),start:b(9)};
+      for(const k in cur)st[k]=st[k]||cur[k];
+    }
+    const hit=k=>st[k]&&(!padPrev[k]||('lrud'.includes(k)&&now-padT>190));
+    const open=$('#layer').children.length, g=game(document.activeElement);
+    if(open){
+      if(hit('u')){mstep(-1);padT=now} if(hit('d')){mstep(1);padT=now}
+      if(hit('l')){madjust(-1);padT=now} if(hit('r')){madjust(1);padT=now}
+      if(hit('a'))document.activeElement.click?.();
+      if(hit('bk')){closeModal();blip('back')} if(hit('lb'))mtab(-1); if(hit('rb'))mtab(1);
+    }else{
+      for(const [k,d] of [['l',[-1,0]],['r',[1,0]],['u',[0,-1]],['d',[0,1]]])if(hit(k)){move(...d);padT=now}
+      if(hit('a')&&g)start(g); if(hit('x'))fav(g); if(hit('y')&&g)details(g);
+      if(hit('lb'))cycle(-1); if(hit('rb'))cycle(1); if(hit('start'))settings(); if(hit('sel'))menu('layout');
+    }
+    padPrev=st;
+  }
+  requestAnimationFrame(pad);
+})();
+let actx;
+const SOUNDS={move:[880],tab:[660,990],ok:[587,880],back:[523,392],launch:[523,659,784,1047]};
+function blip(kind){
+  if(!S?.ui.sound)return;
+  try{actx=actx||new AudioContext();(SOUNDS[kind]||SOUNDS.move).forEach((f,i)=>{
+    const o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime+i*.075;o.type='sine';o.frequency.value=f;
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.05,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+.16);
+    o.connect(g).connect(actx.destination);o.start(t);o.stop(t+.18)})}catch{}
+}
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),3800)}
+function look(){
+  const u=S.ui, d=document.documentElement;
+  d.dataset.theme=u.theme; d.style.setProperty('--tile',u.size+'px'); d.style.setProperty('--r',{soft:'26px',round:'40px',sharp:'8px'}[u.corners]||'26px');
+  u.accent?d.style.setProperty('--acc',u.accent):d.style.removeProperty('--acc');
+  document.body.className='v-'+u.view+' m-'+u.motion;
+  if(u.wall)$('#bg').style.backgroundImage=`url("/file?t=${T}&p=${encodeURIComponent(u.wall)}")`;
+}
+setInterval(()=>{const n=[...navigator.getGamepads()].filter(p=>p&&p.connected).length;$('#padhint').textContent=n?'':'Controller: press any button to wake it'},1500);
+const tick=()=>$('#clock').textContent=new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}); tick(); setInterval(tick,5000);
+
+/* ---------- modals ---------- */
+let onAct=()=>{}, onChange=()=>{}, escHook=null;
+const sig=e=>e&&e.closest?.('#layer')?(e.dataset.set?'s'+e.dataset.set:e.dataset.act?'a'+e.dataset.act:e.id)+'|'+(e.dataset.arg||''):'';
+function modal(title,body,foot,tabsHtml){
+  const was=sig(document.activeElement);   // keep the cursor on the same control when a panel redraws
+  $('#layer').innerHTML=`<div class="scrim"><div class="modal glass"><h2>${title}</h2>${tabsHtml||''}<div class="body">${body}</div>${foot?`<div class="foot">${foot}</div>`:''}</div></div>`;
+  (was&&focusables().find(e=>sig(e)===was)||$('#layer .btn.pri')||focusables()[0])?.focus();
+}
+function closeModal(){
+  if(escHook){const h=escHook;escHook=null;return h()}
+  if(!S.setup)return;
+  $('#layer').innerHTML='';render(true);
+}
+$('#layer').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b)Promise.resolve(onAct(b.dataset.act,b.dataset.arg,b)).catch(err=>toast(err.message));else if(e.target.classList.contains('scrim'))closeModal()});
+$('#layer').addEventListener('change',e=>{if(e.target.dataset.set)Promise.resolve(onChange(e.target.dataset.set,e.target.type==='checkbox'?e.target.checked:e.target.value,e.target.dataset.arg)).catch(err=>toast(err.message))});
+$('#empty').addEventListener('click',async e=>{if(e.target.dataset.act==='addgames'){const p=await pick('folder');if(p){addRoot(p);await scan();render()}}});
+const opt=(v,l,sel)=>`<option value="${esc(v)}" ${v===sel?'selected':''}>${esc(l)}</option>`;
+const addRoot=p=>{if(!romRoots().some(r=>r.toLowerCase()===p.toLowerCase()))S.roots.push(p);save()};
+
+/* built-in file browser: works with a controller, unlike the Windows dialogs */
+function pick(kind){return new Promise(res=>{
+  const exts=kind==='exe'?['.exe']:kind==='image'?['.png','.jpg','.jpeg','.webp','.gif']:[];
+  const prev={html:$('#layer').innerHTML,onAct,onChange};
+  const done=v=>{escHook=null;$('#layer').innerHTML=prev.html;onAct=prev.onAct;onChange=prev.onChange;res(v)};
+  const join=(a,b)=>a?a.replace(/[\\/]+$/,'')+INFO.sep+b:b;
+  const show=async p=>{
+    let r; try{r=await api('browse',{path:p,exts})}catch(e){
+      if(p)return show('');                                                  // folder vanished: start from the drives
+      try{return done((await api('pick',{kind})).path)}catch{return done('')}  // older helper: fall back to the Windows dialog
+    }
+    modal(kind==='folder'?'Choose a folder':'Choose a file',`<code>${esc(r.path||'This PC')}</code><div class="list">
+      ${r.path?`<button class="item" data-act="go" data-arg="${esc(r.parent)}">&larr; Up one level</button>`:''}
+      ${r.dirs.map(d=>`<button class="item" data-act="go" data-arg="${esc(join(r.path,d))}"><i></i>${esc(d)}</button>`).join('')}
+      ${r.files.map(f=>`<button class="item" data-act="file" data-arg="${esc(join(r.path,f))}">${esc(f)}</button>`).join('')}</div>`,
+      `<button class="btn" data-act="win" style="margin-right:auto">Browse with Windows</button><button class="btn" data-act="cancel">Cancel</button>${kind==='folder'&&r.path?'<button class="btn pri" data-act="use">Use this folder</button>':''}`);
+    (document.querySelectorAll('#layer .item')[r.path?1:0]||$('#layer .item'))?.focus();
+    escHook=()=>done('');
+    onChange=()=>{};
+    onAct=async(a,arg)=>{
+      if(a==='win'){toast('The Windows dialog is open (it may be behind this window)');let p='';try{p=(await api('pick',{kind})).path}catch{};if(p){S.lastDir=kind==='folder'?p:dir(p);save();done(p)}return}
+      if(a==='go')show(arg);else if(a==='file'){S.lastDir=r.path;save();done(arg)}else if(a==='use'){S.lastDir=r.path;save();done(r.path)}else done('')};
+  };
+  show(S.lastDir||'');
+})}
+
+/* per-game options */
+function details(g){
+  const o=gs(g.id), fits=S.emus.filter(e=>emuSys(e).includes(g.sys)), r=resolve(g), mins=Math.round((o.time||0)/60), target=g.folder||g.path;
+  modal(esc(g.title),`
+    <small>played ${mins<60?mins+' min':(mins/60).toFixed(1)+' h'}</small>
+    <div class="row"><label>System</label><select data-set="sys">${g.sys==='unsorted'?opt('unsorted','Choose a system...','unsorted'):''}${systems().map(s=>opt(s.id,s.name,g.sys)).join('')}</select></div>
+    ${g.sys==='pc'||g.sys==='unsorted'?'':`<div class="row"><label>Launch with</label><select data-set="emu">${opt('','System default',o.emu||'')}${fits.map(e=>opt(e.id,e.name,o.emu)).join('')}</select></div>
+    <div class="row"><label>Extra arguments</label><input class="w" type="text" data-set="args" value="${esc(o.args)}" placeholder="added after the emulator's own arguments"></div>
+    <div class="row"><label>Runs as</label><code>${r?esc('"'+r.exe+'" '+r.args):'no emulator set up for this system yet'}</code></div>`}
+    <div class="row"><label>Display name</label><input class="w" type="text" data-set="title" value="${esc(g.title)}"></div>
+    <code>${esc(target)}</code>`,
+    `<button class="btn" data-act="del">Delete</button><button class="btn" data-act="hide">Hide</button><button class="btn" data-act="show">Show file</button><button class="btn" data-act="art">Set artwork</button><button class="btn" data-act="match">Fix match</button><button class="btn" data-act="lnk">Desktop shortcut</button><button class="btn" data-act="fav">${o.fav?'Unfavourite':'Favourite'}</button><button class="btn pri" data-act="play">Launch</button>`);
+  const hide=async()=>{o.hide=true;save();await scan();closeModal();toast('Hidden. Bring it back from Settings > Library')};
+  onChange=(k,v)=>{
+    if(k==='sys'&&v==='unsorted')return;
+    v?o[k]=v:delete o[k];
+    if(k==='title')g.title=v||pretty(g.base);
+    if(k==='sys'){g.sys=v;delete o.emu}
+    save(); if(k!=='title')details(g);
+  };
+  onAct=async a=>{
+    if(a==='fav'){o.fav=!o.fav;save();details(g)}
+    if(a==='play'){closeModal();launch(g)}
+    if(a==='show')api('open',{path:dir(target)});
+    if(a==='hide')return hide();
+    if(a==='art'){const p=await pick('image');if(p){o.art=p;save();toast('Artwork set')}}
+    if(a==='match'){
+      const draw=async q=>{
+        let res=[]; try{res=await wikiSearch(q)}catch{toast('The lookup is busy, try again in a moment')}
+        modal('Match '+esc(g.title),`<small>Pick the right game and Cove uses its cover, description and year. Search with different words if it is not listed.</small>
+          <div class="row"><input class="w" type="text" id="mq" value="${esc(q)}"><button class="btn" data-act="search">Search</button></div>
+          <div class="list">${res.map((p,i)=>`<button class="item" data-act="use" data-arg="${i}">${p.img?`<img alt="" src="${esc(p.img)}" style="width:44px;height:44px;object-fit:cover;border-radius:8px">`:'<i></i>'}<span><b>${esc(p.title)}</b><br><small>${esc(p.kind)}</small></span></button>`).join('')||'<small>No results.</small>'}</div>`,
+          `<button class="btn" data-act="none">No match, clear it</button><button class="btn pri" data-act="back">Back</button>`);
+        onChange=()=>{};
+        onAct=(b,arg)=>{
+          if(b==='search')return draw($('#mq').value.trim()||g.title);
+          if(b==='use'){delete o.art;applyMatch(g,{...res[arg],force:true});toast('Matched to '+res[arg].title)}
+          if(b==='none'){S.meta[artKey(g)]=0;S.art[artKey(g)]=0;save()}
+          details(g);
+        };
+      };
+      return draw(lookFor(g)+' video game');
+    }
+    if(a==='lnk'){if(!r)return toast('Set up an emulator first');await api('shortcut',{name:g.title,exe:r.exe,args:r.args,cwd:r.cwd});toast('Shortcut added to your desktop')}
+    if(a==='del'){
+      modal('Delete '+esc(g.title)+'?',`<p>This moves the game to the Recycle Bin:</p><code>${esc(target)}</code>
+        <p class="dim">If it is too big for the Recycle Bin, Windows may ask to delete it for good. To only take it out of Cove and keep the file, choose Hide.</p>`,
+        `<button class="btn pri" data-act="no">Cancel</button><button class="btn" data-act="hide">Hide instead</button><button class="btn" data-act="yes">Move to Recycle Bin</button>`);
+      onAct=async b=>{
+        if(b==='hide')return hide();
+        if(b!=='yes')return details(g);
+        await api('trash',{path:target});delete S.games[g.id];save();await scan();closeModal();toast('Moved to the Recycle Bin');
+      };
+    }
+  };
+}
+
+/* organizer: sorts a folder of loose files into ROMs\<system> */
+async function organize(src){
+  const r=await api('ls',{path:src,depth:4}), sys=systems(), plan=[], unknown=[];
+  for(const i of r.items){
+    const e=ext(i.p); if(SIDECAR.test(i.p))continue;
+    const cands=sys.filter(s=>s.exts.includes(e)), sure=sys.filter(s=>s.auto.includes(e));
+    if(!cands.length){unknown.push(i.p);continue}
+    plan.push({p:i.p,e,cands,sys:sure.length===1?sure[0].id:''});
+  }
+  const names=new Set(r.items.map(i=>i.p)), amb=[...new Set(plan.filter(f=>!f.sys).map(f=>f.e))];
+  const run=async()=>{
+    const moves=[];
+    for(const f of plan)if(!f.sys&&f.e==='.bin'){const c=plan.find(x=>x.sys&&dir(x.p)===dir(f.p)&&/\.(cue|gdi)$/.test(x.e));if(c)f.sys=c.sys}   // disc data follows its .cue
+    for(const f of plan){
+      if(!f.sys)continue;
+      const to=J(S.library,'ROMs',f.sys);
+      moves.push({from:J(r.root,f.p),to:J(to,file(f.p))});
+      for(const n of names)if(SIDECAR.test(n)&&dir(n)===dir(f.p)&&stem(n)===stem(f.p))moves.push({from:J(r.root,n),to:J(to,file(n))});
+    }
+    const res=await api('move',{moves});
+    await scan();closeModal();
+    toast(`Moved ${res.moved} file${res.moved===1?'':'s'}`+(res.skipped?`, skipped ${res.skipped} already in the library`:''));
+  };
+  if(!plan.length){toast(unknown.length?`Nothing recognised in that folder (${unknown.length} unknown files left alone)`:'That folder is empty');return}
+  const draw=()=>{
+    modal('Organize games',`
+      <p><b>${plan.filter(f=>f.sys).length}</b> of ${plan.length} files have a home. Files move into <code>${esc(J(S.library,'ROMs'))}</code>; save files with the same name go with them. Nothing is overwritten or deleted.${unknown.length?` ${unknown.length} unrecognised files stay where they are.`:''}</p>
+      ${amb.length?'<div class="card"><b>These file types are used by several systems.</b> Set a whole type at once here, or fix single files below.'+amb.map(e=>`<div class="row"><label>all ${esc(e)} files</label><select data-set="bulk" data-arg="${esc(e)}">${opt('','choose...','')}${sys.filter(s=>s.exts.includes(e)).map(s=>opt(s.id,s.name,'')).join('')}</select></div>`).join('')+'</div>':''}
+      ${plan.map((f,n)=>`<div class="row"><select data-set="one" data-arg="${n}">${opt('','leave it','')}${f.cands.map(s=>opt(s.id,s.name,f.sys)).join('')}</select><small>${esc(f.p)}</small></div>`).join('')}`,
+      `<button class="btn" data-act="x">Cancel</button><button class="btn pri" data-act="go">Move files</button>`);
+  };
+  onChange=(k,v,arg)=>{if(k==='bulk')plan.forEach(f=>{if(f.e===arg)f.sys=v});else plan[arg].sys=v;draw()};
+  onAct=a=>a==='go'?run():closeModal();
+  draw();
+}
+
+/* emulators */
+async function findEmus(folder){
+  const r=await api('ls',{path:folder,depth:4,exts:['.exe']}), byDir={}, have=new Set(S.emus.map(e=>e.exe.toLowerCase()));
+  r.items.forEach(i=>{if(!/update-old|backup/i.test(i.p))(byDir[dir(i.p)]=byDir[dir(i.p)]||[]).push(i)});
+  let n=0;
+  for(const d in byDir){
+    const exes=byDir[d]; let k, main;
+    for(const x of exes){const kk=KINDS.find(k=>k.rx.test(file(x.p).toLowerCase()));if(kk&&!(NOT_MAIN.test(file(x.p))&&kk.id!=='yuzu')){k=kk;main=x;break}}
+    if(!k&&exes.some(x=>/(-(cli|cmd)\.exe$|nx2)/i.test(file(x.p)))){   // unknown Eden-style fork: biggest real exe wins
+      main=exes.filter(x=>!NOT_MAIN.test(file(x.p))).sort((a,b)=>b.s-a.s)[0]; k=main&&KINDS[0];
+    }
+    if(!k)continue;
+    const exe=J(r.root,main.p); if(have.has(exe.toLowerCase()))continue;
+    const folderName=file(dir(exe));
+    S.emus.push({id:uid(),kind:k.id,name:k.id==='yuzu'||k.id==='ryujinx'?folderName:k.name.split(' /')[0],exe});
+    n++;
+  }
+  S.emus.forEach(e=>emuSys(e).forEach(s=>{if(!S.defaults[s])S.defaults[s]=e.id}));
+  save();return n;
+}
+async function dataDir(e){
+  if(e.data)return e.data;
+  const k=kindOf(e); if(!k.data)return '';
+  const v={emudir:dir(e.exe),exe:stem(e.exe),APPDATA:INFO.appdata,DOCS:INFO.docs,LOCALAPPDATA:INFO.local};
+  const c=k.data.map(t=>fill(t,v).replace(/\\/g,INFO.sep)), ok=(await api('exists',{paths:c})).r;
+  return c.find((p,i)=>ok[i])||'';
+}
+
+/* settings */
+async function settings(t='lib'){
+  const tabsHtml='<div class="tabs">'+[['lib','Library'],['emus','Emulators'],['saves','Saves'],['discord','Discord'],['look','Look'],['share','Share']].map(x=>`<button class="btn ${x[0]===t?'on':''}" data-act="tab" data-arg="${x[0]}">${x[1]}</button>`).join('')+'</div>';
+  let body='';
+  if(t==='lib')body=`
+    <h3>Game folders</h3><small>Cove reads games right where they are, in any layout. File types that only one system uses sort themselves; the rest show under Unsorted until you pick a system.</small>
+    ${romRoots().map((r,i)=>`<div class="row"><code>${esc(r)}</code>${i?`<button class="btn" data-act="delroot" data-arg="${i-1}">Remove</button>`:'<small>(Cove\'s own folder)</small>'}</div>`).join('')}
+    <div class="row"><button class="btn pri" data-act="addroot">Add a games folder</button><button class="btn" data-act="rescan">Rescan</button></div>
+    ${HIDDEN.length?`<h3>Hidden games</h3>${HIDDEN.map(g=>`<div class="row"><button class="btn" data-act="unhide" data-arg="${esc(g.id)}">Show again</button><small>${esc(g.title)}</small></div>`).join('')}`:''}
+    <h3>Scraper</h3><small>Cove looks up a cover, a short description and the year for each game in the background, one at a time. Details found for <b>${GAMES.filter(g=>S.meta[artKey(g)]).length}</b> of ${GAMES.length} games${artQ.length?', '+artQ.length+' still in the queue':''}. A wrong match can be fixed from the game's options.</small>
+    <div class="row"><button class="btn" data-act="scrape">Scrape missing now</button><button class="btn" data-act="rescrape">Scrape everything again</button></div>
+    <h3>Tidy up (optional)</h3><small>Moves loose files into one folder per system inside Cove's library, taking matching save files along. Use it for an Inbox of new downloads; you never have to.</small>
+    <div class="row"><button class="btn" data-act="inbox">Organize Inbox</button><button class="btn" data-act="orgother">Organize another folder</button><button class="btn" data-act="open" data-arg="${esc(S.library)}">Open library folder</button></div>
+    <h3>Custom systems</h3><small>For anything not built in. Folder id is a folder name Cove should recognise; extensions are separated by spaces.</small>
+    ${S.systems.map((s,i)=>`<div class="row"><code>${esc(s.id)} &middot; ${esc(s.name)} &middot; ${esc(s.exts.join(' '))}</code><button class="btn" data-act="delsys" data-arg="${i}">Remove</button></div>`).join('')}
+    <div class="row"><input type="text" id="nsid" placeholder="folder id"><input type="text" id="nsname" placeholder="Name"><input type="text" id="nsext" placeholder=".ext .ext2"><button class="btn" data-act="addsys">Add system</button></div>`;
+  if(t==='emus'){
+    const sysWith=systems().filter(s=>S.emus.some(e=>emuSys(e).includes(s.id)));
+    body=`<div class="row"><button class="btn pri" data-act="scanemu">Scan a folder for emulators</button><button class="btn" data-act="addemu">Add an .exe by hand</button></div>
+    <small>Each entry is a saved launch profile. Duplicate one to keep a second set of arguments for the same emulator, then pick it per game or as a system default. Leave Arguments empty to use the built-in ones shown in grey.</small>
+    ${S.emus.map(e=>{const k=kindOf(e);return `<div class="card">
+      <div class="row"><input class="w" type="text" data-set="name" data-arg="${e.id}" value="${esc(e.name)}"><button class="btn" data-act="dup" data-arg="${e.id}">Duplicate</button><button class="btn" data-act="delemu" data-arg="${e.id}">Remove</button></div>
+      <code>${esc(e.exe)}</code>
+      <div class="row"><label>Works like</label><select data-set="kind" data-arg="${e.id}">${KINDS.map(x=>opt(x.id,x.name,e.kind)).join('')}</select></div>
+      <div class="row"><label>Arguments</label><input class="w" type="text" data-set="args" data-arg="${e.id}" value="${esc(e.args)}" placeholder="${esc(k.args)}"></div>
+      <div class="row"><label>Systems</label><input class="w" type="text" data-set="sys" data-arg="${e.id}" value="${esc((e.sys||[]).join(' '))}" placeholder="${esc(k.sys.join(' ')||'folder ids, e.g. gba nds')}"></div></div>`}).join('')||'<p class="dim">No emulators yet.</p>'}
+    ${sysWith.length?'<h3>Default per system</h3>':''}
+    ${sysWith.map(s=>`<div class="row"><label>${esc(s.name)}</label><select data-set="def" data-arg="${s.id}">${S.emus.filter(e=>emuSys(e).includes(s.id)).map(e=>opt(e.id,e.name,S.defaults[s.id])).join('')}</select></div>`).join('')}`;
+  }
+  if(t==='saves'){
+    const rows=[];
+    for(const e of S.emus){const k=kindOf(e);if(!k.data&&!e.data)continue;rows.push({e,k,d:await dataDir(e)})}
+    body=`<small>Copy saves and settings from one emulator into another of the same family, for example from Eden into a new fork. The destination is backed up to <code>${esc(J(S.library,'Backups'))}</code> first, and files are merged in: nothing is deleted. Handheld emulators like mGBA and melonDS keep saves next to the game file, so those already travel with the game.</small>
+    ${rows.map(({e,k,d})=>`<div class="card"><b>${esc(e.name)}</b>
+      <div class="row"><label>Data folder</label><code>${d?esc(d):'not found yet (run the emulator once, or choose it)'}</code><button class="btn" data-act="setdata" data-arg="${e.id}">Change...</button></div>
+      <div class="row"><label>Import from</label><select id="from-${e.id}">${rows.filter(x=>x.e!==e&&x.k===k&&x.d).map(x=>opt(x.d,x.e.name,'')).join('')}${opt('?','Choose a folder...','')}</select>
+        <select id="what-${e.id}">${opt('saves','Saves only','saves')}${opt('both','Saves and settings','')}${opt('all','Everything in the folder','')}</select>
+        <button class="btn pri" data-act="import" data-arg="${e.id}">Import</button><button class="btn" data-act="backup" data-arg="${e.id}">Back up now</button></div></div>`).join('')||'<p class="dim">Add an emulator first.</p>'}`;
+  }
+  if(t==='discord'){const d=S.discord;body=`
+    <div class="card" style="text-align:center;padding:26px"><h2 style="padding:0">${d.on?'Discord is on':'Show your games on Discord'}</h2>
+      <p class="dim">Your status becomes the game you are playing, with the system and emulator underneath, a timer, and the cover when Cove has one. It clears when you close the game. There is nothing to sign in to: Cove talks to the Discord app already open on this PC.</p>
+      <button class="btn pri xl" data-act="dtoggle">${d.on?'Turn off':'Turn on'}</button></div>
+    <div class="row"><label>Show cover art</label><input type="checkbox" data-set="art" ${d.art?'checked':''}></div>
+    ${DISCORD_APP?'':`<div class="card"><b>One-time setup for whoever owns this copy of Cove</b>
+      <p class="dim">For the Cove logo to show on the card, upload cove-discord-icon.png (in the Cove folder) twice in the Developer Portal: as the App Icon under General Information, and under Rich Presence &rsaquo; Art Assets with the name <b>cove</b>.</p><p class="dim">Discord needs an Application ID to know what to call the activity. Create one at discord.com/developers/applications (New Application, name it Cove), copy its Application ID and paste it here once. It is included in the share pack, so friends you send Cove to only ever press the button.</p>
+      <div class="row"><label>Application ID</label><input class="w" type="text" data-set="id" value="${esc(d.id)}" placeholder="a long number"></div></div>`}
+    <div class="card"><b>Discord overlay in games</b>
+      <p class="dim">The overlay is drawn by Discord itself, per program, so it is switched on in Discord rather than here. With a game running: Discord Settings &rsaquo; Registered Games &rsaquo; "Add it" and pick the emulator, then turn its overlay on there and under Game Overlay.</p></div>
+    <small>Some emulators post their own Discord status too. If you see two cards, turn the emulator's one off in its settings.</small>`}
+  if(t==='look'){const u=S.ui;body=`
+    <h3>Theme</h3><div class="row">${THEMES.map(x=>`<button class="sw ${x[0]===u.theme?'on':''}" data-act="theme" data-arg="${x[0]}" style="background:radial-gradient(circle at 30% 25%,${x[2]},${x[3]} 75%)">${x[1]}</button>`).join('')}</div>
+    <h3>Layout</h3><div class="row">${LAYOUTS.map(x=>`<button class="btn ${x[0]===u.view?'pri':''}" data-act="view" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>
+    <small>Home: a big card for the selected game over two rows of icons. Grid: everything, grouped by system. Shelf: one row of large covers. List: cover on the left, rows on the right.</small>
+    <h3>Details</h3>
+    <div class="row"><label>Corners</label><select data-set="corners">${opt('soft','Soft',u.corners)}${opt('round','Extra round',u.corners)}${opt('sharp','Sharp',u.corners)}</select></div>
+    <div class="row"><label>Motion</label><select data-set="motion">${opt('full','Full',u.motion)}${opt('calm','Calm',u.motion)}${opt('off','Off',u.motion)}</select></div>
+    <div class="row"><label>Icon size</label><input type="range" min="110" max="240" data-set="size" value="${u.size}"></div>
+    <div class="row"><label>Accent colour</label><input type="color" data-set="accent" value="${esc(u.accent||'#ccff00')}"><button class="btn" data-act="noaccent">Use theme colour</button></div>
+    <div class="row"><label>Wallpaper</label><code>${esc(u.wall||'follows the selected game')}</code><button class="btn" data-act="wall">Choose image</button><button class="btn" data-act="nowall">Clear</button></div>
+    <div class="row"><label>Preview card</label><input type="checkbox" data-set="confirm" ${u.confirm!==false?'checked':''}><small>Show the game, emulator and save check before starting</small></div>
+    <div class="row"><label>Sounds</label><input type="checkbox" data-set="sound" ${u.sound?'checked':''}></div>
+    <div class="row"><label>Artwork</label><button class="btn" data-act="reart">Look for missing covers again</button></div>`}
+  if(t==='share')body=`
+    <div class="card"><b>Desktop shortcut</b><p class="dim">Puts a Cove shortcut on this PC's desktop.</p><button class="btn pri" data-act="applnk">Create desktop shortcut</button></div>
+    <div class="card"><b>Send to a friend</b><p class="dim">Makes Cove-share.zip with the launcher, your theme and your custom systems. No games, saves or folder paths are included. They unzip it, run Cove.bat, and get the same setup walkthrough.</p><button class="btn pri" data-act="pack">Export share pack</button></div>
+    <div class="card"><b>Updates</b><p class="dim">This is Cove ${esc(INFO.version||'?')}. It checks ${esc(INFO.repo?'github.com/'+INFO.repo:'nowhere yet')} each time it opens and asks before installing anything.</p><button class="btn" data-act="upd">Check for updates</button></div>
+    <div class="card"><b>Run setup again</b><p class="dim">Replays the first-run walkthrough. Your library and settings are kept.</p><button class="btn" data-act="rewiz">Open walkthrough</button></div>`;
+  modal('Settings',body,'<button class="btn pri" data-act="x">Done</button>',tabsHtml);
+  const E=id=>S.emus.find(e=>e.id===id), again=()=>settings(t);
+  onChange=(k,v,arg)=>{
+    if(t==='look'){S.ui[k]=k==='size'?+v:v;look();save();return}
+    if(t==='discord'){S.discord[k]=typeof v==='string'?v.trim():v;save();return}
+    if(k==='def'){S.defaults[arg]=v;save();return}
+    const e=E(arg); if(k==='sys')v=v.trim()?v.trim().split(/[\s,]+/):undefined;
+    v?e[k]=v:delete e[k]; save(); if(k==='kind')again();
+  };
+  onAct=async(a,arg)=>{
+    if(a==='x')return closeModal();
+    if(a==='tab')return settings(arg);
+    if(a==='open')return api('open',{path:arg});
+    if(a==='inbox')return organize(J(S.library,'Inbox'));
+    if(a==='orgother'){const p=await pick('folder');return p&&organize(p)}
+    if(a==='rescan'){await scan();toast(GAMES.length+' games found');return again()}
+    if(a==='addroot'){const p=await pick('folder');if(p){addRoot(p);await scan();toast(GAMES.length+' games found');again()}return}
+    if(a==='scrape'||a==='rescrape'){
+      for(const g of GAMES){const k=artKey(g);if(a==='rescrape'||!S.meta[k]){delete S.meta[k];if(!S.art[k]||a==='rescrape')delete S.art[k]}}
+      LRFAIL.clear();save();GAMES.forEach(findArt);toast('Scraping '+artQ.length+' games in the background');return again()}
+    if(a==='unhide'){delete gs(arg).hide;save();await scan();return again()}
+    if(a==='delroot'){S.roots.splice(arg,1);save();await scan();return again()}
+    if(a==='addsys'){const id=$('#nsid').value.trim().toLowerCase(),exts=$('#nsext').value.toLowerCase().split(/[\s,]+/).filter(x=>x[0]==='.');
+      if(!/^[a-z0-9_-]+$/.test(id)||sysOf(id)||!exts.length)return toast('Needs a new folder id (letters and numbers) and at least one .extension');
+      S.systems.push({id,name:$('#nsname').value.trim()||id,label:$('#nsname').value.trim()||id,exts});save();await scan();return again()}
+    if(a==='delsys'){S.systems.splice(arg,1);save();await scan();return again()}
+    if(a==='scanemu'){const p=await pick('folder');if(p){toast('Found '+await findEmus(p)+' new emulator(s)');again()}return}
+    if(a==='addemu'){const p=await pick('exe');if(!p)return;const k=KINDS.find(k=>k.rx.test(file(p).toLowerCase()))||KINDS[KINDS.length-1];
+      S.emus.push({id:uid(),kind:k.id,name:k.id==='custom'||k.id==='yuzu'?file(dir(p)):k.name.split(' /')[0],exe:p});save();return again()}
+    if(a==='dup'){const e=E(arg);S.emus.splice(S.emus.indexOf(e)+1,0,{...e,id:uid(),name:e.name+' (copy)'});save();return again()}
+    if(a==='delemu'){S.emus=S.emus.filter(e=>e.id!==arg);for(const s in S.defaults)if(S.defaults[s]===arg)delete S.defaults[s];save();return again()}
+    if(a==='setdata'){const p=await pick('folder');if(p){E(arg).data=p;save();again()}return}
+    if(a==='backup'||a==='import'){
+      const e=E(arg),k=kindOf(e); let to=await dataDir(e);
+      const stamp=new Date().toISOString().slice(0,19).replace(/[:T]/g,'-'), bak=J(S.library,'Backups',e.name.replace(/[\\/:*?"<>|]/g,'_'),stamp);
+      if(a==='backup'){if(!to)return toast('No data folder found for '+e.name);const r=await api('copy',{from:to,to:bak});return toast(`Backed up ${r.files} files`)}
+      let from=$('#from-'+arg).value, what=$('#what-'+arg).value;
+      if(from==='?')from=await pick('folder'); if(!from)return;
+      if(!to){to=fill(k.data[0],{emudir:dir(e.exe)}).replace(/\\/g,INFO.sep);e.data=to;save()}   // first data location = portable folder beside the exe, so this fork keeps its own saves
+      if(from.toLowerCase()===to.toLowerCase())return toast('Source and destination are the same folder');
+      const items=what==='all'?null:(what==='both'?k.saves.concat(k.cfg):k.saves).map(p=>p.replace(/\\/g,INFO.sep));
+      toast('Copying...');
+      const b=await api('copy',{from:to,to:bak,items}), r=await api('copy',{from,to,items});
+      toast(r.files?`Imported ${r.files} files into ${e.name} (backup of ${b.files} kept)`:'Nothing to import was found in that folder');return again()}
+    if(a==='dtoggle'){
+      const d=S.discord;
+      if(d.on){d.on=false;save();try{await api('discord',{clientId:did(),activity:null})}catch{};return again()}
+      if(!/^\d{15,22}$/.test(did())){toast('One step first: paste an Application ID below');return $('#layer input[data-set=id]')?.focus()}
+      await api('discord',{clientId:did(),activity:{type:0,details:'In the library',state:'Choosing a game',timestamps:{start:Date.now()},assets:{large_image:'cove',large_text:'Cove'}}});
+      d.on=true;save();blip('ok');toast('Connected. Check your Discord profile');return again()}
+    if(a==='noaccent'){S.ui.accent='';look();save();return again()}
+    if(a==='theme'||a==='view'){S.ui[a]=arg;look();save();blip('tab');return again()}
+    if(a==='reart'){for(const k in S.art)if(!S.art[k]){delete S.art[k];delete S.meta[k]}LRFAIL.clear();save();closeModal();return toast('Looking for covers')}
+    if(a==='wall'){const p=await pick('image');if(p){S.ui.wall=p;look();save();again()}return}
+    if(a==='nowall'){S.ui.wall='';look();save();return again()}
+    if(a==='upd')return checkUpdate(true);
+    if(a==='applnk'){await api('shortcut',{name:'Cove'});return toast('Cove is on your desktop')}
+    if(a==='pack'){const r=await api('pack',{preset:JSON.stringify({ui:{...S.ui,wall:''},systems:S.systems,discord:{...S.discord,on:false}})});toast('Saved '+r.path);return api('open',{path:dir(r.path)})}
+    if(a==='rewiz'){S.setup=false;return wizard(0)}
+  };
+}
+
+/* first-run walkthrough: three steps, nothing gets moved */
+async function wizard(step){
+  if(!S.library){S.library=J(INFO.app,'Library');await api('mkdir',{paths:['ROMs','Inbox','Art','Backups'].map(d=>J(S.library,d))});save()}
+  const n=`<small>Step ${step+1} of 3</small>`, by={};
+  GAMES.forEach(g=>by[g.sys]=(by[g.sys]||0)+1);
+  if(step===0)modal('Where are your emulators?',`${n}<p>Choose the folder that holds them. Cove looks through it and recognises about 20 emulators, plus Switch forks it has never heard of.</p>
+      <div class="row"><button class="btn pri" data-act="scanemu">Choose a folder</button></div>
+      ${S.emus.map(e=>`<div class="row"><b>${esc(e.name)}</b><small>${esc(emuSys(e).map(s=>sysOf(s)?.label||s).join(', '))}</small></div>`).join('')||'<small>Nothing found yet. You can also add them later in Settings.</small>'}`,
+      `<button class="btn ${S.emus.length?'pri':''}" data-act="next">${S.emus.length?'Continue':'Skip for now'}</button>`);
+  if(step===1)modal('Where are your games?',`${n}<p>Choose the folder they are in. Cove reads them in place, in whatever layout you already have, and works out the system for each one. Nothing is moved or renamed.</p>
+      <div class="row"><button class="btn pri" data-act="addroot">Choose a folder</button></div>
+      ${S.roots.map(r=>`<div class="row"><code>${esc(r)}</code></div>`).join('')}
+      ${GAMES.length?`<p><b>${GAMES.length} games found:</b> ${esc(Object.keys(by).map(k=>sysOf(k).name+' ('+by[k]+')').join(', '))}</p>`:S.roots.length?'<small>No games recognised in there yet.</small>':''}`,
+      `<button class="btn ${GAMES.length?'pri':''}" data-act="next">${GAMES.length?'Continue':'Skip for now'}</button>`);
+  if(step===2)modal('Ready',`${n}<p>Arrow keys or a controller move around. Enter or A launches. Right-click or Y opens a game's options: its system, emulator, artwork, hide and delete.</p>
+      <div class="row"><button class="btn" data-act="applnk">Add Cove to the desktop</button><button class="btn" data-act="saves">Import saves from another emulator</button></div>`,
+      `<button class="btn pri" data-act="done">Start playing</button>`);
+  onChange=()=>{};
+  onAct=async a=>{
+    if(a==='next')return wizard(step+1);
+    if(a==='scanemu'){const p=await pick('folder');if(p){toast('Found '+await findEmus(p)+' emulator(s)');wizard(0)}return}
+    if(a==='addroot'){const p=await pick('folder');if(p){addRoot(p);await scan();wizard(1)}return}
+    if(a==='saves'){S.setup=true;save();await scan();render();return settings('saves')}
+    if(a==='applnk'){await api('shortcut',{name:'Cove'});return toast('Cove is on your desktop')}
+    if(a==='done'){S.setup=true;save();await scan();closeModal()}
+  };
+}
+
+/* ---------- updates: compares this copy's version.json with the one in its GitHub repo ---------- */
+const newer=(a,b)=>{const x=String(a).split('.').map(Number),y=String(b).split('.').map(Number);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0)}return false};
+async function checkUpdate(manual){
+  if(!INFO.repo||!INFO.version)return manual&&toast('This copy has no update address');
+  let v; try{const r=await fetch(`https://raw.githubusercontent.com/${INFO.repo}/main/version.json?`+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;v=await r.json()}catch{return manual&&toast('Could not reach the update address')}
+  if(!newer(v.version,INFO.version))return manual&&toast('You have the latest version ('+INFO.version+')');
+  if(!manual&&(S.skipVer===v.version||$('#layer').children.length))return;
+  modal('Update available',`<p><b>Cove ${esc(v.version)}</b> is ready. You have ${esc(INFO.version)}.</p>${v.notes?`<div class="card">${esc(v.notes)}</div>`:''}
+    <p class="dim">Your games, settings and saves are not touched. The version you have now is kept in Cove's data folder in case you want it back.</p>`,
+    `<button class="btn" data-act="skip">Skip this version</button><button class="btn" data-act="later">Later</button><button class="btn pri xl" data-act="install">Install</button>`);
+  onChange=()=>{};
+  onAct=async a=>{
+    if(a==='skip'){S.skipVer=v.version;save()}
+    if(a!=='install')return closeModal();
+    modal('Updating',`<p>Installing Cove ${esc(v.version)}. This takes a few seconds and Cove will reload itself.</p>`,'');
+    await api('update');
+    for(let i=0;i<40;i++){await new Promise(r=>setTimeout(r,700));try{if((await fetch('/',{cache:'no-store'})).ok)return location.reload()}catch{}}
+    modal('Almost done','<p>The update is installed. Close Cove and open it again.</p>','<button class="btn pri" data-act="x">OK</button>');onAct=()=>closeModal();
+  };
+}
+
+/* ---------- boot ---------- */
+(async()=>{
+  INFO=await api('info');
+  const raw=await api('state');
+  S={...structuredClone(DEF),...raw,ui:{...DEF.ui,...raw.ui},discord:{...DEF.discord,...raw.discord}};
+  if(S.artV!==2){S.artV=2;for(const k in S.art)if(!S.art[k])delete S.art[k]}   // retry covers recorded as missing by older versions
+  if(S.ui.v2!==2){S.ui.v2=2;S.ui.view='shelf'}   // one-time switch to the current default layout
+  if(!LAYOUTS.some(l=>l[0]===S.ui.view))S.ui.view='shelf';
+  setTimeout(()=>$('#splash').classList.add('gone'),900);
+  look();
+  if((INFO.v||1)<VER)setTimeout(()=>toast('Update ready: close Cove, wait 10 seconds, then reopen it'),1500);
+  if(!S.setup)return wizard(0);
+  await scan();render();
+  setTimeout(()=>checkUpdate(false),2500);
+})().catch(e=>{$('#splash')?.remove();document.body.innerHTML='<p style="padding:40px">Cove could not start: '+esc(e.message)+'</p>'});
+</script>
+</body>
+</html>
