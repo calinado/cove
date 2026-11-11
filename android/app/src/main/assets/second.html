@@ -1,0 +1,25 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+/* the second screen: a big card for whatever is selected on the main screen */
+html,body{height:100%;margin:0;background:#050505;color:#fff;font-family:Roboto,system-ui,sans-serif;overflow:hidden}
+#bg{position:fixed;inset:-60px;background-size:cover;background-position:center;filter:blur(40px) saturate(1.4);opacity:.55;transition:background-image .4s}
+main{position:relative;height:100%;display:flex;gap:5vw;align-items:center;padding:6vh 6vw;box-sizing:border-box}
+#cover{height:76vh;aspect-ratio:1;border-radius:6vh;background:#222 center/cover;box-shadow:0 3vh 8vh rgba(0,0,0,.6);flex:none}
+#sys{display:inline-block;font:600 2.6vh monospace;letter-spacing:.1em;text-transform:uppercase;background:var(--acc,#CCFF00);color:#0a0a0a;padding:.8vh 2vh;border-radius:99px}
+h1{font-size:9vh;font-weight:900;line-height:1.02;margin:2.5vh 0 1.5vh}
+p{font-size:3.2vh;line-height:1.4;opacity:.78;margin:0;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+#idle{position:fixed;inset:0;display:grid;place-items:center;font:900 10vh Roboto,sans-serif;letter-spacing:.2em;opacity:.25}
+</style></head>
+<body><div id="bg"></div><div id="idle">COVE</div>
+<main hidden><div id="cover"></div><div><span id="sys"></span><h1 id="title"></h1><p id="about"></p></div></main>
+<script>
+function show(o){
+  document.documentElement.style.setProperty('--acc',o.acc||'#CCFF00');
+  document.getElementById('idle').hidden=true; document.querySelector('main').hidden=false;
+  const img=o.img?'url("'+o.img+'")':'';
+  document.getElementById('bg').style.backgroundImage=img; document.getElementById('cover').style.backgroundImage=img;
+  document.getElementById('sys').textContent=o.sys+(o.year?'  '+o.year:'');
+  document.getElementById('title').textContent=o.title; document.getElementById('about').textContent=o.about||'';
+}
+</script></body></html>

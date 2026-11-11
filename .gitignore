@@ -1,3 +1,6 @@
 data/
 Library/
 *.zip
+android/.gradle/
+android/build/
+android/app/build/

@@ -32,6 +32,68 @@ $AppFiles = 'index.html', 'server.ps1', 'Cove.bat', 'cove.ico', 'README.txt', 'v
 $restart = $false
 function Get-Ver { try { return [IO.File]::ReadAllText($VerPath, $Utf8) | ConvertFrom-Json } catch { return $null } }
 
+# Window control: find Cove's own window, minimise/hide/restore it, and bring a game to the front.
+try {
+  Add-Type -TypeDefinition @'
+using System; using System.Text; using System.Runtime.InteropServices;
+public static class CoveWin {
+  delegate bool EnumProc(IntPtr h, IntPtr l);
+  [DllImport("user32.dll")] static extern bool EnumWindows(EnumProc f, IntPtr l);
+  [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetWindowText(IntPtr h, StringBuilder s, int n);
+  [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetClassName(IntPtr h, StringBuilder s, int n);
+  [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr h);
+  [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h, int n);
+  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
+  [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr h);
+  [DllImport("user32.dll")] static extern void keybd_event(byte k, byte s, uint f, UIntPtr e);
+  // Cove's window is an Edge app window whose title starts with "Cove"
+  public static IntPtr Find() {
+    IntPtr found = IntPtr.Zero;
+    EnumWindows(delegate(IntPtr h, IntPtr l) {
+      if (!IsWindowVisible(h)) return true;
+      StringBuilder t = new StringBuilder(256), c = new StringBuilder(256);
+      GetWindowText(h, t, 256); GetClassName(h, c, 256);
+      if (t.ToString().StartsWith("Cove") && c.ToString().StartsWith("Chrome_WidgetWin")) { found = h; return false; }
+      return true;
+    }, IntPtr.Zero);
+    return found;
+  }
+  // Windows only lets the active program hand focus to another window; a tap of Alt makes it allow this
+  public static void Front(IntPtr h) {
+    if (IsIconic(h)) ShowWindow(h, 9);
+    keybd_event(0x12, 0, 0, UIntPtr.Zero); keybd_event(0x12, 0, 2, UIntPtr.Zero);
+    SetForegroundWindow(h);
+  }
+}
+'@
+  $HasWin = $true
+} catch { $HasWin = $false }
+$coveWin = [IntPtr]::Zero   # Cove's window while it is minimised or hidden for a game
+$tray = $null
+$front = $null              # a just-launched game waiting for its window, to be brought to the front
+$frontUntil = Get-Date
+function Restore-Cove {
+  if ($script:tray) { $script:tray.Visible = $false }
+  if ($HasWin -and $script:coveWin -ne [IntPtr]::Zero) { [void][CoveWin]::ShowWindow($script:coveWin, 9); [CoveWin]::Front($script:coveWin); $script:coveWin = [IntPtr]::Zero }
+}
+function Hide-Cove($how) {
+  if (-not $HasWin -or $how -eq 'stay') { return }
+  $h = [CoveWin]::Find()
+  if ($h -eq [IntPtr]::Zero) { return }
+  $script:coveWin = $h
+  if ($how -eq 'tray') {
+    Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+    if (-not $script:tray) {
+      $script:tray = New-Object System.Windows.Forms.NotifyIcon
+      $script:tray.Icon = New-Object System.Drawing.Icon (Join-Path $App 'cove.ico')
+      $script:tray.Text = 'Cove (click to open)'
+      $script:tray.add_MouseClick({ Restore-Cove })
+    }
+    $script:tray.Visible = $true
+    [void][CoveWin]::ShowWindow($h, 0)
+  } else { [void][CoveWin]::ShowWindow($h, 6) }
+}
+
 $running = New-Object System.Collections.ArrayList   # launched games still open
 $done = New-Object System.Collections.ArrayList      # finished sessions waiting for the UI to collect
 $lastSeen = Get-Date
@@ -106,10 +168,7 @@ function Sweep {
       $exited = $true
     }
   }
-  if ($exited -and $running.Count -eq 0 -and $script:presence) {   # last game closed: clear the Discord status
-    try { Discord-Set $script:dclient $null } catch {}
-    $script:presence = $false
-  }
+  if ($exited -and $running.Count -eq 0) { Restore-Cove }   # last game closed: Cove comes back by itself
 }
 
 # Discord Rich Presence over Discord's local pipe. Frames are: int32 opcode, int32 length, JSON.
@@ -139,7 +198,14 @@ function Discord-Set($clientId, $activity) {
     $r = Discord-Send 0 @{ v = 1; client_id = [string]$clientId }
     if ($r -notmatch 'READY') { $script:dpipe.Dispose(); $script:dpipe = $null; throw "Discord did not accept that Application ID. $r" }
   }
-  $r = Discord-Send 1 @{ cmd = 'SET_ACTIVITY'; nonce = [guid]::NewGuid().ToString(); args = @{ pid = $PID; activity = $activity } }
+  $msg = @{ cmd = 'SET_ACTIVITY'; nonce = [guid]::NewGuid().ToString(); args = @{ pid = $PID; activity = $activity } }
+  try { $r = Discord-Send 1 $msg } catch {
+    # Discord was closed or restarted since the last update: reconnect once and try again
+    try { $script:dpipe.Dispose() } catch {}
+    $script:dpipe = $null
+    if (-not $script:retrying) { $script:retrying = $true; try { Discord-Set $clientId $activity } finally { $script:retrying = $false }; return }
+    throw
+  }
   if ($r -match '"evt"\s*:\s*"ERROR"') { throw "Discord rejected the status. $r" }
 }
 
@@ -185,7 +251,7 @@ function Handle($ctx) {
   switch ($path) {
     '/api/info' {
       $ver = Get-Ver
-      Json $res @{ v = 6; version = [string]$ver.version; repo = [string]$ver.repo; sep = [string][IO.Path]::DirectorySeparatorChar; app = $App; appdata = $env:APPDATA; local = $env:LOCALAPPDATA
+      Json $res @{ v = 7; version = [string]$ver.version; repo = [string]$ver.repo; sep = [string][IO.Path]::DirectorySeparatorChar; app = $App; appdata = $env:APPDATA; local = $env:LOCALAPPDATA
         docs = [Environment]::GetFolderPath('MyDocuments'); desktop = [Environment]::GetFolderPath('Desktop') }
     }
     '/api/ping' { Sweep; $d = @($done); $done.Clear(); Json $res @{ done = $d; running = $running.Count; ids = @($running | ForEach-Object { $_.id }) } }
@@ -248,7 +314,8 @@ function Handle($ctx) {
       if ($j.args) { $a.ArgumentList = $j.args }
       if ($j.cwd) { $a.WorkingDirectory = $j.cwd }
       $p = Start-Process @a
-      if ($p) { [void]$running.Add(@{ id = $j.id; p = $p; t = Get-Date }) }
+      if ($p) { [void]$running.Add(@{ id = $j.id; p = $p; t = Get-Date }); $script:front = $p; $script:frontUntil = (Get-Date).AddSeconds(20) }
+      Hide-Cove ([string]$j.after)
       Json $res @{ ok = $true }
     }
     '/api/discord' {
@@ -304,6 +371,18 @@ function Handle($ctx) {
       Remove-Item -LiteralPath $tmp -Recurse -Force
       Json $res @{ name = $name; files = $n }
     }
+    '/api/focus' {   # bring a running game's window back to the front
+      $r = $running | Where-Object { $_.id -eq $j.id } | Select-Object -First 1
+      if (-not $r) { throw 'That game is no longer running' }
+      $r.p.Refresh()
+      if ($HasWin -and $r.p.MainWindowHandle -ne [IntPtr]::Zero) { [CoveWin]::Front($r.p.MainWindowHandle) }
+      Json $res @{ ok = $true }
+    }
+    '/api/stop' {    # ask a running game to close, the same as pressing its X (it can still ask to save)
+      $r = $running | Where-Object { $_.id -eq $j.id } | Select-Object -First 1
+      if ($r) { $r.p.Refresh(); [void]$r.p.CloseMainWindow() }
+      Json $res @{ ok = $true }
+    }
     '/api/open' { Start-Process 'explorer.exe' ('"' + $j.path + '"'); Json $res @{ ok = $true } }
     '/api/shortcut' {
       $sh = New-Object -ComObject WScript.Shell
@@ -335,8 +414,16 @@ function Handle($ctx) {
 
 while ($listener.IsListening) {
   $task = $listener.GetContextAsync()
-  while (-not $task.Wait(1000)) {
+  while (-not $task.Wait(300)) {
     Sweep
+    if ($tray -and $tray.Visible) { [System.Windows.Forms.Application]::DoEvents() }   # lets the tray icon answer clicks
+    if ($front) {   # the game's window has appeared: put it in front of everything
+      try {
+        $front.Refresh()
+        if ($front.HasExited -or (Get-Date) -gt $frontUntil) { $front = $null }
+        elseif ($HasWin -and $front.MainWindowHandle -ne [IntPtr]::Zero) { [CoveWin]::Front($front.MainWindowHandle); $front = $null }
+      } catch { $front = $null }
+    }
     if ($quitAt -and (Get-Date) -gt $quitAt) { $listener.Stop(); exit }
     if ($running.Count -eq 0 -and ((Get-Date) - $lastSeen).TotalMinutes -gt 10) { $listener.Stop(); exit }
   }

@@ -1,0 +1,26 @@
+plugins { id 'com.android.application' }
+
+// The Android app shows the same index.html as the Windows version: it is copied in from the repo root at build time.
+def webDir = layout.buildDirectory.dir('web')
+tasks.register('webAssets', Copy) {
+    from('../..') { include 'index.html', 'cove.ico' }
+    into webDir
+}
+
+android {
+    namespace 'com.calinado.cove'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'com.calinado.cove'
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName '1.0.6'
+    }
+    buildTypes { release { minifyEnabled false; signingConfig signingConfigs.debug } }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    sourceSets { main { assets.srcDirs = ['src/main/assets', webDir] } }
+}
+preBuild.dependsOn 'webAssets'
+
+dependencies { implementation 'androidx.core:core:1.13.1' }   // only for FileProvider (hands a game file to an emulator)

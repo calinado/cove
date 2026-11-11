@@ -14,6 +14,10 @@ Windows 10 or 11. Nothing to install: Cove uses PowerShell and Microsoft Edge, w
 
 Cove does not include any games, emulators, BIOS files or keys. You bring your own.
 
+## Android (early, untested)
+
+The `android` folder holds an early Android version for handhelds, with a second-screen card for dual-screen devices such as the AYN Thor. It shares `index.html` with the Windows version. It has not been built or tried on real hardware yet. To build it, open the `android` folder in Android Studio and run it, or run `gradle -p android assembleRelease`.
+
 ## What it does
 
 - Recognises about 20 emulators, plus Switch and Switch 2 forks it has never seen, and lets you add any other `.exe`.

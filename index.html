@@ -9,13 +9,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;600&family=Nunito:wght@500;700;900&family=Orbitron:wght@500;700;900&family=VT323&display=swap" rel="stylesheet">
 <style>
 /* Everything is frosted glass floating over soft moving light. A theme only swaps the variables below. */
-:root{--acc:#CCFF00;--on:#0a0a0a;--bg:#040404;--fg:#fff;--dim:rgba(255,255,255,.64);--o1:#CCFF00;--o2:#1f6b3a;--o3:#d9ffe9;--tint:255,255,255;--ga:.17;--gb:.04;--edge:.2;--shine:.42;--shade:rgba(0,0,0,.5);--field:rgba(0,0,0,.28);
+:root{--acc:#CCFF00;--on:#0a0a0a;--bg:#050605;--fg:#fff;--dim:rgba(255,255,255,.64);--o1:#7fa800;--o2:#14442a;--o3:#3d5a48;--tint:255,255,255;--ga:.17;--gb:.04;--edge:.2;--shine:.42;--shade:rgba(0,0,0,.5);--field:rgba(0,0,0,.28);
   --tile:150px;--r:26px;--spring:cubic-bezier(.34,1.56,.64,1);--font:"Roboto","Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;--mono:"Roboto Mono",Consolas,monospace}
-[data-theme=aurora]{--acc:#b9a2ff;--bg:#090818;--o1:#7c3aed;--o2:#2563eb;--o3:#ec4899}
-[data-theme=joy]{--acc:#ff4554;--on:#fff;--bg:#0f0f13;--o1:#ff3c28;--o2:#0ab9e6;--o3:#ff3c28;--font:"Nunito","Segoe UI",system-ui,sans-serif}
+[data-theme=aurora]{--acc:#b9a2ff;--bg:#090818;--o1:#5b2bb5;--o2:#1d4a9e;--o3:#7a2a5c}
+[data-theme=joy]{--acc:#ff4554;--on:#fff;--bg:#0f0f13;--o1:#b3261c;--o2:#0b6f8a;--o3:#3a1420;--font:"Nunito","Segoe UI",system-ui,sans-serif}
 [data-theme=midnight]{--acc:#ffd166;--bg:#050a1c;--o1:#1d4ed8;--o2:#0ea5e9;--o3:#fde68a}
 [data-theme=mint]{--acc:#5eead4;--bg:#03110f;--o1:#0d9488;--o2:#22c55e;--o3:#a7f3d0}
-[data-theme=sunset]{--acc:#ffb347;--bg:#160910;--o1:#ff5e62;--o2:#7b2ff7;--o3:#ff9966}
+[data-theme=sunset]{--acc:#ffb347;--bg:#160910;--o1:#b8434a;--o2:#4b238f;--o3:#8a4a2c}
 [data-theme=mono]{--acc:#fff;--bg:#070707;--o1:#5a5a5a;--o2:#2a2a2a;--o3:#9a9a9a}
 [data-theme=daylight],[data-theme=channel],[data-theme=pocket],[data-theme=sakura],[data-theme=paper]{--on:#fff;--fg:#141a2b;--dim:rgba(20,26,43,.62);--ga:.72;--gb:.42;--edge:.9;--shine:1;--shade:rgba(40,60,110,.18);--field:rgba(255,255,255,.7)}
 [data-theme=daylight]{--acc:#2563eb;--bg:#dde6f6;--o1:#8ec5ff;--o2:#c4b5fd;--o3:#ffe08a}
@@ -24,7 +24,7 @@
 [data-theme=sakura]{--acc:#e2457f;--bg:#fbeaf1;--o1:#ffc2d9;--o2:#e9d5ff;--o3:#fff0c9;--font:"Nunito","Segoe UI",system-ui,sans-serif}
 /* looks that change more than colour */
 [data-theme=neon]{--acc:#ff2bd6;--on:#fff;--bg:#05010d;--o1:#ff2bd6;--o2:#00e5ff;--o3:#7a00ff;--ga:.05;--gb:.02;--shine:0;--font:"Orbitron","Segoe UI",system-ui,sans-serif}
-[data-theme=neon] #orbs i{opacity:.2}
+[data-theme=neon] #orbs i{opacity:.16}
 [data-theme=neon] .glass{border:1.5px solid var(--acc);box-shadow:0 0 14px color-mix(in srgb,var(--acc) 55%,transparent),inset 0 0 12px color-mix(in srgb,var(--acc) 16%,transparent)}
 [data-theme=neon] .tile{border:1.5px solid #00e5ff;box-shadow:0 0 12px rgba(0,229,255,.45)}
 [data-theme=neon] #hero h1{color:#fff;text-shadow:0 0 8px #fff,0 0 22px var(--acc),0 0 46px var(--acc);text-transform:uppercase;letter-spacing:.04em}
@@ -47,10 +47,10 @@ html,body{height:100%;margin:0}
 body{font-family:var(--font);color:var(--fg);background:var(--bg);overflow:hidden;user-select:none;display:flex;flex-direction:column}
 button,input,select{font:inherit;color:inherit}
 #orbs,#bg{position:fixed;inset:0;z-index:-1;overflow:hidden}
-#orbs i{position:absolute;width:84vmax;height:84vmax;border-radius:50%;opacity:.62;will-change:transform;animation:drift 26s ease-in-out infinite alternate}   /* soft gradients, no blur filter: far cheaper to animate */
+#orbs i{position:absolute;width:84vmax;height:84vmax;border-radius:50%;opacity:.34;will-change:transform;animation:drift 26s ease-in-out infinite alternate}   /* soft gradients, no blur filter: far cheaper to animate */
 #orbs i:nth-child(1){background:radial-gradient(circle,var(--o1),transparent 62%);left:-32vmax;top:-40vmax}
 #orbs i:nth-child(2){background:radial-gradient(circle,var(--o2),transparent 62%);right:-34vmax;top:-14vmax;animation-duration:34s;animation-direction:alternate-reverse}
-#orbs i:nth-child(3){background:radial-gradient(circle,var(--o3),transparent 62%);left:8vw;bottom:-56vmax;opacity:.36;animation-duration:42s}
+#orbs i:nth-child(3){background:radial-gradient(circle,var(--o3),transparent 62%);left:8vw;bottom:-56vmax;opacity:.2;animation-duration:42s}
 @keyframes drift{to{transform:translate(9vmax,7vmax) scale(1.18)}}
 #bg{inset:-80px;background-size:cover;background-position:center;filter:blur(60px) saturate(1.5);opacity:.5;transition:opacity .35s;will-change:opacity}
 #bg.swap{opacity:0}
@@ -64,7 +64,7 @@ button,input,select{font:inherit;color:inherit}
 /* top bar */
 header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center;padding:16px 24px 8px;animation:rise .5s both}
 .right{display:flex;gap:12px;justify-self:end;align-items:center;min-width:0}
-#now{display:flex;gap:8px;align-items:center;border-radius:999px;padding:10px 16px;font-size:12px;font-weight:700;white-space:nowrap;min-width:0;max-width:340px}
+#now{cursor:pointer;display:flex;gap:8px;align-items:center;border-radius:999px;padding:10px 16px;font-size:12px;font-weight:700;white-space:nowrap;min-width:0;max-width:340px}
 #now[hidden]{display:none}
 #now b{overflow:hidden;text-overflow:ellipsis}
 #now i{width:9px;height:9px;border-radius:50%;background:var(--acc);box-shadow:0 0 10px var(--acc);flex:none;animation:beat 1.4s ease-in-out infinite}
@@ -125,7 +125,7 @@ header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align
 .gl{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--fg);color:var(--bg);font:700 11px var(--mono);margin-right:6px}
 .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 44px var(--font);color:rgba(255,255,255,.92);text-shadow:0 2px 14px rgba(0,0,0,.35)}
 main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:thin;scrollbar-color:rgba(var(--tint),.3) transparent}
-.tile{position:relative;display:flex;flex-direction:column;gap:8px;padding:8px;border-radius:var(--r);cursor:pointer;text-align:left;outline:none;min-width:0;
+.tile{position:relative;display:flex;flex-direction:column;gap:8px;padding:8px 8px 12px;border-radius:var(--r);cursor:pointer;text-align:left;outline:none;min-width:0;
   background:linear-gradient(150deg,rgba(var(--tint),calc(var(--ga) + .03)),rgba(var(--tint),var(--gb)));border:1px solid rgba(var(--tint),var(--edge));
   box-shadow:inset 0 1px 0 rgba(var(--tint),var(--shine)),0 10px 28px var(--shade);transition:transform .3s var(--spring),opacity .25s;will-change:transform;animation:pop .45s var(--spring) both;animation-delay:calc(var(--i)*22ms)}   /* only transform and opacity ever animate */
 .still .tile{animation:none}
@@ -135,12 +135,17 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 @keyframes cursor{from{opacity:.55}to{opacity:1}}
 .art{position:relative;aspect-ratio:1;border-radius:calc(var(--r) - 8px);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);flex:none}
 .art::after,#hero .cover::after{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.3),transparent 40%);pointer-events:none}
+.art::before{content:"";position:absolute;inset:-12%;background:var(--img) center/cover;filter:blur(14px) brightness(.75)}   /* a soft copy of the cover fills the square behind it */
+.art img,#hero .cover img,.pv .cover img,#fx .cover img{object-fit:contain}
+.fit-cover .art img,.fit-cover #hero .cover img{object-fit:cover}
+.has>.ph{display:none}
+.run{position:absolute;z-index:2;left:8px;bottom:8px;font:700 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;background:var(--acc);color:var(--on);padding:3px 9px;border-radius:99px}
 .fav{position:absolute;z-index:1;top:5px;right:8px;color:var(--acc);font-size:17px;text-shadow:0 0 8px #000}
 .new{position:absolute;z-index:3;right:-5px;top:-5px;width:15px;height:15px;border-radius:50%;background:var(--acc);border:3px solid var(--bg)}   /* never played yet */
 .v-list .new{display:none}
 .tile.playing .art{outline:3px solid var(--acc);outline-offset:-3px}
-.tile .name{font-weight:700;font-size:13px;padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tile .meta{font:500 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--dim);padding:0 4px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .name{font-weight:700;font-size:13px;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .meta{font:500 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--dim);padding:0 10px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sec{grid-column:1/-1;margin:14px 4px -8px;font:600 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
 .sec:first-child{margin-top:0}
 #empty{text-align:center;color:var(--dim);margin:auto;line-height:1.8}
@@ -229,7 +234,7 @@ footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:
 .s-art #wash{display:block;background:linear-gradient(90deg,rgba(0,0,0,.84),rgba(0,0,0,.4) 58%,rgba(0,0,0,.12)),linear-gradient(0deg,rgba(0,0,0,.94) 16%,transparent 64%)}   /* keeps text and the cover row readable over any art */
 .s-art,.s-art .modal,.s-art .menu{--bg:#0b0b0d;--fg:#fff;--dim:rgba(255,255,255,.7);--tint:255,255,255;--ga:.1;--gb:.1;--edge:.14;--shine:0;--field:rgba(0,0,0,.4);color:var(--fg)}
 .s-art .glass,.s-flat .glass{background:rgba(12,12,14,.72);box-shadow:0 10px 30px rgba(0,0,0,.45)}
-.s-art .tile,.s-flat .tile{padding:0;gap:6px;background:none;border-color:transparent;box-shadow:none}
+.s-art .tile,.s-flat .tile{padding:0 0 10px;gap:8px;background:none;border-color:transparent;box-shadow:none}
 .s-art .art,.s-flat .art{border-radius:var(--r);box-shadow:0 10px 28px rgba(0,0,0,.5)}
 .s-art .art::after,.s-flat .art::after,.s-art #hero .cover::after,.s-flat #hero .cover::after,.s-art #hero::before,.s-flat #hero::before{display:none}
 .s-art #hero,.s-art.v-list #hero{background:none;border-color:transparent;box-shadow:none}
@@ -242,6 +247,9 @@ footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:
 .s-flat #orbs,.s-flat #bg{display:none}
 .s-flat .glass{background:rgba(var(--tint),.08);box-shadow:none}
 .s-flat .modal,.s-flat .menu{background:color-mix(in srgb,var(--bg) 92%,var(--fg))}
+
+/* Android: hide what only exists on Windows */
+.android [data-set=after],.android [data-act=esde],.android [data-act=win],.android [data-act=lnk],.android [data-act=show],.android [data-act=del],.android [data-act=mods],.android [data-act=applnk],.android [data-act=site],.android [data-act=open],.android [data-act=upd],.android [data-act=addemu],.android [data-act=inbox],.android [data-act=orgother],.android #padhint{display:none}
 
 /* motion settings */
 .m-calm #orbs i,.m-calm .tile:focus::after{animation:none}
@@ -274,10 +282,11 @@ code{font-family:var(--mono);font-size:12px;word-break:break-all;color:var(--dim
 .item{display:flex;gap:10px;align-items:center;text-align:left;background:rgba(var(--tint),.05);border:1px solid transparent;border-radius:12px;padding:9px 12px;cursor:pointer}
 .item:hover{background:rgba(var(--tint),.12)}
 .item i{width:14px;height:11px;border-radius:3px;background:var(--acc);flex:none}
-.sw{width:74px;height:74px;border-radius:22px;border:2px solid rgba(var(--tint),.25);cursor:pointer;display:flex;align-items:flex-end;justify-content:center;padding:5px;font-size:10px;font-weight:700;color:#fff;transition:transform .2s var(--spring)}
-.sw span{background:rgba(0,0,0,.62);border-radius:99px;padding:2px 7px;white-space:nowrap}
+.sw{width:74px;height:64px;border-radius:16px;border:2px solid rgba(var(--tint),.22);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:9px 4px 6px;background:var(--b);transition:transform .2s var(--spring)}
+.sw i{width:34px;height:12px;border-radius:99px;background:var(--a)}
+.sw span{font-size:10px;font-weight:700;color:#fff;background:rgba(0,0,0,.62);border-radius:99px;padding:2px 7px;white-space:nowrap}
 .sw:hover{transform:scale(1.08)}
-.sw.on{border-color:var(--fg);box-shadow:0 0 0 3px var(--acc)}
+.sw.on{border-color:var(--a);box-shadow:0 0 0 2px var(--a)}
 #layer :is(button,select,input):focus{outline:2px solid var(--acc);outline-offset:2px}
 #toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%) translateY(10px);z-index:70;opacity:0;transition:opacity .2s,transform .3s var(--spring);pointer-events:none;border-radius:999px;padding:10px 20px;font-weight:600}
 #toast.on{opacity:1;transform:translateX(-50%)}
@@ -309,6 +318,7 @@ const T='__TOKEN__';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const api=async(p,b)=>{
+  if(window.CoveNative){const j=JSON.parse(CoveNative.call(p,b===undefined?'':typeof b==='string'?b:JSON.stringify(b)));if(j&&j.error)throw Error(j.error);return j}
   const r=await fetch('/api/'+p,{method:b===undefined?'GET':'POST',headers:{'X-Token':T},body:b===undefined?undefined:typeof b==='string'?b:JSON.stringify(b)});
   const j=await r.json(); if(!r.ok)throw Error(j.error==='unknown'?'Almost there: close Cove, wait 10 seconds and reopen it to finish updating':j.error||r.status); return j;
 };
@@ -379,16 +389,32 @@ const KINDS=[
  {id:'custom',name:'Custom (write the arguments yourself)',rx:/^$/,args:'"{rom}"',sys:[]},
 ];
 KINDS.find(k=>k.id==='retroarch').sys=Object.keys(KINDS.find(k=>k.id==='retroarch').cores);
-const VER=6;
+const VER=7;
 const DISCORD_APP='';                                    // Cove's own Discord Application ID; when set, Discord is one button for everyone
 const did=()=>S.discord.id||DISCORD_APP;                                              // bump with server.ps1's info.v when the helper changes
 const SW=['.nsp','.xci','.nsz','.xcz','.nup'];            // Switch-family files: told apart by "Switch 2"/"NX2" in the path
 const NOISY=['.zip','.7z','.bin','.exe','.bat','.lnk','.url','.img','.m3u','.dol','.nca','.nro','.ccd','.mds','.md','.wad'];  // only count inside a folder named after a system
 const UNSORTED={id:'unsorted',name:'Unsorted',label:'Unsorted',auto:[],exts:[],lr:''};
+const RA_CORES={gb:'gambatte',gbc:'gambatte',gba:'mgba',nes:'mesen',snes:'snes9x',n64:'mupen64plus_next_gles3',nds:'melondsds',psx:'pcsx_rearmed',psp:'ppsspp',dreamcast:'flycast',saturn:'yabasanshiro',genesis:'genesis_plus_gx',mastersystem:'genesis_plus_gx',gamegear:'genesis_plus_gx'};
+const AKINDS=[
+ {id:'retroarch',name:'RetroArch',comps:['com.retroarch.aarch64/com.retroarch.browser.retroactivity.RetroActivityFuture','com.retroarch/com.retroarch.browser.retroactivity.RetroActivityFuture','com.retroarch.ra32/com.retroarch.browser.retroactivity.RetroActivityFuture'],sys:Object.keys(RA_CORES),cores:RA_CORES,
+  extras:{CONFIGFILE:'/storage/emulated/0/Android/data/{pkg}/files/retroarch.cfg',LIBRETRO:'{core}_libretro_android.so',ROM:'{path}'}},
+ {id:'eden',name:'Eden / yuzu family',comps:['dev.eden.eden_emulator/org.yuzu.yuzu_emu.activities.EmulationActivity','org.citron.citron_emu/org.citron.citron_emu.activities.EmulationActivity','org.sudachi.sudachi_emu/org.sudachi.sudachi_emu.activities.EmulationActivity','org.yuzu.yuzu_emu/.activities.EmulationActivity'],sys:['switch'],action:'android.intent.action.VIEW',data:'provider'},
+ {id:'dolphin',name:'Dolphin',comps:['org.dolphinemu.dolphinemu/.ui.main.TvMainActivity'],sys:['gc','wii'],action:'android.intent.action.MAIN',category:'android.intent.category.LEANBACK_LAUNCHER',extras:{AutoStartFile:'{saf}'}},
+ {id:'azahar',name:'Azahar / Lime3DS / Citra',comps:['io.github.azahar_emu.azahar/org.citra.citra_emu.activities.EmulationActivity','io.github.lime3ds.android/.activities.EmulationActivity','org.citra.citra_emu/.activities.EmulationActivity'],sys:['n3ds'],data:'saf',clear:true},
+ {id:'melonds',name:'melonDS',comps:['me.magnum.melonds/.ui.emulator.EmulatorActivity'],sys:['nds'],action:'me.magnum.melonds.LAUNCH_ROM',extras:{uri:'{saf}'}},
+ {id:'drastic',name:'DraStic',comps:['com.dsemu.drastic/.DraSticActivity'],sys:['nds'],data:'saf',clear:true},
+ {id:'ppsspp',name:'PPSSPP',comps:['org.ppsspp.ppsspp/.PpssppActivity','org.ppsspp.ppssppgold/org.ppsspp.ppsspp.PpssppActivity'],sys:['psp'],action:'android.intent.action.VIEW',category:'android.intent.category.DEFAULT',data:'saf'},
+ {id:'duckstation',name:'DuckStation',comps:['com.github.stenzek.duckstation/.EmulationActivity'],sys:['psx'],clear:true,extras:{bootPath:'{saf}',resumeState:false}},
+ {id:'aethersx2',name:'NetherSX2 / AetherSX2',comps:['xyz.aethersx2.android/.EmulationActivity'],sys:['ps2'],action:'android.intent.action.MAIN',clear:true,extras:{bootPath:'{saf}'}},
+ {id:'m64plus',name:'M64Plus FZ',comps:['org.mupen64plusae.v3.fzurita/paulscode.android.mupen64plusae.SplashActivity','org.mupen64plusae.v3.fzurita.pro/paulscode.android.mupen64plusae.SplashActivity'],sys:['n64'],action:'android.intent.action.VIEW',data:'saf'},
+ {id:'flycast',name:'Flycast',comps:['com.flycast.emulator/com.reicast.emulator.MainActivity'],sys:['dreamcast'],action:'android.intent.action.VIEW',data:'path'},
+ {id:'pizzagba',name:'Pizza Boy GBA',comps:['it.dbtecno.pizzaboygba/it.dbtecno.pizzaboygba.MainActivity','it.dbtecno.pizzaboygbapro/it.dbtecno.pizzaboygbapro.MainActivity'],sys:['gba'],clear:true,extras:{rom_uri:'{path}'}},
+];
 const NOT_MAIN=/(cli|cmd|room|tests?|precompile|redist|crash|updat|unins|setup)/i;
 
 /* ---------- state ---------- */
-let S, INFO, GAMES=[], HIDDEN=[], ART={}, NOW=null, tab='all', saveT;
+let S, INFO, GAMES=[], HIDDEN=[], ART={}, ESDE={}, NOW=null, tab='all', saveT;
 const DEF={setup:false,library:'',roots:[],emus:[],defaults:{},games:{},systems:[],art:{},meta:{},wide:{},scrape:{order:['igdb','sgdb','wiki'],off:{},keys:{}},discord:{on:false,id:'',art:true},ui:{theme:'frost',accent:'',wall:'',size:150,view:'shelf',style:'frost',corners:'soft',motion:'full',sound:true,vol:70,confirm:true}};
 const save=()=>{clearTimeout(saveT);saveT=setTimeout(()=>api('state',JSON.stringify(S,null,1)).catch(e=>toast('Could not save settings: '+e.message)),250)};
 const systems=()=>SYS.concat(S.systems.map(s=>({...s,auto:s.exts,lr:''})));
@@ -423,6 +449,11 @@ async function scan(){
   if(!S.library)return;
   const art=await api('ls',{path:J(S.library,'Art'),depth:2});
   art.items.forEach(i=>{const p=i.p.split(/[\\/]/);ART[p[0]+'/'+stem(i.p)]=J(art.root,i.p)});
+  ESDE={};
+  if(S.esde)try{   // ES-DE layout: downloaded_media/<system>/<kind>/<game file name>.png ; first kind in this order wins
+    const m=await api('ls',{path:J(S.esde,'downloaded_media'),depth:3,exts:['.png','.jpg','.jpeg','.webp']}), order=['covers','3dboxes','miximages','screenshots','titlescreens'];
+    for(const kind of order.slice().reverse())m.items.forEach(i=>{const p=i.p.split(/[\\/]/);if(p.length===3&&p[1]===kind)ESDE[p[0]+'/'+stem(i.p)]=J(m.root,i.p)});
+  }catch{}
   const exts=[...new Set(systems().flatMap(s=>s.exts))].concat(['']), seen=new Set();
   for(const root of romRoots()){
     let r; try{r=await api('ls',{path:root,depth:5,exts})}catch(e){toast('Could not read '+root);continue}
@@ -446,7 +477,7 @@ async function scan(){
 const artKey=g=>g.sys+'|'+g.title.toLowerCase();
 const LRFAIL=new Set();
 function artUrl(g){
-  const custom=gs(g.id).art||ART[g.sys+'/'+g.base];
+  const custom=gs(g.id).art||ART[g.sys+'/'+g.base]||ESDE[g.sys+'/'+g.base];
   if(custom)return '/file?t='+T+'&p='+encodeURIComponent(custom);
   const k=artKey(g); if(S.art[k])return S.art[k];
   const lr=!S.scrape.off.libretro&&sysOf(g.sys).lr;
@@ -469,7 +500,7 @@ async function wikiSearch(q){
 }
 // Sources are tried in your order; the first one to supply a cover, a description or a year wins that field.
 // SteamGridDB and IGDB block browsers, so those requests go through the helper (/api/fetch, fixed list of sites).
-const viaHelper=(url,o={})=>fetch('/api/fetch',{method:'POST',headers:{'X-Token':T},body:JSON.stringify({url,...o})}).then(r=>{if(!r.ok)throw 0;return r.json()});
+const viaHelper=(url,o={})=>window.CoveNative?api('fetch',{url,...o}):fetch('/api/fetch',{method:'POST',headers:{'X-Token':T},body:JSON.stringify({url,...o})}).then(r=>{if(!r.ok)throw 0;return r.json()});
 const yr=x=>(/\b(19|20)\d\d\b/.exec(x||'')||[''])[0], K=()=>S.scrape.keys;
 let igdbTok=null;
 const SRC={
@@ -494,7 +525,7 @@ const SRC={
     find:async q=>(await wikiSearch(q+' video game')).map(p=>({...p,year:yr(p.kind+' '+p.about)}))},
 };
 const sources=()=>S.scrape.order.filter(id=>SRC[id]&&!S.scrape.off[id]&&SRC[id].ready());
-const needsArt=g=>{const k=artKey(g),lr=!S.scrape.off.libretro&&sysOf(g.sys).lr;return !gs(g.id).art&&!ART[g.sys+'/'+g.base]&&!S.art[k]&&(!lr||LRFAIL.has(k)||HACKS.some(h=>h[0].test(g.title)))};
+const needsArt=g=>{const k=artKey(g),lr=!S.scrape.off.libretro&&sysOf(g.sys).lr;return !gs(g.id).art&&!ART[g.sys+'/'+g.base]&&!ESDE[g.sys+'/'+g.base]&&!S.art[k]&&(!lr||LRFAIL.has(k)||HACKS.some(h=>h[0].test(g.title)))};
 function applyMatch(g,hit){
   const k=artKey(g);
   S.meta[k]=hit?{t:hit.title,d:hit.about,y:hit.year||yr(hit.kind+' '+hit.about)}:0;
@@ -503,7 +534,7 @@ function applyMatch(g,hit){
   save();
   for(const x of GAMES.filter(x=>artKey(x)===k)){
     const a=tiles().find(t=>t.dataset.id===x.id)?.querySelector('.art');
-    if(a&&S.art[k]){a.querySelector('img')?.remove();a.insertAdjacentHTML('beforeend',`<img alt="" src="${esc(S.art[k])}" onerror="this.remove()">`)}
+    if(a&&S.art[k]){a.querySelector('img')?.remove();a.style.setProperty('--img',`url('${S.art[k]}')`);a.insertAdjacentHTML('beforeend',`<img alt="" src="${esc(S.art[k])}" onload="this.parentNode.classList.add('has')" onerror="this.remove()">`)}
     if(game(document.activeElement)===x)hero(x);
   }
 }
@@ -533,12 +564,19 @@ async function pumpArt(){
 }
 // a cover that has not arrived after a few seconds counts as missing, so the next source gets a turn
 setInterval(()=>document.querySelectorAll('.art img').forEach(i=>{if(i.complete)return;i.dataset.w=(+i.dataset.w||0)+1;if(i.dataset.w>2&&/libretro/.test(i.src))artFail(i)}),2000);
-function artFail(img){const g=GAMES.find(x=>x.id===img.dataset.id);img.remove();if(g&&!/^\/file/.test(img.getAttribute('src'))){LRFAIL.add(artKey(g));findArt(g)}}
+function artFail(img){const g=GAMES.find(x=>x.id===img.dataset.id);img.parentNode?.style.setProperty('--img','none');img.remove();if(g&&!/^\/file/.test(img.getAttribute('src'))){LRFAIL.add(artKey(g));findArt(g)}}
 const hue=s=>[...s].reduce((h,c)=>(h*31+c.charCodeAt(0))%360,7);
 
 /* ---------- launching ---------- */
 function resolve(g){
   if(g.sys==='unsorted')return null;
+  if(INFO.android){
+    const e=S.emus.filter(e=>emuSys(e).includes(g.sys)), pick=e.find(x=>x.id===gs(g.id).emu)||e.find(x=>x.id===S.defaults[g.sys])||e[0];
+    if(!pick)return null;
+    const k=kindOf(pick), extras={};
+    for(const x in (k.extras||{}))extras[x]=typeof k.extras[x]==='string'?k.extras[x].replace('{core}',(k.cores||{})[g.sys]||''):k.extras[x];
+    return{exe:pick.exe,args:[k.action,k.data,Object.keys(extras).join(' ')].filter(Boolean).join(' '),cwd:'',name:pick.name,intent:{comp:pick.exe,action:k.action||'',category:k.category||'',data:k.data||'',clear:!!k.clear,extras,rom:g.path}};
+  }
   if(g.sys==='pc')return{exe:g.path,args:'',cwd:dir(g.path),name:'Windows'};
   const o=gs(g.id), fits=S.emus.filter(e=>emuSys(e).includes(g.sys));
   const e=fits.find(e=>e.id===o.emu)||fits.find(e=>e.id===S.defaults[g.sys])||fits[0];
@@ -551,10 +589,9 @@ async function launch(g){
   const r=resolve(g);
   if(!r){toast('No emulator set up for '+sysOf(g.sys).name+' yet. Opening Settings.');return settings('emus')}
   try{
-    await api('launch',{id:g.id,exe:r.exe,args:r.args,cwd:r.cwd});
+    await api('launch',r.intent?{id:g.id,...r.intent}:{id:g.id,exe:r.exe,args:r.args,cwd:r.cwd,after:S.ui.after||'taskbar'});
     gs(g.id).last=Date.now();save();blip('launch');launchFx(g,r);
-    NOW={id:g.id,title:g.title,t:Date.now()};nowUI();render(true);
-    if(S.discord.on&&did())presence(g,r).catch(e=>toast('Discord: '+e.message));
+    NOW={id:g.id,title:g.title,emu:r.name,t:Date.now()};nowUI();render();syncPresence();   // re-drawn so the running game moves to the front and takes the cursor
   }catch(e){toast('Could not launch: '+e.message)}
 }
 function nowUI(){
@@ -563,26 +600,38 @@ function nowUI(){
   n.innerHTML=`<i></i>Now playing <b>${esc(NOW.title)}</b><span>${m<60?m+' min':Math.floor(m/60)+'h '+m%60+'m'}</span>`;
 }
 setInterval(nowUI,20000);
-// Discord status: "Playing <game>", with system and emulator underneath and box art when it is a web image
-function presence(g,r){
-  const s=sysOf(g.sys), u=artUrl(g), a={type:0,status_display_type:2,details:(g.title+'  ').slice(0,120),state:(s.name+' \u00b7 '+r.name).slice(0,120),timestamps:{start:Date.now()}};
-  a.assets=S.discord.art&&/^https:/.test(u)?{large_image:u,large_text:s.name,small_image:'cove',small_text:'Cove'}:{large_image:'cove',large_text:'Cove'};
-  return api('discord',{clientId:did(),activity:a});
+// Discord status: kept in step with what is happening, and re-sent every 30 seconds so it survives Discord restarting
+const BOOT=Date.now();
+async function syncPresence(){
+  if(!S.discord.on||!did()||INFO.android)return;
+  const g=NOW&&GAMES.find(x=>x.id===NOW.id);
+  let a={type:0,details:'In the library',state:'Choosing a game',timestamps:{start:BOOT},assets:{large_image:'cove',large_text:'Cove'}};
+  if(g){
+    const s=sysOf(g.sys), u=artUrl(g);
+    a={type:0,status_display_type:2,details:(g.title+'  ').slice(0,120),state:(s.name+' · '+NOW.emu).slice(0,120),timestamps:{start:NOW.t},
+      assets:S.discord.art&&/^https:/.test(u)?{large_image:u,large_text:s.name,small_image:'cove',small_text:'Cove'}:{large_image:'cove',large_text:'Cove'}};
+  }
+  try{await api('discord',{clientId:did(),activity:a})}catch{}
 }
-setInterval(async()=>{
-  try{
-    const r=await api('ping');r.done.forEach(d=>{gs(d.id).time=(gs(d.id).time||0)+d.s});if(r.done.length)save();
-    // the game counts as closed once the helper no longer lists it (older helper: once nothing is running)
-    if(NOW&&Date.now()-NOW.t>6000&&(r.ids?!r.ids.includes(NOW.id):!r.running)){NOW=null;nowUI();render(true)}
-  }catch{}
-},5000);
+setInterval(syncPresence,30000);
+// one place that asks the helper what finished and what is still running
+async function poll(quiet){
+  const r=await api('ping');
+  r.done.forEach(d=>{gs(d.id).time=(gs(d.id).time||0)+d.s}); if(r.done.length)save();
+  // the game counts as closed once the helper no longer lists it (older helper: once nothing is running)
+  if(NOW&&Date.now()-NOW.t>6000&&(r.ids?!r.ids.includes(NOW.id):!r.running)){NOW=null;nowUI();if(!quiet)render(true);syncPresence()}
+  return r;
+}
+setInterval(()=>poll().catch(()=>{}),5000);
+// coming back to Cove while a game is open lands on that game, like a console's switcher
+addEventListener('focus',()=>{if(NOW&&!$('#layer').children.length){const t=tiles().find(x=>x.dataset.id===NOW.id);if(t)goto(t)}});
 addEventListener('pagehide',()=>navigator.sendBeacon('/api/quit?t='+T));
 
 /* ---------- main view ---------- */
 const STYLES=[['frost','Frosted','Glass panels over soft light'],['art','Full art','The selected game fills the screen'],['flat','Flat','Solid colour, no glow']];
 const LAYOUTS=[['shelf','Shelf','One row of large covers'],['home','Home','Big card over two rows of icons'],['grid','Grid','Everything, grouped by system'],['list','List','Cover on the left, rows on the right'],['wheel','Wheel','Titles on a curved wheel, big cover beside']];
-const THEMES=[['frost','Frost','#CCFF00','#040404'],['aurora','Aurora','#7c3aed','#090818'],['joy','Joy','#ff3c28','#0f0f13'],['midnight','Midnight','#1d4ed8','#050a1c'],['mint','Mint','#0d9488','#03110f'],['sunset','Sunset','#ff5e62','#160910'],['mono','Mono','#777','#070707'],['neon','Arcade neon','#ff2bd6','#05010d'],['crt','CRT retro','#3fae36','#060b06'],['dark','Console dark','#2f6fb3','#0c0d10'],
-  ['daylight','Daylight','#8ec5ff','#dde6f6'],['channel','Channel','#7fd4f7','#eef4f8'],['pocket','Pocket','#ffb877','#f5ede2'],['sakura','Sakura','#ff9cc2','#fbeaf1'],['paper','Paper light','#e9b89f','#f4f1ea']];
+const THEMES=[['frost','Frost','#CCFF00','#0b0d08'],['aurora','Aurora','#b9a2ff','#090818'],['joy','Joy','#ff4554','#0f0f13'],['midnight','Midnight','#ffd166','#050a1c'],['mint','Mint','#5eead4','#03110f'],['sunset','Sunset','#ffb347','#160910'],['mono','Mono','#ffffff','#111'],['neon','Arcade neon','#ff2bd6','#05010d'],['crt','CRT retro','#7cff6b','#060b06'],['dark','Console dark','#4da3ff','#0c0d10'],
+  ['daylight','Daylight','#2563eb','#dde6f6'],['channel','Channel','#00a3e0','#eef4f8'],['pocket','Pocket','#f26b1d','#f5ede2'],['sakura','Sakura','#e2457f','#fbeaf1'],['paper','Paper light','#d9480f','#f4f1ea']];
 const ICON={settings:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',layout:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
   theme:'<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17z" fill="currentColor"/>',add:'<path d="M12 5v14M5 12h14"/>',random:'<rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r=".8" fill="currentColor"/><circle cx="15" cy="15" r=".8" fill="currentColor"/><circle cx="12" cy="12" r=".8" fill="currentColor"/>'};
 $('#quick').innerHTML=[['settings','Settings'],['layout','Change layout'],['theme','Change theme'],['random','Surprise me'],['add','Add games']].map(q=>`<button class="glass" data-q="${q[0]}" title="${q[1]}" tabindex="-1"><svg viewBox="0 0 24 24">${ICON[q[0]]}</svg></button>`).join('');
@@ -601,12 +650,15 @@ const LAYPIC={shelf:'<rect x="1" y="6" width="7" height="10" rx="1.5" opacity=".
   list:'<rect x="1" y="1" width="11" height="20" rx="2"/><rect x="14" y="1" width="17" height="5" rx="1.5"/><rect x="14" y="8.5" width="17" height="5" rx="1.5"/><rect x="14" y="16" width="17" height="5" rx="1.5"/>'};
 const ago=t=>{if(!t)return 'Never played';const d=Math.floor((Date.now()-t)/864e5);return 'Last played '+(d<1?'today':d<2?'yesterday':d+' days ago')};
 const played=x=>{const m=Math.round((x||0)/60);return m<1?'':m<60?m+' min':(m/60).toFixed(1)+' h'};
-const cover=g=>{const u=artUrl(g),h=hue(g.title);return `style="background:linear-gradient(140deg,hsl(${h} 70% 46%),hsl(${(h+60)%360} 65% 22%))"><span class="ph">${esc(g.title[0].toUpperCase())}</span>${u?`<img loading="lazy" data-id="${esc(g.id)}" alt="" src="${esc(u)}" onerror="artFail(this)">`:''}`};
+const cover=g=>{const u=artUrl(g),h=hue(g.title);return `style="background:linear-gradient(140deg,hsl(${h} 70% 46%),hsl(${(h+60)%360} 65% 22%));--img:${u?`url('${esc(u)}')`:'none'}"><span class="ph">${esc(g.title[0].toUpperCase())}</span>${u?`<img loading="lazy" data-id="${esc(g.id)}" alt="" src="${esc(u)}" onload="this.parentNode.classList.add('has')" onerror="artFail(this)">`:''}`};
 function visible(){
   const q=$('#q').value.trim().toLowerCase();
   let l=GAMES.filter(g=>tab==='all'||tab==='recent'?true:tab==='fav'?gs(g.id).fav:g.sys===tab);
   if(tab==='recent')l=l.filter(g=>gs(g.id).last).sort((a,b)=>gs(b.id).last-gs(a.id).last).slice(0,40);
-  return q?l.filter(g=>g.title.toLowerCase().includes(q)):l;
+  l=q?l.filter(g=>g.title.toLowerCase().includes(q)):l;
+  const run=NOW?l.findIndex(g=>g.id===NOW.id):-1;
+  if(run>0)l.unshift(l.splice(run,1)[0]);   // the running game is always first
+  return l;
 }
 function render(keep){
   const used=systems().concat(UNSORTED).filter(s=>GAMES.some(g=>g.sys===s.id));
@@ -622,7 +674,7 @@ function render(keep){
     const s=sysOf(g.sys), o=gs(g.id), head=heads&&g.sys!==last?`<div class="sec">${esc(s.name)}</div>`:''; last=g.sys;
     findArt(g);
     return `${head}<button class="tile ${NOW&&NOW.id===g.id?'playing':''}" data-id="${esc(g.id)}" title="${esc(g.title)}" style="--i:${Math.min(i,28)}">
-      <span class="art" ${cover(g)}${o.fav?'<span class="fav">&#9733;</span>':''}</span>${o.last?'':'<span class="new"></span>'}
+      <span class="art" ${cover(g)}${o.fav?'<span class="fav">&#9733;</span>':''}${NOW&&NOW.id===g.id?'<span class="run">Running</span>':''}</span>${o.last?'':'<span class="new"></span>'}
       <span class="name">${esc(g.title)}</span><span class="meta">${esc(s.label||s.name)}${played(o.time)?' &middot; '+played(o.time):''}</span></button>`}).join('');
   const em=$('#empty'); em.hidden=list.length>0;
   if(!list.length)em.innerHTML=GAMES.length?'Nothing here yet.':'No games yet.<br>Point Cove at the folder where your games are and they show up here. Nothing gets moved.<br><br><button class="btn pri xl" data-act="addgames">Add a games folder</button>';
@@ -641,6 +693,7 @@ function hero(g){
     ${S.meta[artKey(g)]?.d?`<p class="about">${esc(S.meta[artKey(g)].d)}</p>`:''}
     <div class="cta"><span><b class="gl">A</b>Start</span><span><b class="gl">Y</b>Options</span>${o.fav?'<span>&#9733; Favourite</span>':''}</div></div>`;
   h.classList.remove('in'); void h.offsetWidth; h.classList.add('in');
+  if(window.CoveNative)try{CoveNative.call('second',JSON.stringify({title:g.title,sys:s.name,year:S.meta[artKey(g)]?.y||'',about:S.meta[artKey(g)]?.d||'',img:/^https:/.test(u)?u:u?'https://cove.local'+u:'',acc:getComputedStyle(document.documentElement).getPropertyValue('--acc').trim()}))}catch{}
   const bg=$('#bg'), img=S.ui.wall?`url("/file?t=${T}&p=${encodeURIComponent(S.ui.wall)}")`:u?`url("${u}")`:'';
   const wide=S.wide[artKey(g)], sharp=$('#bgart'), big=S.ui.wall?img:wide?`url("${wide}")`:img;
   if(bg.dataset.img!==img){bg.dataset.img=img;bg.classList.add('swap');setTimeout(()=>{bg.style.backgroundImage=img;bg.classList.remove('swap')},240)}
@@ -688,7 +741,7 @@ function menu(kind){
   const isT=kind==='theme', key=isT?'theme':'view', cur=S.ui[key];
   const b=$(`#quick [data-q=${isT?'theme':'layout'}]`).getBoundingClientRect();
   $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${b.left}px;bottom:${innerHeight-b.top+12}px"><h2>${isT?'Theme':'Layout'}</h2><div class="body ${isT?'sws':'list'}">${
-    isT?THEMES.map(x=>`<button class="sw ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}" style="background:radial-gradient(circle at 30% 25%,${x[2]},${x[3]} 75%)"><span>${x[1]}</span></button>`).join('')
+    isT?THEMES.map(x=>`<button class="sw ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}" style="--a:${x[2]};--b:${x[3]}"><i></i><span>${x[1]}</span></button>`).join('')
        :LAYOUTS.map(x=>`<button class="item ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}"><svg class="lp" viewBox="0 0 32 22">${LAYPIC[x[0]]}</svg><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')}</div>${
     isT?`<h2>Style</h2><div class="body list">${STYLES.map(x=>`<button class="item ${x[0]===(S.ui.style||'frost')?'on':''}" data-act="sty" data-arg="${x[0]}"><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')}</div>`:''}</div></div>`;
   ($('#layer .on')||focusables()[0])?.focus();
@@ -698,7 +751,36 @@ function menu(kind){
 }
 function surprise(){const l=visible();if(!l.length)return;const g=l[Math.floor(Math.random()*l.length)],t=tiles().find(x=>x.dataset.id===g.id);if(t){goto(t);blip('ok')}}
 // the card shown before a game starts: confirms the game, the emulator, and that its saves are where they should be
-const start=g=>S.ui.confirm===false?launch(g):preview(g);
+const begin=g=>S.ui.confirm===false?launch(g):preview(g);
+const start=g=>!NOW||INFO.android?begin(g):NOW.id===g.id?running(g):another(g);
+const since=()=>{const m=Math.floor((Date.now()-NOW.t)/60000);return m<1?'less than a minute':m<60?m+' min':Math.floor(m/60)+' h '+m%60+' min'};
+function running(g){
+  modal(esc(g.title)+' is running',`<p>It has been open for ${since()}. Go back to it, or close it before starting something else.</p>`,
+    `<button class="btn" data-act="x">Back</button><button class="btn" data-act="stop">Close the game</button><button class="btn pri xl" data-act="focus">Return to game</button>`);
+  onChange=()=>{};
+  onAct=async a=>{
+    if(a==='focus')await api('focus',{id:g.id});
+    if(a==='stop'){await api('stop',{id:g.id});toast('Asked '+g.title+' to close')}
+    closeModal();
+  };
+}
+function another(g){
+  const n=NOW;
+  modal('A game is already running',`<p><b>${esc(n.title)}</b> has been open for ${since()}. Two emulators at once fight over the controller and slow each other down.</p>`,
+    `<button class="btn" data-act="x">Cancel</button><button class="btn" data-act="both">Start anyway</button><button class="btn" data-act="focus">Return to ${esc(n.title)}</button><button class="btn pri" data-act="swap">Close it and start ${esc(g.title)}</button>`);
+  onChange=()=>{};
+  onAct=async a=>{
+    if(a==='focus'){await api('focus',{id:n.id});return closeModal()}
+    if(a==='both'){closeModal();return begin(g)}
+    if(a!=='swap')return closeModal();
+    await api('stop',{id:n.id});
+    modal('Closing '+esc(n.title),'<p>Waiting for it to close. If it asks whether to save, answer it in its own window.</p>','');
+    for(let i=0;i<60&&NOW&&NOW.id===n.id;i++){await new Promise(r=>setTimeout(r,500));await poll(true).catch(()=>{})}
+    $('#layer').innerHTML='';
+    if(NOW&&NOW.id===n.id){render(true);return toast(n.title+' is still open. Close it from its own window, then start the other game')}
+    launch(g);
+  };
+}
 async function preview(g){
   if(g.sys==='unsorted'){toast('Pick which system this one is for');return details(g)}
   const o=gs(g.id), s=sysOf(g.sys), r=resolve(g), fits=S.emus.filter(e=>emuSys(e).includes(g.sys)), emu=r&&S.emus.find(e=>e.exe===r.exe);
@@ -743,6 +825,7 @@ for(const el of [$('main'),$('#dock')])el.addEventListener('wheel',e=>{
   if(el===$('main')&&!/v-(shelf|home)/.test(document.body.className))return;
   e.preventDefault();glide(el,(glides.get(el)?.x??el.scrollLeft)+e.deltaY*1.2);
 },{passive:false});
+$('#now').addEventListener('click',()=>{const g=NOW&&GAMES.find(x=>x.id===NOW.id);if(g)running(g)});
 $('#q').addEventListener('input',()=>render());
 document.addEventListener('keydown',e=>{
   if($('#layer').children.length){if(e.key==='Escape')closeModal();return}
@@ -769,9 +852,21 @@ function madjust(d){
   else mstep(d);
 }
 function mtab(d){const b=[...document.querySelectorAll('#layer .tabs .btn')], i=b.findIndex(x=>x.classList.contains('on'));b[i+d]?.click()}
+window.navKey=k=>{
+  const open=$('#layer').children.length, g=game(document.activeElement);
+  if(open){
+    if(k==='u')mstep(-1); if(k==='d')mstep(1); if(k==='l')madjust(-1); if(k==='r')madjust(1);
+    if(k==='a')document.activeElement.click?.(); if(k==='bk')closeModal(); if(k==='lb')mtab(-1); if(k==='rb')mtab(1);
+  }else{
+    const m={l:[-1,0],r:[1,0],u:[0,-1],d:[0,1]}[k]; if(m)move(...m);
+    if(k==='a'&&g)start(g); if(k==='x')fav(g); if(k==='y'&&g)details(g);
+    if(k==='lb')cycle(-1); if(k==='rb')cycle(1); if(k==='start')settings(); if(k==='sel')menu('layout');
+  }
+};
 let padPrev={},padT=0;
 addEventListener('gamepadconnected',e=>toast('Controller connected: '+e.gamepad.id.replace(/\s*\(.*$/,'')));
 (function pad(){
+  if(window.CoveNative)return;   // the Android app sends buttons itself
   // every connected pad counts (a wheel, a stream deck or a virtual pad can sit in slot 0 and hide the real one)
   const pads=[...navigator.getGamepads()].filter(p=>p&&p.connected);
   if(pads.length&&document.hasFocus()){
@@ -785,17 +880,7 @@ addEventListener('gamepadconnected',e=>toast('Controller connected: '+e.gamepad.
       for(const k in cur)st[k]=st[k]||cur[k];
     }
     const hit=k=>st[k]&&(!padPrev[k]||('lrud'.includes(k)&&now-padT>190));
-    const open=$('#layer').children.length, g=game(document.activeElement);
-    if(open){
-      if(hit('u')){mstep(-1);padT=now} if(hit('d')){mstep(1);padT=now}
-      if(hit('l')){madjust(-1);padT=now} if(hit('r')){madjust(1);padT=now}
-      if(hit('a'))document.activeElement.click?.();
-      if(hit('bk'))closeModal(); if(hit('lb'))mtab(-1); if(hit('rb'))mtab(1);
-    }else{
-      for(const [k,d] of [['l',[-1,0]],['r',[1,0]],['u',[0,-1]],['d',[0,1]]])if(hit(k)){move(...d);padT=now}
-      if(hit('a')&&g)start(g); if(hit('x'))fav(g); if(hit('y')&&g)details(g);
-      if(hit('lb'))cycle(-1); if(hit('rb'))cycle(1); if(hit('start'))settings(); if(hit('sel'))menu('layout');
-    }
+    for(const k in st)if(hit(k)){navKey(k);if('lrud'.includes(k))padT=now}
     padPrev=st;
   }
   requestAnimationFrame(pad);
@@ -843,7 +928,7 @@ function look(){
     const [r,g,b]=[0,2,4].map(i=>{const v=parseInt(h.substr(i,2),16)/255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4}), L=.2126*r+.7152*g+.0722*b;
     d.style.setProperty('--on',(L+.05)/.05>=1.05/(L+.05)?'#0a0a0a':'#fff');
   }
-  document.body.className='v-'+u.view+' m-'+u.motion+' s-'+(u.style||'frost');
+  document.body.className='v-'+u.view+' m-'+u.motion+' s-'+(u.style||'frost')+(INFO&&INFO.android?' android':'')+(u.fit==='cover'?' fit-cover':'');
   if(u.wall)$('#bg').style.backgroundImage=`url("/file?t=${T}&p=${encodeURIComponent(u.wall)}")`;
 }
 setInterval(()=>{const n=[...navigator.getGamepads()].filter(p=>p&&p.connected).length;$('#padhint').textContent=n?'':'Controller: press any button to wake it'},1500);
@@ -1025,6 +1110,12 @@ async function organize(src){
 
 /* emulators */
 async function findEmus(folder){
+  if(INFO.android){
+    const all=AKINDS.flatMap(k=>k.comps.map(c=>({k,c}))), on=(await api('apps',{comps:all.map(x=>x.c)})).r; let n=0;
+    all.forEach((x,i)=>{if(on[i]&&!S.emus.some(e=>e.exe===x.c)){S.emus.push({id:uid(),kind:x.k.id,name:x.k.comps.length>1&&x.k.id==='eden'?x.c.split('.')[1][0].toUpperCase()+x.c.split('.')[1].slice(1):x.k.name,exe:x.c});n++}});
+    S.emus.forEach(e=>emuSys(e).forEach(s=>{if(!S.defaults[s])S.defaults[s]=e.id}));
+    save();return n;
+  }
   const r=await api('ls',{path:folder,depth:4,exts:['.exe']}), byDir={}, have=new Set(S.emus.map(e=>e.exe.toLowerCase()));
   r.items.forEach(i=>{if(!/update-old|backup/i.test(i.p))(byDir[dir(i.p)]=byDir[dir(i.p)]||[]).push(i)});
   let n=0;
@@ -1053,7 +1144,7 @@ async function dataDir(e){
 
 /* settings */
 async function settings(t='lib'){
-  const tabsHtml='<div class="tabs">'+[['lib','Library'],['emus','Emulators'],['saves','Saves'],['discord','Discord'],['look','Look'],['share','Share'],['about','About']].map(x=>`<button class="btn ${x[0]===t?'on':''}" data-act="tab" data-arg="${x[0]}">${x[1]}</button>`).join('')+'</div>';
+  const tabsHtml='<div class="tabs">'+[['lib','Library'],['emus','Emulators'],['saves','Saves'],['discord','Discord'],['look','Look'],['share','Share'],['about','About']].filter(x=>!INFO.android||!['saves','discord','share'].includes(x[0])).map(x=>`<button class="btn ${x[0]===t?'on':''}" data-act="tab" data-arg="${x[0]}">${x[1]}</button>`).join('')+'</div>';
   let body='';
   if(t==='lib')body=`
     <h3>Game folders</h3><small>Cove reads games right where they are, in any layout. File types that only one system uses sort themselves; the rest show under Unsorted until you pick a system.</small>
@@ -1065,6 +1156,8 @@ async function settings(t='lib'){
       <span style="margin-left:auto;display:flex;gap:6px"><button class="btn" data-act="srcup" data-arg="${i}" ${i?'':'disabled'}>Up</button><button class="btn" data-act="srcdn" data-arg="${i}" ${i<S.scrape.order.length-1?'':'disabled'}>Down</button></span></div>
       <small>${x.gives}${x.needs?' '+x.needs:''}</small>
       ${(x.fields||[]).map(f=>`<div class="row"><label>${f[1]}</label><input class="w" type="text" data-set="key" data-arg="${f[0]}" value="${esc(K()[f[0]])}"></div>`).join('')}</div>`}).join('')}
+    <div class="card"><b>ES-DE artwork</b><small style="display:block">If you already scrape with ES-DE (or Skyscraper set to write ES-DE media), point Cove at the ES-DE folder and it uses those covers first, with no lookups. It reads <code>downloaded_media</code>.</small>
+      <div class="row"><code>${esc(S.esde||'not set')}</code><button class="btn" data-act="esde">Choose folder</button>${S.esde?'<button class="btn" data-act="noesde">Stop using it</button>':''}</div></div>
     <div class="row"><input type="checkbox" data-set="src" data-arg="libretro" ${S.scrape.off.libretro?'':'checked'}><b>libretro box art</b><small>Official box scans for cartridge and disc systems, tried first when on. No sign-up.</small></div>
     <div class="row"><button class="btn" data-act="scrape">Scrape missing now</button><button class="btn" data-act="rescrape">Scrape everything again</button></div>
     <h3>Tidy up (optional)</h3><small>Moves loose files into one folder per system inside Cove's library, taking matching save files along. Use it for an Inbox of new downloads; you never have to.</small>
@@ -1107,12 +1200,14 @@ async function settings(t='lib'){
       <p class="dim">The overlay is drawn by Discord itself, per program, so it is switched on in Discord rather than here. With a game running: Discord Settings &rsaquo; Registered Games &rsaquo; "Add it" and pick the emulator, then turn its overlay on there and under Game Overlay.</p></div>
     <small>Some emulators post their own Discord status too. If you see two cards, turn the emulator's one off in its settings.</small>`}
   if(t==='look'){const u=S.ui;body=`
-    <h3>Theme</h3><div class="row">${THEMES.map(x=>`<button class="sw ${x[0]===u.theme?'on':''}" data-act="theme" data-arg="${x[0]}" style="background:radial-gradient(circle at 30% 25%,${x[2]},${x[3]} 75%)"><span>${x[1]}</span></button>`).join('')}</div>
+    <h3>Theme</h3><div class="row">${THEMES.map(x=>`<button class="sw ${x[0]===u.theme?'on':''}" data-act="theme" data-arg="${x[0]}" style="--a:${x[2]};--b:${x[3]}"><i></i><span>${x[1]}</span></button>`).join('')}</div>
     <h3>Style</h3><div class="row">${STYLES.map(x=>`<button class="btn ${x[0]===(u.style||'frost')?'pri':''}" data-act="style" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>
     <small>${STYLES.map(x=>x[1]+': '+x[2].toLowerCase()).join('. ')}.</small>
     <h3>Layout</h3><div class="row">${LAYOUTS.map(x=>`<button class="btn ${x[0]===u.view?'pri':''}" data-act="view" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>
     <small>Home: a big card for the selected game over two rows of icons. Grid: everything, grouped by system. Shelf: one row of large covers. List: cover on the left, rows on the right.</small>
     <h3>Details</h3>
+    <div class="row"><label>Covers</label><select data-set="fit">${opt('contain','Show the whole cover',u.fit||'contain')}${opt('cover','Fill the square (crops tall covers)',u.fit||'contain')}</select></div>
+    <div class="row"><label>When a game starts</label><select data-set="after">${opt('taskbar','Minimise Cove to the taskbar',u.after||'taskbar')}${opt('tray','Hide Cove in the system tray',u.after||'taskbar')}${opt('stay','Leave Cove open behind the game',u.after||'taskbar')}</select></div>
     <div class="row"><label>Corners</label><select data-set="corners">${opt('soft','Soft',u.corners)}${opt('round','Extra round',u.corners)}${opt('sharp','Sharp',u.corners)}</select></div>
     <div class="row"><label>Motion</label><select data-set="motion">${opt('full','Full',u.motion)}${opt('calm','Calm',u.motion)}${opt('off','Off',u.motion)}</select></div>
     <div class="row"><label>Icon size</label><input type="range" min="110" max="240" data-set="size" value="${u.size}"></div>
@@ -1153,6 +1248,8 @@ async function settings(t='lib'){
     if(a==='orgother'){const p=await pick('folder');return p&&organize(p)}
     if(a==='rescan'){await scan();toast(GAMES.length+' games found');return again()}
     if(a==='addroot'){const p=await pick('folder');if(p){addRoot(p);await scan();toast(GAMES.length+' games found');again()}return}
+    if(a==='esde'){const p=await pick('folder');if(p){S.esde=p;save();await scan();toast(Object.keys(ESDE).length+' ES-DE images found');again()}return}
+    if(a==='noesde'){delete S.esde;save();await scan();return again()}
     if(a==='srcup'||a==='srcdn'){const o=S.scrape.order,i=+arg,j=a==='srcup'?i-1:i+1;[o[i],o[j]]=[o[j],o[i]];save();return again()}
     if(a==='scrape'||a==='rescrape'){
       for(const g of GAMES){const k=artKey(g);if(a==='rescrape'||!S.meta[k]){delete S.meta[k];if(!S.art[k]||a==='rescrape')delete S.art[k]}}
@@ -1163,7 +1260,7 @@ async function settings(t='lib'){
       if(!/^[a-z0-9_-]+$/.test(id)||sysOf(id)||!exts.length)return toast('Needs a new folder id (letters and numbers) and at least one .extension');
       S.systems.push({id,name:$('#nsname').value.trim()||id,label:$('#nsname').value.trim()||id,exts});save();await scan();return again()}
     if(a==='delsys'){S.systems.splice(arg,1);save();await scan();return again()}
-    if(a==='scanemu'){const p=await pick('folder');if(p){toast('Found '+await findEmus(p)+' new emulator(s)');again()}return}
+    if(a==='scanemu'){const p=INFO.android?'apps':await pick('folder');if(p){toast('Found '+await findEmus(p)+' new emulator(s)');again()}return}
     if(a==='addemu'){const p=await pick('exe');if(!p)return;const k=KINDS.find(k=>k.rx.test(file(p).toLowerCase()))||KINDS[KINDS.length-1];
       S.emus.push({id:uid(),kind:k.id,name:k.id==='custom'||k.id==='yuzu'?file(dir(p)):k.name.split(' /')[0],exe:p});save();return again()}
     if(a==='dup'){const e=E(arg);S.emus.splice(S.emus.indexOf(e)+1,0,{...e,id:uid(),name:e.name+' (copy)'});save();return again()}
@@ -1185,7 +1282,7 @@ async function settings(t='lib'){
       const d=S.discord;
       if(d.on){d.on=false;save();try{await api('discord',{clientId:did(),activity:null})}catch{};return again()}
       if(!/^\d{15,22}$/.test(did())){toast('One step first: paste an Application ID below');return $('#layer input[data-set=id]')?.focus()}
-      await api('discord',{clientId:did(),activity:{type:0,details:'In the library',state:'Choosing a game',timestamps:{start:Date.now()},assets:{large_image:'cove',large_text:'Cove'}}});
+      await api('discord',{clientId:did(),activity:{type:0,details:'In the library',state:'Choosing a game',timestamps:{start:BOOT},assets:{large_image:'cove',large_text:'Cove'}}});
       d.on=true;save();blip('ok');toast('Connected. Check your Discord profile');return again()}
     if(a==='sfx'){['move','tab','ok','back','open','launch'].forEach((k,i)=>setTimeout(()=>blip(k),i*650));return}
     if(a==='noaccent'){S.ui.accent='';look();save();return again()}
@@ -1203,6 +1300,10 @@ async function settings(t='lib'){
 
 /* first-run walkthrough: three steps, nothing gets moved */
 async function wizard(step){
+  if(INFO.android&&!INFO.storage){
+    modal('Let Cove see your games','<p>Cove needs permission to read the folders your games are in. Android asks for this once: on the next screen, switch on <b>Allow access to manage all files</b> for Cove, then come back.</p>','<button class="btn" data-act="again">I have allowed it</button><button class="btn pri xl" data-act="perm">Open the setting</button>');
+    onChange=()=>{};onAct=async a=>{if(a==='perm')return api('perm');INFO=await api('info');wizard(step)};return;
+  }
   if(!S.library){S.library=J(INFO.app,'Library');await api('mkdir',{paths:['ROMs','Inbox','Art','Backups'].map(d=>J(S.library,d))});save()}
   const n=`<small>Step ${step+1} of 3</small>`, by={};
   GAMES.forEach(g=>by[g.sys]=(by[g.sys]||0)+1);
@@ -1221,7 +1322,7 @@ async function wizard(step){
   onChange=()=>{};
   onAct=async a=>{
     if(a==='next')return wizard(step+1);
-    if(a==='scanemu'){const p=await pick('folder');if(p){toast('Found '+await findEmus(p)+' emulator(s)');wizard(0)}return}
+    if(a==='scanemu'){const p=INFO.android?'apps':await pick('folder');if(p){toast('Found '+await findEmus(p)+' emulator(s)');wizard(0)}return}
     if(a==='addroot'){const p=await pick('folder');if(p){addRoot(p);await scan();wizard(1)}return}
     if(a==='saves'){S.setup=true;save();await scan();render();return settings('saves')}
     if(a==='applnk'){await api('shortcut',{name:'Cove'});return toast('Cove is on your desktop')}
@@ -1253,6 +1354,7 @@ async function checkUpdate(manual){
 /* ---------- boot ---------- */
 (async()=>{
   INFO=await api('info');
+  if(INFO.android){KINDS.length=0;KINDS.push(...AKINDS.map(k=>({...k,rx:/^$/,args:''})),{id:'custom',name:'Custom',rx:/^$/,args:'',sys:[]})}
   const raw=await api('state');
   S={...structuredClone(DEF),...raw,ui:{...DEF.ui,...raw.ui},discord:{...DEF.discord,...raw.discord},scrape:{...structuredClone(DEF.scrape),...raw.scrape}};
   if(S.artV!==2){S.artV=2;for(const k in S.art)if(!S.art[k])delete S.art[k]}   // retry covers recorded as missing by older versions
@@ -1265,6 +1367,8 @@ async function checkUpdate(manual){
   await scan();render();
   if(INFO.version){$('#ver').textContent='v'+INFO.version;$('#ver').onclick=()=>settings('about')}
   setTimeout(()=>checkUpdate(false),2500);
+  syncPresence();
+  if(!INFO.android&&!S.esde&&S.esde!==''&&INFO.docs){const g=J(dir(INFO.docs),'ES-DE');try{if((await api('exists',{paths:[J(g,'downloaded_media')]})).r[0]){S.esde=g;save();await scan();render(true)}}catch{}}
 })().catch(e=>{$('#splash')?.remove();document.body.innerHTML='<p style="padding:40px">Cove could not start: '+esc(e.message)+'</p>'});
 </script>
 </body>
