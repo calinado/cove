@@ -1,5 +1,5 @@
 {
-  "version": "1.0.12",
+  "version": "1.0.13",
   "repo": "calinado/cove",
   "notes": "Covers match real game cases for every console, including tall Switch boxes. Games start on their own disc or cartridge. In RetroArch, Start + Select opens its menu."
 }
