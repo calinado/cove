@@ -194,7 +194,7 @@ footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:
 #quick button{position:relative;width:46px;height:46px;border-radius:50%;cursor:pointer;display:grid;place-items:center;padding:0;transition:transform .2s var(--spring),border-color .2s}
 #quick button:hover,#quick button:focus-visible{transform:scale(1.14);border-color:var(--acc);outline:none}
 #quick svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-#quick button::after{content:attr(title);position:absolute;bottom:54px;left:50%;transform:translateX(-50%) translateY(6px);white-space:nowrap;font-size:12px;font-weight:700;background:var(--fg);color:var(--bg);padding:4px 10px;border-radius:99px;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s}
+#quick button::after{content:attr(title);position:absolute;bottom:54px;left:50%;transform:translateX(-50%) translateY(6px);white-space:nowrap;font-size:12px;font-weight:700;background:#111;color:#fff;border:1px solid rgba(255,255,255,.25);padding:4px 10px;border-radius:99px;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s}
 #quick button:hover::after{opacity:1;transform:translateX(-50%)}
 #ver{color:var(--dim);font:500 12px var(--mono);letter-spacing:.04em;opacity:.7;cursor:pointer}
 #count{color:var(--dim);font:500 12px var(--mono);letter-spacing:.04em;text-transform:uppercase}
@@ -223,7 +223,7 @@ footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:
 .s-art #bg{inset:0;filter:none;opacity:1;background-position:center 20%}
 .s-art #bg.swap{opacity:0}
 .s-art #bg::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.88),rgba(0,0,0,.45) 55%,rgba(0,0,0,.25)),linear-gradient(0deg,rgba(0,0,0,.9),transparent 45%)}
-.s-art,.s-art .modal,.s-art .menu{--fg:#fff;--dim:rgba(255,255,255,.7);--tint:255,255,255;--ga:.1;--gb:.1;--edge:.14;--shine:0;--field:rgba(0,0,0,.4);color:var(--fg)}
+.s-art,.s-art .modal,.s-art .menu{--bg:#0b0b0d;--fg:#fff;--dim:rgba(255,255,255,.7);--tint:255,255,255;--ga:.1;--gb:.1;--edge:.14;--shine:0;--field:rgba(0,0,0,.4);color:var(--fg)}
 .s-art .glass,.s-flat .glass{background:rgba(12,12,14,.72);box-shadow:0 10px 30px rgba(0,0,0,.45)}
 .s-art .tile,.s-flat .tile{padding:0;gap:6px;background:none;border-color:transparent;box-shadow:none}
 .s-art .art,.s-flat .art{border-radius:var(--r);box-shadow:0 10px 28px rgba(0,0,0,.5)}
@@ -236,7 +236,7 @@ footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:
 .s-art.v-list .art,.s-flat.v-list .art{border-radius:12px;box-shadow:none}
 /* style: Flat. Solid theme colour, no glow, no blur. */
 .s-flat #orbs,.s-flat #bg{display:none}
-.s-flat .glass{background:rgba(var(--tint),.08)}
+.s-flat .glass{background:rgba(var(--tint),.08);box-shadow:none}
 .s-flat .modal,.s-flat .menu{background:color-mix(in srgb,var(--bg) 92%,var(--fg))}
 
 /* motion settings */
@@ -270,7 +270,8 @@ code{font-family:var(--mono);font-size:12px;word-break:break-all;color:var(--dim
 .item{display:flex;gap:10px;align-items:center;text-align:left;background:rgba(var(--tint),.05);border:1px solid transparent;border-radius:12px;padding:9px 12px;cursor:pointer}
 .item:hover{background:rgba(var(--tint),.12)}
 .item i{width:14px;height:11px;border-radius:3px;background:var(--acc);flex:none}
-.sw{width:74px;height:74px;border-radius:22px;border:2px solid rgba(var(--tint),.25);cursor:pointer;display:flex;align-items:flex-end;justify-content:center;padding:6px;font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 4px #000;transition:transform .2s var(--spring)}
+.sw{width:74px;height:74px;border-radius:22px;border:2px solid rgba(var(--tint),.25);cursor:pointer;display:flex;align-items:flex-end;justify-content:center;padding:5px;font-size:10px;font-weight:700;color:#fff;transition:transform .2s var(--spring)}
+.sw span{background:rgba(0,0,0,.62);border-radius:99px;padding:2px 7px;white-space:nowrap}
 .sw:hover{transform:scale(1.08)}
 .sw.on{border-color:var(--fg);box-shadow:0 0 0 3px var(--acc)}
 #layer :is(button,select,input):focus{outline:2px solid var(--acc);outline-offset:2px}
@@ -679,7 +680,7 @@ function menu(kind){
   const isT=kind==='theme', key=isT?'theme':'view', cur=S.ui[key];
   const b=$(`#quick [data-q=${isT?'theme':'layout'}]`).getBoundingClientRect();
   $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${b.left}px;bottom:${innerHeight-b.top+12}px"><h2>${isT?'Theme':'Layout'}</h2><div class="body ${isT?'sws':'list'}">${
-    isT?THEMES.map(x=>`<button class="sw ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}" style="background:radial-gradient(circle at 30% 25%,${x[2]},${x[3]} 75%)">${x[1]}</button>`).join('')
+    isT?THEMES.map(x=>`<button class="sw ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}" style="background:radial-gradient(circle at 30% 25%,${x[2]},${x[3]} 75%)"><span>${x[1]}</span></button>`).join('')
        :LAYOUTS.map(x=>`<button class="item ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}"><svg class="lp" viewBox="0 0 32 22">${LAYPIC[x[0]]}</svg><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')}</div>${
     isT?`<h2>Style</h2><div class="body list">${STYLES.map(x=>`<button class="item ${x[0]===(S.ui.style||'frost')?'on':''}" data-act="sty" data-arg="${x[0]}"><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')}</div>`:''}</div></div>`;
   ($('#layer .on')||focusables()[0])?.focus();
@@ -828,6 +829,12 @@ function look(){
   const u=S.ui, d=document.documentElement;
   d.dataset.theme=u.theme; d.style.setProperty('--tile',u.size+'px'); d.style.setProperty('--r',{soft:'26px',round:'40px',sharp:'8px'}[u.corners]||'26px');
   u.accent?d.style.setProperty('--acc',u.accent):d.style.removeProperty('--acc');
+  const m=/^#([0-9a-f]{6}|[0-9a-f]{3})$/i.exec(getComputedStyle(d).getPropertyValue('--acc').trim());
+  if(m){
+    const h=m[1].length===3?[...m[1]].map(x=>x+x).join(''):m[1];
+    const [r,g,b]=[0,2,4].map(i=>{const v=parseInt(h.substr(i,2),16)/255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4}), L=.2126*r+.7152*g+.0722*b;
+    d.style.setProperty('--on',(L+.05)/.05>=1.05/(L+.05)?'#0a0a0a':'#fff');
+  }
   document.body.className='v-'+u.view+' m-'+u.motion+' s-'+(u.style||'frost');
   if(u.wall)$('#bg').style.backgroundImage=`url("/file?t=${T}&p=${encodeURIComponent(u.wall)}")`;
 }
@@ -1092,7 +1099,7 @@ async function settings(t='lib'){
       <p class="dim">The overlay is drawn by Discord itself, per program, so it is switched on in Discord rather than here. With a game running: Discord Settings &rsaquo; Registered Games &rsaquo; "Add it" and pick the emulator, then turn its overlay on there and under Game Overlay.</p></div>
     <small>Some emulators post their own Discord status too. If you see two cards, turn the emulator's one off in its settings.</small>`}
   if(t==='look'){const u=S.ui;body=`
-    <h3>Theme</h3><div class="row">${THEMES.map(x=>`<button class="sw ${x[0]===u.theme?'on':''}" data-act="theme" data-arg="${x[0]}" style="background:radial-gradient(circle at 30% 25%,${x[2]},${x[3]} 75%)">${x[1]}</button>`).join('')}</div>
+    <h3>Theme</h3><div class="row">${THEMES.map(x=>`<button class="sw ${x[0]===u.theme?'on':''}" data-act="theme" data-arg="${x[0]}" style="background:radial-gradient(circle at 30% 25%,${x[2]},${x[3]} 75%)"><span>${x[1]}</span></button>`).join('')}</div>
     <h3>Style</h3><div class="row">${STYLES.map(x=>`<button class="btn ${x[0]===(u.style||'frost')?'pri':''}" data-act="style" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>
     <small>${STYLES.map(x=>x[1]+': '+x[2].toLowerCase()).join('. ')}.</small>
     <h3>Layout</h3><div class="row">${LAYOUTS.map(x=>`<button class="btn ${x[0]===u.view?'pri':''}" data-act="view" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>

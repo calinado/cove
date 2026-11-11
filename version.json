@@ -1,5 +1,5 @@
 {
-  "version": "1.0.3",
+  "version": "1.0.4",
   "repo": "calinado/cove",
-  "notes": "New Wheel layout and four new looks (Arcade neon, CRT retro, Console dark, Paper light), plus everything in 1.0.2: mod installer for Switch games, choosable scraper sources, Full art and Flat styles, About tab, new menu sounds."
+  "notes": "Contrast fixes across all themes. New Wheel layout and four new looks (Arcade neon, CRT retro, Console dark, Paper light), plus everything in 1.0.2: mod installer for Switch games, choosable scraper sources, Full art and Flat styles, About tab, new menu sounds."
 }
