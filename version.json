@@ -1,5 +1,5 @@
 {
-  "version": "1.0.10",
+  "version": "1.0.11",
   "repo": "calinado/cove",
-  "notes": "Controller: press A on a dropdown to open its choices as a list. Square covers, one-click RetroArch and cores."
+  "notes": "Covers take the shape of each console's boxes and fill it, with no gaps. Fan hacks use the base game's box. Wide HD backgrounds once a SteamGridDB key is added."
 }

@@ -136,7 +136,13 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .art{position:relative;aspect-ratio:1;border-radius:calc(var(--r) - 8px);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);flex:none}
 .art::after,#hero .cover::after{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.3),transparent 40%);pointer-events:none}
 .art::before{content:"";position:absolute;inset:-12%;background:var(--img) center/cover;filter:blur(14px) brightness(.75)}   /* a soft copy of the cover fills the square behind it */
-#hero .cover img,.pv .cover img,#fx .cover img,.fit-whole .art img{object-fit:contain}
+.fit-whole :is(.art,#hero .cover,.pv .cover,#fx .cover) img{object-fit:contain}
+/* covers take the shape of the console's own boxes and fill it: tall DVD cases, wide SNES boxes, square Switch icons */
+.fit-box.v-shelf .tile{flex:0 0 auto}
+.fit-box.v-shelf .art{height:calc(var(--tile)*1.75);aspect-ratio:var(--ar,1);align-self:flex-start}
+.fit-box.v-shelf .tile .name{width:0;min-width:100%}
+.fit-box :is(#hero,.pv,#fx) .cover{aspect-ratio:var(--ar,1)}
+.pvbg{aspect-ratio:3.1;border-radius:var(--r);background:center/cover;margin-top:24px}
 .has>.ph{display:none}
 .run{position:absolute;z-index:2;left:8px;bottom:8px;font:700 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;background:var(--acc);color:var(--on);padding:3px 9px;border-radius:99px}
 .fav{position:absolute;z-index:1;top:5px;right:8px;color:var(--acc);font-size:17px;text-shadow:0 0 8px #000}
@@ -508,9 +514,9 @@ const LRFAIL=new Set();
 function artUrl(g){
   const custom=gs(g.id).art||ART[g.sys+'/'+g.base]||ESDE[g.sys+'/'+g.base];
   if(custom)return '/file?t='+T+'&p='+encodeURIComponent(custom);
-  const k=artKey(g); if(S.art[k])return S.art[k];
-  const lr=!S.scrape.off.libretro&&sysOf(g.sys).lr;
-  return lr&&S.art[k]!==0&&!LRFAIL.has(k)&&!HACKS.some(h=>h[0].test(g.title))?`https://thumbnails.libretro.com/${encodeURIComponent(lr)}/Named_Boxarts/${encodeURIComponent(g.base.replace(/[&*/:`<>?\\|"]/g,'_'))}.png`:'';
+  const k=artKey(g), lr=!S.scrape.off.libretro&&sysOf(g.sys).lr, b=lr&&lrBase(g), box=b&&!LRFAIL.has(k);
+  if(S.art[k]&&!(box&&b!==g.base&&/wiki[mp]edia/.test(S.art[k])))return S.art[k];   // a hack's borrowed box beats the Wikipedia picture found earlier
+  return box&&S.art[k]!==0?`https://thumbnails.libretro.com/${encodeURIComponent(lr)}/Named_Boxarts/${encodeURIComponent(b.replace(/[&*/:`<>?\\|"]/g,'_'))}.png`:'';
 }
 // cover lookup by name on Wikipedia (no key needed); the answer is remembered, including "nothing found"
 const nrm=x=>x.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
@@ -518,6 +524,11 @@ const nrm=x=>x.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
 const HACKS=[[/storm ?silver|sacred ?gold/i,'Pokemon HeartGold and SoulSilver'],[/blaze ?black ?2|volt ?white ?2/i,'Pokemon Black 2 and White 2'],[/blaze ?black|volt ?white/i,'Pokemon Black and White'],
   [/renegade ?platinum/i,'Pokemon Platinum'],[/radical ?red|unbound|rocket ?edition|gaia/i,'Pokemon FireRed and LeafGreen'],[/seaglass|emerald ?(rogue|kaizo|imperium)|inclement/i,'Pokemon Emerald'],
   [/crystal ?clear|polished ?crystal/i,'Pokemon Crystal'],[/rising ?ruby|sinking ?sapphire/i,'Pokemon Omega Ruby and Alpha Sapphire'],[/eternal ?x|wilting ?y/i,'Pokemon X and Y'],[/photonic ?sun|prismatic ?moon/i,'Pokemon Ultra Sun and Ultra Moon']];
+const LRH=[[/storm ?silver/i,'Pokemon - SoulSilver Version (USA)'],[/sacred ?gold/i,'Pokemon - HeartGold Version (USA)'],[/blaze ?black ?2/i,'Pokemon - Black Version 2 (USA, Europe) (NDSi Enhanced)'],[/volt ?white ?2/i,'Pokemon - White Version 2 (USA, Europe) (NDSi Enhanced)'],
+  [/blaze ?black/i,'Pokemon - Black Version (USA, Europe) (NDSi Enhanced)'],[/volt ?white/i,'Pokemon - White Version (USA, Europe) (NDSi Enhanced)'],[/renegade ?platinum/i,'Pokemon - Platinum Version (USA)'],
+  [/radical ?red|unbound|rocket ?edition|gaia/i,'Pokemon - FireRed Version (USA)'],[/seaglass|emerald ?(rogue|kaizo|imperium)|inclement/i,'Pokemon - Emerald Version (USA, Europe)']];
+// the name to ask the box art server for: a fan hack borrows its base game's box, '' when there is none to borrow
+const lrBase=g=>HACKS.some(h=>h[0].test(g.title))?(LRH.find(h=>h[0].test(g.title))||[0,''])[1]:g.base;
 const lookFor=g=>(HACKS.find(h=>h[0].test(g.title))||[0,g.title.replace(/[-:]/g,' ')])[1];
 // scraper: looks each game up by name on Wikipedia (no key) for a cover, a short description and the year.
 // Answers are remembered in settings, including "nothing found", so each game is only asked about once.
@@ -533,14 +544,14 @@ const viaHelper=(url,o={})=>window.CoveNative?api('fetch',{url,...o}):fetch('/ap
 const yr=x=>(/\b(19|20)\d\d\b/.exec(x||'')||[''])[0], K=()=>S.scrape.keys;
 let igdbTok=null;
 const SRC={
-  igdb:{name:'IGDB',gives:'Cover, description, year and genre. The most complete for official games.',needs:'A free Twitch developer app (dev.twitch.tv > Applications): paste its Client ID and Client Secret.',fields:[['igdbId','Client ID'],['igdbSecret','Client Secret']],ready:()=>!!(K().igdbId&&K().igdbSecret),
+  igdb:{name:'IGDB',gives:'Cover, description, year and genre. The most complete for official games.',needs:'A free Twitch developer app (dev.twitch.tv > Applications): paste its Client ID and Client Secret.',url:'https://dev.twitch.tv/console/apps',fields:[['igdbId','Client ID'],['igdbSecret','Client Secret']],ready:()=>!!(K().igdbId&&K().igdbSecret),
     find:async(q,n)=>{
       const k=K();
       if(!igdbTok||igdbTok.exp<Date.now()){const t=await viaHelper(`https://id.twitch.tv/oauth2/token?client_id=${encodeURIComponent(k.igdbId)}&client_secret=${encodeURIComponent(k.igdbSecret)}&grant_type=client_credentials`,{method:'POST',body:''});igdbTok={v:t.access_token,exp:Date.now()+(t.expires_in-60)*1000}}
       const r=await viaHelper('https://api.igdb.com/v4/games',{method:'POST',headers:{'Client-ID':k.igdbId,Authorization:'Bearer '+igdbTok.v},body:`search "${q.replace(/"/g,'')}"; fields name,summary,first_release_date,cover.image_id,genres.name,artworks.image_id,screenshots.image_id; limit ${n};`});
       return r.map(g=>({title:g.name,img:g.cover?`https://images.igdb.com/igdb/image/upload/t_cover_big_2x/${g.cover.image_id}.jpg`:'',hero:(g.artworks||g.screenshots)?`https://images.igdb.com/igdb/image/upload/t_1080p/${(g.artworks||g.screenshots)[0].image_id}.jpg`:'',about:g.summary||'',year:g.first_release_date?''+new Date(g.first_release_date*1000).getFullYear():'',kind:(g.genres||[]).map(x=>x.name).join(', ')}));
     }},
-  sgdb:{name:'SteamGridDB',gives:'Covers only, with the widest choice, including fan-made art for hacks and new releases.',needs:'A free API key from steamgriddb.com (Preferences > API).',fields:[['sgdb','API key']],ready:()=>!!K().sgdb,
+  sgdb:{name:'SteamGridDB',gives:'HD covers and wide background art, with the widest choice, including fan-made art for hacks and new releases.',needs:'A free API key from steamgriddb.com (Preferences > API).',url:'https://www.steamgriddb.com/profile/preferences/api',fields:[['sgdb','API key']],ready:()=>!!K().sgdb,
     find:async(q,n)=>{
       const h={headers:{Authorization:'Bearer '+K().sgdb}}, s=await viaHelper('https://www.steamgriddb.com/api/v2/search/autocomplete/'+encodeURIComponent(q),h), out=[];
       for(const g of (s.data||[]).slice(0,n)){
@@ -554,11 +565,11 @@ const SRC={
     find:async q=>(await wikiSearch(q+' video game')).map(p=>({...p,year:yr(p.kind+' '+p.about)}))},
 };
 const sources=()=>S.scrape.order.filter(id=>SRC[id]&&!S.scrape.off[id]&&SRC[id].ready());
-const needsArt=g=>{const k=artKey(g),lr=!S.scrape.off.libretro&&sysOf(g.sys).lr;return !gs(g.id).art&&!ART[g.sys+'/'+g.base]&&!ESDE[g.sys+'/'+g.base]&&!S.art[k]&&(!lr||LRFAIL.has(k)||HACKS.some(h=>h[0].test(g.title)))};
+const needsArt=g=>{const k=artKey(g),lr=!S.scrape.off.libretro&&sysOf(g.sys).lr;return !gs(g.id).art&&!ART[g.sys+'/'+g.base]&&!ESDE[g.sys+'/'+g.base]&&!S.art[k]&&(!lr||LRFAIL.has(k)||!lrBase(g))};
 function applyMatch(g,hit){
   const k=artKey(g);
   S.meta[k]=hit?{t:hit.title,d:hit.about,y:hit.year||yr(hit.kind+' '+hit.about)}:0;
-  if(hit&&hit.hero)S.wide[k]=hit.hero;
+  if(hit&&hit.hero)S.wide[k]=hit.hero; else if(heroReady()&&!(k in S.wide))S.wide[k]=0;   // 0 = looked, none there
   if(hit&&hit.img&&(needsArt(g)||hit.force))S.art[k]=hit.img; else if(!(k in S.art)&&needsArt(g))S.art[k]=0;
   save();
   for(const x of GAMES.filter(x=>artKey(x)===k)){
@@ -568,7 +579,8 @@ function applyMatch(g,hit){
   }
 }
 const artQ=[], artPending=new Set(); let artBusy=0;
-const scraped=g=>{const k=artKey(g);return k in S.meta&&!(needsArt(g)&&!(k in S.art))};
+const heroReady=()=>sources().some(id=>id!=='wiki');   // only IGDB and SteamGridDB carry wide background art
+const scraped=g=>{const k=artKey(g);return k in S.meta&&!(needsArt(g)&&!(k in S.art))&&!(heroReady()&&!(k in S.wide))};
 function findArt(g){const k=artKey(g);if(scraped(g)||artPending.has(k))return;artPending.add(k);artQ.push(g);pumpArt()}
 async function pumpArt(){
   if(artBusy||!artQ.length)return;
@@ -582,7 +594,7 @@ async function pumpArt(){
       const hit=res.find(fits); if(!hit)continue;
       got=got||{title:hit.title,img:'',about:'',year:'',hero:'',kind:hit.kind};
       for(const f of ['img','about','year','hero'])if(!got[f]&&hit[f])got[f]=hit[f];
-      if(got.img&&got.about&&got.year)break;
+      if(got.img&&got.about&&got.year&&got.hero)break;
     }
     applyMatch(g,got); artPending.delete(k);
   }catch{
@@ -684,7 +696,9 @@ const LAYPIC={shelf:'<rect x="1" y="6" width="7" height="10" rx="1.5" opacity=".
 const ago=t=>{if(!t)return 'Never played';const d=Math.floor((Date.now()-t)/864e5);return 'Last played '+(d<1?'today':d<2?'yesterday':d+' days ago')};
 const played=x=>{const m=Math.round((x||0)/60);return m<1?'':m<60?m+' min':(m/60).toFixed(1)+' h'};
 const artOk=i=>{const a=i.parentNode;if(!a)return;a.classList.add('has')};
-const cover=g=>{const u=artUrl(g),h=hue(g.title);return `style="background:linear-gradient(140deg,hsl(${h} 70% 46%),hsl(${(h+60)%360} 65% 22%));--img:${u?`url('${esc(u)}')`:'none'}"><span class="ph">${esc(g.title[0].toUpperCase())}</span>${u?`<img loading="lazy" data-id="${esc(g.id)}" alt="" src="${esc(u)}" onload="artOk(this)" onerror="artFail(this)">`:''}`};
+// width / height of each console's retail box art
+const AR={wiiu:.71,wii:.71,gc:.71,n3ds:1.1,nds:1.1,n64:1.37,snes:1.37,nes:.71,ps3:.86,ps2:.71,psp:.58,xbox360:.71,xbox:.71,saturn:.62,genesis:.71,mastersystem:.71,gamegear:.71,arcade:.75};
+const cover=g=>{const u=artUrl(g),h=hue(g.title);return `style="--ar:${AR[g.sys]||1};background:linear-gradient(140deg,hsl(${h} 70% 46%),hsl(${(h+60)%360} 65% 22%));--img:${u?`url('${esc(u)}')`:'none'}"><span class="ph">${esc(g.title[0].toUpperCase())}</span>${u?`<img loading="lazy" data-id="${esc(g.id)}" alt="" src="${esc(u)}" onload="artOk(this)" onerror="artFail(this)">`:''}`};
 function visible(){
   const q=$('#q').value.trim().toLowerCase();
   let l=GAMES.filter(g=>tab==='all'||tab==='recent'?true:tab==='fav'?gs(g.id).fav:g.sys===tab);
@@ -832,7 +846,7 @@ async function preview(g){
   const side=['.sav','.srm','.dsv'].map(x=>g.path.replace(/\.[^.\\/]+$/,x)), data=emu?await dataDir(emu):'';
   let ok=[]; try{ok=(await api('exists',{paths:[g.folder||g.path,r?r.exe:'',data].concat(side)})).r}catch{}
   const sav=side.find((p,i)=>ok[3+i]), line=(cls,t,sub)=>`<div class="chk"><i class="${cls}"></i><span>${t}${sub?`<small class="dim">${esc(sub)}</small>`:''}</span></div>`;
-  modal('',`<div class="pv"><div class="cover" ${cover(g)}</div><div style="min-width:0;flex:1">
+  modal('',`${S.wide[artKey(g)]?`<div class="pvbg" style="background-image:url('${esc(S.wide[artKey(g)])}')"></div>`:''}<div class="pv"><div class="cover" ${cover(g)}</div><div style="min-width:0;flex:1">
       <span class="chip" style="--h:${hue(g.sys)}">${esc(s.name)}</span>${S.meta[artKey(g)]?.y?` <span class="chip yr">${S.meta[artKey(g)].y}</span>`:''}<h1>${esc(g.title)}</h1>
       ${S.meta[artKey(g)]?.d?`<p class="dim" style="margin:-8px 0 12px">${esc(S.meta[artKey(g)].d)}</p>`:''}
       ${NOW&&NOW.id===g.id?line('warn','Already running','Starting it again opens a second copy'):''}
@@ -997,7 +1011,7 @@ function look(){
     const [r,g,b]=[0,2,4].map(i=>{const v=parseInt(h.substr(i,2),16)/255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4}), L=.2126*r+.7152*g+.0722*b;
     d.style.setProperty('--on',(L+.05)/.05>=1.05/(L+.05)?'#0a0a0a':'#fff');
   }
-  document.body.className='v-'+u.view+' m-'+u.motion+' s-'+(u.style||'frost')+(INFO&&INFO.android?' android':'')+(u.fit==='contain'?' fit-whole':'');
+  document.body.className='v-'+u.view+' m-'+u.motion+' s-'+(u.style||'frost')+(INFO&&INFO.android?' android':'')+(u.fit==='contain'?' fit-whole':u.fit==='cover'?'':' fit-box');
   if(u.wall)$('#bg').style.backgroundImage=`url("/file?t=${T}&p=${encodeURIComponent(u.wall)}")`;
 }
 setInterval(()=>{const n=[...navigator.getGamepads()].filter(p=>p&&p.connected).length;$('#padhint').textContent=n?'':'Controller: press any button to wake it'},1500);
@@ -1223,7 +1237,7 @@ async function settings(t='lib'){
     <h3>Scraper</h3><small>Cove looks up a cover, a description and the year for each game in the background. Details found for <b>${GAMES.filter(g=>S.meta[artKey(g)]).length}</b> of ${GAMES.length} games${artQ.length?', '+artQ.length+' still in the queue':''}. Sources are tried from the top down; move the ones you trust most to the top. A wrong match can be fixed from the game's options.</small>
     ${S.scrape.order.map((id,i)=>{const x=SRC[id],on=!S.scrape.off[id];return `<div class="card"><div class="row" style="margin:0"><input type="checkbox" data-set="src" data-arg="${id}" ${on?'checked':''}><b>${i+1}. ${x.name}</b><small>${x.ready()?(on?'In use':'Switched off'):'Needs a key to work'}</small>
       <span style="margin-left:auto;display:flex;gap:6px"><button class="btn" data-act="srcup" data-arg="${i}" ${i?'':'disabled'}>Up</button><button class="btn" data-act="srcdn" data-arg="${i}" ${i<S.scrape.order.length-1?'':'disabled'}>Down</button></span></div>
-      <small>${x.gives}${x.needs?' '+x.needs:''}</small>
+      <small>${x.gives}${x.needs?' '+x.needs:''}</small>${x.url&&!x.ready()?`<div class="row"><button class="btn" data-act="keysite" data-arg="${x.url}">Open the key page</button></div>`:''}
       ${(x.fields||[]).map(f=>`<div class="row"><label>${f[1]}</label><input class="w" type="text" data-set="key" data-arg="${f[0]}" value="${esc(K()[f[0]])}"></div>`).join('')}</div>`}).join('')}
     <div class="card"><b>ES-DE artwork</b><small style="display:block">If you already scrape with ES-DE (or Skyscraper set to write ES-DE media), point Cove at the ES-DE folder and it uses those covers first, with no lookups. It reads <code>downloaded_media</code>.</small>
       <div class="row"><code>${esc(S.esde||'not set')}</code><button class="btn" data-act="esde">Choose folder</button>${S.esde?'<button class="btn" data-act="noesde">Stop using it</button>':''}</div></div>
@@ -1281,7 +1295,7 @@ async function settings(t='lib'){
     <h3>Layout</h3><div class="row">${LAYOUTS.map(x=>`<button class="btn ${x[0]===u.view?'pri':''}" data-act="view" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>
     <small>Home: a big card for the selected game over two rows of icons. Grid: everything, grouped by system. Shelf: one row of large covers. List: cover on the left, rows on the right.</small>
     <h3>Details</h3>
-    <div class="row"><label>Covers</label><select data-set="fit">${opt('cover','Square, filled edge to edge',u.fit||'cover')}${opt('contain','Whole cover with a blurred edge',u.fit||'cover')}</select></div>
+    <div class="row"><label>Covers</label><select data-set="fit">${opt('box','Console box shapes, filled',u.fit||'box')}${opt('cover','All square, filled',u.fit||'box')}${opt('contain','Whole cover with a blurred edge',u.fit||'box')}</select></div>
     <div class="row"><label>When a game starts</label><select data-set="after">${opt('taskbar','Minimise Cove to the taskbar',u.after||'taskbar')}${opt('tray','Hide Cove in the system tray',u.after||'taskbar')}${opt('stay','Leave Cove open behind the game',u.after||'taskbar')}</select></div>
     <div class="row"><label>Corners</label><select data-set="corners">${opt('soft','Soft',u.corners)}${opt('round','Extra round',u.corners)}${opt('sharp','Sharp',u.corners)}</select></div>
     <div class="row"><label>Motion</label><select data-set="motion">${opt('full','Full',u.motion)}${opt('calm','Calm',u.motion)}${opt('off','Off',u.motion)}</select></div>
@@ -1313,13 +1327,14 @@ async function settings(t='lib'){
     if(k==='def'){S.defaults[arg]=v;save();return}
     if(k==='core'){(S.cores=S.cores||{})[arg]=v;save();return coreMarks()}
     if(k==='src'){v?delete S.scrape.off[arg]:S.scrape.off[arg]=1;save();return again()}
-    if(k==='key'){S.scrape.keys[arg]=String(v).trim();igdbTok=null;save();return again()}
+    if(k==='key'){S.scrape.keys[arg]=String(v).trim();igdbTok=null;save();GAMES.forEach(findArt);return again()}   // a new key sends the games back for HD art
     const e=E(arg); if(k==='sys')v=v.trim()?v.trim().split(/[\s,]+/):undefined;
     v?e[k]=v:delete e[k]; save(); if(k==='kind')again();
   };
   onAct=async(a,arg)=>{
     if(a==='x')return closeModal();
     if(a==='tab')return settings(arg);
+    if(a==='keysite')return window.open(arg,'_blank');
     if(a==='getra'){toast('Downloading RetroArch. This takes a few minutes.');try{await getRA();toast('RetroArch is ready')}catch(e){toast(e.message)}return again()}
     if(a==='core'||a==='coreall'){
       const ra=S.emus.find(e=>e.kind==='retroarch'), b=[...document.querySelectorAll('#layer [data-act=core]')].filter(x=>a==='core'?x.dataset.arg===arg:!x.dataset.have);
