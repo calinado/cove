@@ -251,7 +251,10 @@ function Handle($ctx) {
   switch ($path) {
     '/api/info' {
       $ver = Get-Ver
-      Json $res @{ v = 8; version = [string]$ver.version; repo = [string]$ver.repo; sep = [string][IO.Path]::DirectorySeparatorChar; app = $App; appdata = $env:APPDATA; local = $env:LOCALAPPDATA
+      # RetroArch reads this on top of its own settings when Cove starts a game: Start + Select on the controller opens its menu
+      $ra = Join-Path $Data 'retroarch-cove.cfg'
+      if (-not (Test-Path -LiteralPath $ra)) { [void](New-Item -ItemType Directory -Force -Path $Data); [IO.File]::WriteAllText($ra, 'input_menu_toggle_gamepad_combo = "4"' + "`r`n") }
+      Json $res @{ v = 9; version = [string]$ver.version; repo = [string]$ver.repo; sep = [string][IO.Path]::DirectorySeparatorChar; app = $App; appdata = $env:APPDATA; local = $env:LOCALAPPDATA
         docs = [Environment]::GetFolderPath('MyDocuments'); desktop = [Environment]::GetFolderPath('Desktop') }
     }
     '/api/ping' { Sweep; $d = @($done); $done.Clear(); Json $res @{ done = $d; running = $running.Count; ids = @($running | ForEach-Object { $_.id }) } }

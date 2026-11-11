@@ -223,6 +223,17 @@ footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:
 #fx.out{opacity:0}
 #fx .cover{width:min(34vh,300px);aspect-ratio:1;border-radius:36px;overflow:hidden;position:relative;margin:auto;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 4px var(--acc);animation:pop .6s var(--spring) both}
 #fx .cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+/* the game's own disc or cartridge, drawn to its real proportions, with the cover as its label */
+#fx .media{width:fit-content;margin:auto;filter:drop-shadow(0 26px 40px rgba(0,0,0,.6));animation:pop .6s var(--spring) both}
+#fx .disc{width:calc(min(38vh,340px)*var(--d));aspect-ratio:1;border-radius:50%;position:relative;background:var(--img) center/cover,#1c1c20;
+  -webkit-mask:radial-gradient(circle closest-side,transparent 12.2%,#000 12.8%);mask:radial-gradient(circle closest-side,transparent 12.2%,#000 12.8%);animation:spin 2.1s .25s cubic-bezier(.3,0,.15,1) both}
+#fx .disc i{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle closest-side,transparent 12.5%,rgba(226,228,234,.9) 13% 28%,rgba(0,0,0,.25) 28.5% 29.5%,transparent 30%),
+  conic-gradient(from 30deg,transparent,rgba(255,255,255,.28) 9%,transparent 20%,transparent 50%,rgba(255,255,255,.2) 59%,transparent 70%);box-shadow:inset 0 0 0 2px rgba(255,255,255,.25)}
+#fx .cart{width:var(--w);aspect-ratio:var(--r);position:relative;border-radius:var(--rad);background:linear-gradient(165deg,color-mix(in srgb,var(--col),#fff 14%),var(--col) 45%,color-mix(in srgb,var(--col),#000 30%));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 -8px 14px rgba(0,0,0,.25);animation:slot .9s .1s var(--spring) both}
+#fx .cart b{position:absolute;background:center/cover;border-radius:4px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.3),inset 0 0 18px rgba(0,0,0,.18)}
+@keyframes spin{to{transform:rotate(720deg)}}
+@keyframes slot{from{transform:translateY(-70px)}55%{transform:translateY(10px)}}
 #fx h2{font-size:30px;font-weight:900;margin:26px 0 4px;animation:rise .4s .15s both}
 #fx p{margin:0;opacity:.75;animation:rise .4s .22s both}
 #fx .bar{width:220px;height:5px;border-radius:9px;background:rgba(255,255,255,.2);margin:22px auto 0;overflow:hidden}
@@ -393,12 +404,12 @@ const KINDS=[
  {id:'project64',name:'Project64',rx:/^project64\.exe$/,args:'"{rom}"',sys:['n64']},
  {id:'rmg',name:"Rosalie's Mupen GUI",rx:/^rmg\.exe$/,args:'-f -n -q "{rom}"',sys:['n64']},
  {id:'mame',name:'MAME',rx:/^mame(64)?\.exe$/,args:'-rompath "{dir}" {name}',sys:['arcade']},
- {id:'retroarch',name:'RetroArch',rx:/^retroarch\.exe$/,args:'-f -L "{emudir}\\cores\\{core}_libretro.dll" "{rom}"',data:['{emudir}'],saves:['saves','states'],cfg:['retroarch.cfg','config'],
+ {id:'retroarch',name:'RetroArch',rx:/^retroarch\.exe$/,args:'-f --appendconfig "{app}\\data\\retroarch-cove.cfg" -L "{emudir}\\cores\\{core}_libretro.dll" "{rom}"',data:['{emudir}'],saves:['saves','states'],cfg:['retroarch.cfg','config'],
   cores:{gb:'gambatte',gbc:'gambatte',gba:'mgba',nes:'mesen',snes:'snes9x',n64:'mupen64plus_next',nds:'melondsds',psx:'mednafen_psx_hw',psp:'ppsspp',dreamcast:'flycast',saturn:'mednafen_saturn',genesis:'genesis_plus_gx',mastersystem:'genesis_plus_gx',gamegear:'genesis_plus_gx',arcade:'mame'}},
  {id:'custom',name:'Custom (write the arguments yourself)',rx:/^$/,args:'"{rom}"',sys:[]},
 ];
 KINDS.find(k=>k.id==='retroarch').sys=Object.keys(KINDS.find(k=>k.id==='retroarch').cores);
-const VER=8;
+const VER=9;
 const RAK=KINDS.find(k=>k.id==='retroarch');
 // other cores you can switch a system to; the first is what Cove picks
 const ALT={gb:['gambatte','sameboy','mgba'],gbc:['gambatte','sameboy','mgba'],gba:['mgba','vbam'],nes:['mesen','nestopia','fceumm'],snes:['snes9x','bsnes'],n64:['mupen64plus_next','parallel_n64'],nds:['melondsds','desmume'],
@@ -622,7 +633,7 @@ function resolve(g){
   const o=gs(g.id), fits=S.emus.filter(e=>emuSys(e).includes(g.sys));
   const e=fits.find(e=>e.id===o.emu)||fits.find(e=>e.id===S.defaults[g.sys])||fits[0];
   if(!e)return null;
-  const k=kindOf(e), v={rom:g.path,dir:dir(g.path),name:g.base,emudir:dir(e.exe),core:k===RAK?coreFor(g.sys):''};
+  const k=kindOf(e), v={rom:g.path,dir:dir(g.path),name:g.base,emudir:dir(e.exe),app:INFO.app,core:k===RAK?coreFor(g.sys):''};
   return{need:k===RAK&&v.core?{ra:e,core:v.core}:null,exe:e.exe,args:fill((e.args||k.args)+(o.args?' '+o.args:''),v),cwd:dir(e.exe),name:e.name};
 }
 async function launch(g){
@@ -696,8 +707,23 @@ const LAYPIC={shelf:'<rect x="1" y="6" width="7" height="10" rx="1.5" opacity=".
 const ago=t=>{if(!t)return 'Never played';const d=Math.floor((Date.now()-t)/864e5);return 'Last played '+(d<1?'today':d<2?'yesterday':d+' days ago')};
 const played=x=>{const m=Math.round((x||0)/60);return m<1?'':m<60?m+' min':(m/60).toFixed(1)+' h'};
 const artOk=i=>{const a=i.parentNode;if(!a)return;a.classList.add('has')};
-// width / height of each console's retail box art
-const AR={wiiu:.71,wii:.71,gc:.71,n3ds:1.1,nds:1.1,n64:1.37,snes:1.37,nes:.71,ps3:.86,ps2:.71,psp:.58,xbox360:.71,xbox:.71,saturn:.62,genesis:.71,mastersystem:.71,gamegear:.71,arcade:.75};
+// width / height of the front of each console's retail case (North American releases). Keep cases, jewel cases and game-card cases are measured sizes;
+// the cardboard-box systems (SNES, N64, NES, Game Boy, Sega) are the commonly quoted sizes and have not been measured
+const AR={switch:.612,switch2:.612,wiiu:.711,wii:.711,gc:.711,n3ds:1.107,nds:1.107,gba:1,gbc:1,gb:1,n64:1.4,snes:1.4,nes:.719,
+  ps3:.787,ps2:.711,psx:1,psp:.589,xbox360:.711,xbox:.711,dreamcast:1,saturn:.67,genesis:.72,mastersystem:.714,gamegear:.72,arcade:.75,pc:.667};
+// what each console's games came on, in real millimetres: disc diameter, or cartridge [width, height, shell colour, label box in % of the shell (left, top, width, height), corner rounding]
+const MEDIA={wiiu:120,wii:120,gc:80,ps3:120,ps2:120,psx:120,xbox:120,xbox360:120,dreamcast:120,saturn:120,pc:120,
+  switch:[21.4,31,'#3a3a40',[9,7,82,74],'7%/5%'],switch2:[21.4,31,'#b3202a',[9,7,82,74],'7%/5%'],
+  nds:[32.9,34.9,'#3b3b42',[7,17,86,62],'5%'],n3ds:[32.9,34.9,'#d6d6dc',[7,17,86,62],'5%'],
+  gba:[57,35,'#5b5b63',[9,24,82,60],'5%/8%'],gbc:[57,65.5,'#8a8a93',[13,38,74,50],'4%'],gb:[57,65.5,'#a9a9b0',[13,38,74,50],'4%'],
+  n64:[116,76.6,'#7c7c85',[15,10,70,62],'16% 16% 3% 3%/24% 24% 4% 4%'],snes:[136,88,'#b6b3bb',[22,15,56,62],'3%/5%'],nes:[120,134,'#8c8c92',[46,5,46,72],'3%'],
+  genesis:[109,70,'#1d1d20',[20,8,60,74],'9% 9% 3% 3%/14% 14% 4% 4%'],mastersystem:[108,69,'#1d1d20',[8,26,84,62],'3%/5%'],gamegear:[66,68,'#1d1d20',[11,22,78,62],'8%'],psp:[64,65,'#e9e9ee',[12,12,76,76],'18%']};
+function media(g){
+  const m=MEDIA[g.sys], u=artUrl(g); if(!m||!u)return `<div class="cover" ${cover(g)}</div>`;
+  if(!m.length)return `<div class="media"><div class="disc" style="--d:${.55+.45*m/120};--img:url('${esc(u)}')"><i></i></div></div>`;
+  const [w,h,col,l,rad]=m, big=Math.max(w,h), px=`calc(min(36vh,320px)*${(.62+.38*big/136)*w/big})`;   // small game cards are shown larger than life so the label can be read
+  return `<div class="media"><div class="cart" style="--w:${px};--r:${w/h};--col:${col};--rad:${rad}"><b style="left:${l[0]}%;top:${l[1]}%;width:${l[2]}%;height:${l[3]}%;background-image:url('${esc(u)}')${g.sys==='psp'?';border-radius:50%':''}"></b></div></div>`;
+}
 const cover=g=>{const u=artUrl(g),h=hue(g.title);return `style="--ar:${AR[g.sys]||1};background:linear-gradient(140deg,hsl(${h} 70% 46%),hsl(${(h+60)%360} 65% 22%));--img:${u?`url('${esc(u)}')`:'none'}"><span class="ph">${esc(g.title[0].toUpperCase())}</span>${u?`<img loading="lazy" data-id="${esc(g.id)}" alt="" src="${esc(u)}" onload="artOk(this)" onerror="artFail(this)">`:''}`};
 function visible(){
   const q=$('#q').value.trim().toLowerCase();
@@ -863,8 +889,8 @@ async function preview(g){
 }
 function launchFx(g,r){
   const d=document.createElement('div');d.id='fx';
-  d.innerHTML=`<div><div class="cover" ${cover(g)}</div><h2>${esc(g.title)}</h2><p>Starting in ${esc(r.name)}</p><div class="bar"><i></i></div></div>`;
-  document.body.append(d);setTimeout(()=>d.classList.add('out'),1700);setTimeout(()=>d.remove(),2200);
+  d.innerHTML=`<div>${media(g)}<h2>${esc(g.title)}</h2><p>Starting in ${esc(r.name)}</p><div class="bar"><i></i></div></div>`;
+  document.body.append(d);setTimeout(()=>d.classList.add('out'),2300);setTimeout(()=>d.remove(),2800);
 }
 $('#grid').addEventListener('click',e=>{const g=game(e.target.closest('.tile'));if(g)start(g)});
 $('#grid').addEventListener('contextmenu',e=>{const g=game(e.target.closest('.tile'));if(g){e.preventDefault();details(g)}});
