@@ -422,7 +422,7 @@ const KINDS=[
  {id:'project64',name:'Project64',rx:/^project64\.exe$/,args:'"{rom}"',sys:['n64']},
  {id:'rmg',name:"Rosalie's Mupen GUI",rx:/^rmg\.exe$/,args:'-f -n -q "{rom}"',sys:['n64']},
  {id:'mame',name:'MAME',rx:/^mame(64)?\.exe$/,args:'-rompath "{dir}" {name}',sys:['arcade']},
- {id:'retroarch',name:'RetroArch',rx:/^retroarch\.exe$/,args:'-f --appendconfig "{app}\\data\\retroarch-cove.cfg" -L "{emudir}\\cores\\{core}_libretro.dll" "{rom}"',data:['{emudir}'],saves:['saves','states'],cfg:['retroarch.cfg','config'],
+ {id:'retroarch',name:'RetroArch',rx:/^retroarch\.exe$/,args:'--appendconfig "{app}\\data\\retroarch-cove.cfg" -L "{emudir}\\cores\\{core}_libretro.dll" "{rom}"',data:['{emudir}'],saves:['saves','states'],cfg:['retroarch.cfg','config'],
   cores:{gb:'gambatte',gbc:'gambatte',gba:'mgba',nes:'mesen',snes:'snes9x',n64:'mupen64plus_next',nds:'melondsds',psx:'mednafen_psx_hw',psp:'ppsspp',dreamcast:'flycast',saturn:'mednafen_saturn',genesis:'genesis_plus_gx',mastersystem:'genesis_plus_gx',gamegear:'genesis_plus_gx',arcade:'mame'}},
  {id:'custom',name:'Custom (write the arguments yourself)',rx:/^$/,args:'"{rom}"',sys:[]},
 ];
@@ -931,7 +931,7 @@ async function preview(g){
 }
 function launchFx(g,r){
   const d=document.createElement('div');d.id='fx';
-  d.innerHTML=`<div>${media(g)}<h2>${esc(g.title)}</h2><p>Starting in ${esc(r.name)}</p><div class="bar"><i></i></div></div>`;
+  d.innerHTML=`<div>${media(g)}<h2>${esc(g.title)}</h2><p>Starting in ${esc(r.name)}${r.need?' &middot; F1 or Start + Select opens its menu':''}</p><div class="bar"><i></i></div></div>`;
   document.body.append(d);setTimeout(()=>d.classList.add('out'),2300);setTimeout(()=>d.remove(),2800);
 }
 $('#grid').addEventListener('click',e=>{const g=game(e.target.closest('.tile'));if(g)start(g)});
@@ -1429,8 +1429,8 @@ async function settings(t='lib'){
       <p class="dim">One launcher for every emulator.</p>
       <button class="btn pri xl" data-act="upd">Check for updates</button></div>
     <div class="card"><b>How updates work</b><p class="dim">Each time Cove opens it compares this version with the newest one at ${esc(INFO.repo?'github.com/'+INFO.repo:'its update address')}. If there is a newer one it shows what changed and asks before installing. Your games, settings and saves are never touched, and the version you had is kept in the data folder. You can also check any time with the button above.</p></div>
-    <div class="row"><button class="btn" data-act="applnk">Add Cove to the desktop</button><button class="btn" data-act="site">Open the Cove page</button><button class="btn" data-act="keysite" data-arg="https://calinado.com">calinado.com</button><button class="btn" data-act="open" data-arg="${esc(INFO.app)}">Open Cove's folder</button></div>
-    <small>CALINADO &copy; ${new Date().getFullYear()}</small>`;
+    <div class="row"><button class="btn" data-act="applnk">Add Cove to the desktop</button><button class="btn" data-act="site">Open the Cove page</button><button class="btn" data-act="open" data-arg="${esc(INFO.app)}">Open Cove's folder</button></div>
+    <small>CALINADO &copy; ${new Date().getFullYear()} &middot; <a href="https://calinado.com" target="_blank" rel="noopener" style="color:var(--acc)">calinado.com</a></small>`;
   modal('Settings',body,'<button class="btn pri" data-act="x">Done</button>',tabsHtml);
   const E=id=>S.emus.find(e=>e.id===id), again=()=>settings(t);
   if(t==='emus')coreMarks();
