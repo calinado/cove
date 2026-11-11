@@ -1,5 +1,5 @@
 {
-  "version": "1.0.6",
+  "version": "1.0.7",
   "repo": "calinado/cove",
-  "notes": "One game at a time with a running-game switcher, Cove minimises (or hides in the tray) while you play and returns when you close the game, Discord status stays on without toggling, covers shown whole, ES-DE artwork support, calmer theme colours."
+  "notes": "Shelf covers keep their own shape: no cropping and no gaps. Other layouts fill the tile."
 }

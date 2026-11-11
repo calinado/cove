@@ -136,8 +136,7 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .art{position:relative;aspect-ratio:1;border-radius:calc(var(--r) - 8px);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);flex:none}
 .art::after,#hero .cover::after{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.3),transparent 40%);pointer-events:none}
 .art::before{content:"";position:absolute;inset:-12%;background:var(--img) center/cover;filter:blur(14px) brightness(.75)}   /* a soft copy of the cover fills the square behind it */
-.art img,#hero .cover img,.pv .cover img,#fx .cover img{object-fit:contain}
-.fit-cover .art img,.fit-cover #hero .cover img{object-fit:cover}
+#hero .cover img,.pv .cover img,#fx .cover img,.fit-whole .art img{object-fit:contain}
 .has>.ph{display:none}
 .run{position:absolute;z-index:2;left:8px;bottom:8px;font:700 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;background:var(--acc);color:var(--on);padding:3px 9px;border-radius:99px}
 .fav{position:absolute;z-index:1;top:5px;right:8px;color:var(--acc);font-size:17px;text-shadow:0 0 8px #000}
@@ -162,7 +161,9 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .v-shelf #hero{background:none;border:0;box-shadow:none;backdrop-filter:none;padding:4px 14px}
 .v-shelf #hero::before,.v-shelf #hero .cover{display:none}
 .v-shelf #grid{display:flex;gap:26px;padding:0 10px;align-items:center}
-.v-shelf .tile{flex:0 0 calc(var(--tile)*1.75)}
+.v-shelf .tile{flex:0 0 auto}
+.v-shelf .art{height:calc(var(--tile)*1.75);aspect-ratio:var(--ar,1);align-self:flex-start}   /* each cover keeps its own shape: no crop, no gaps */
+.v-shelf .tile .name{width:0;min-width:100%}
 .v-shelf .tile:not(:focus){opacity:.72;transform:scale(.94)}
 /* layout: List (cover on the left, rows on the right) */
 .v-list .stage{flex-direction:row;gap:24px;padding-bottom:8px}
@@ -534,7 +535,7 @@ function applyMatch(g,hit){
   save();
   for(const x of GAMES.filter(x=>artKey(x)===k)){
     const a=tiles().find(t=>t.dataset.id===x.id)?.querySelector('.art');
-    if(a&&S.art[k]){a.querySelector('img')?.remove();a.style.setProperty('--img',`url('${S.art[k]}')`);a.insertAdjacentHTML('beforeend',`<img alt="" src="${esc(S.art[k])}" onload="this.parentNode.classList.add('has')" onerror="this.remove()">`)}
+    if(a&&S.art[k]){a.querySelector('img')?.remove();a.style.setProperty('--img',`url('${S.art[k]}')`);a.insertAdjacentHTML('beforeend',`<img alt="" src="${esc(S.art[k])}" onload="artOk(this)" onerror="this.remove()">`)}
     if(game(document.activeElement)===x)hero(x);
   }
 }
@@ -650,7 +651,8 @@ const LAYPIC={shelf:'<rect x="1" y="6" width="7" height="10" rx="1.5" opacity=".
   list:'<rect x="1" y="1" width="11" height="20" rx="2"/><rect x="14" y="1" width="17" height="5" rx="1.5"/><rect x="14" y="8.5" width="17" height="5" rx="1.5"/><rect x="14" y="16" width="17" height="5" rx="1.5"/>'};
 const ago=t=>{if(!t)return 'Never played';const d=Math.floor((Date.now()-t)/864e5);return 'Last played '+(d<1?'today':d<2?'yesterday':d+' days ago')};
 const played=x=>{const m=Math.round((x||0)/60);return m<1?'':m<60?m+' min':(m/60).toFixed(1)+' h'};
-const cover=g=>{const u=artUrl(g),h=hue(g.title);return `style="background:linear-gradient(140deg,hsl(${h} 70% 46%),hsl(${(h+60)%360} 65% 22%));--img:${u?`url('${esc(u)}')`:'none'}"><span class="ph">${esc(g.title[0].toUpperCase())}</span>${u?`<img loading="lazy" data-id="${esc(g.id)}" alt="" src="${esc(u)}" onload="this.parentNode.classList.add('has')" onerror="artFail(this)">`:''}`};
+const artOk=i=>{const a=i.parentNode;if(!a)return;a.classList.add('has');a.style.setProperty('--ar',Math.min(1.9,Math.max(.55,i.naturalWidth/i.naturalHeight||1)))};
+const cover=g=>{const u=artUrl(g),h=hue(g.title);return `style="background:linear-gradient(140deg,hsl(${h} 70% 46%),hsl(${(h+60)%360} 65% 22%));--img:${u?`url('${esc(u)}')`:'none'}"><span class="ph">${esc(g.title[0].toUpperCase())}</span>${u?`<img loading="lazy" data-id="${esc(g.id)}" alt="" src="${esc(u)}" onload="artOk(this)" onerror="artFail(this)">`:''}`};
 function visible(){
   const q=$('#q').value.trim().toLowerCase();
   let l=GAMES.filter(g=>tab==='all'||tab==='recent'?true:tab==='fav'?gs(g.id).fav:g.sys===tab);
@@ -928,7 +930,7 @@ function look(){
     const [r,g,b]=[0,2,4].map(i=>{const v=parseInt(h.substr(i,2),16)/255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4}), L=.2126*r+.7152*g+.0722*b;
     d.style.setProperty('--on',(L+.05)/.05>=1.05/(L+.05)?'#0a0a0a':'#fff');
   }
-  document.body.className='v-'+u.view+' m-'+u.motion+' s-'+(u.style||'frost')+(INFO&&INFO.android?' android':'')+(u.fit==='cover'?' fit-cover':'');
+  document.body.className='v-'+u.view+' m-'+u.motion+' s-'+(u.style||'frost')+(INFO&&INFO.android?' android':'')+(u.fit==='contain'?' fit-whole':'');
   if(u.wall)$('#bg').style.backgroundImage=`url("/file?t=${T}&p=${encodeURIComponent(u.wall)}")`;
 }
 setInterval(()=>{const n=[...navigator.getGamepads()].filter(p=>p&&p.connected).length;$('#padhint').textContent=n?'':'Controller: press any button to wake it'},1500);
@@ -1206,7 +1208,7 @@ async function settings(t='lib'){
     <h3>Layout</h3><div class="row">${LAYOUTS.map(x=>`<button class="btn ${x[0]===u.view?'pri':''}" data-act="view" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>
     <small>Home: a big card for the selected game over two rows of icons. Grid: everything, grouped by system. Shelf: one row of large covers. List: cover on the left, rows on the right.</small>
     <h3>Details</h3>
-    <div class="row"><label>Covers</label><select data-set="fit">${opt('contain','Show the whole cover',u.fit||'contain')}${opt('cover','Fill the square (crops tall covers)',u.fit||'contain')}</select></div>
+    <div class="row"><label>Covers</label><select data-set="fit">${opt('cover','Fill the tile',u.fit||'cover')}${opt('contain','Whole cover with a blurred edge',u.fit||'cover')}</select></div>
     <div class="row"><label>When a game starts</label><select data-set="after">${opt('taskbar','Minimise Cove to the taskbar',u.after||'taskbar')}${opt('tray','Hide Cove in the system tray',u.after||'taskbar')}${opt('stay','Leave Cove open behind the game',u.after||'taskbar')}</select></div>
     <div class="row"><label>Corners</label><select data-set="corners">${opt('soft','Soft',u.corners)}${opt('round','Extra round',u.corners)}${opt('sharp','Sharp',u.corners)}</select></div>
     <div class="row"><label>Motion</label><select data-set="motion">${opt('full','Full',u.motion)}${opt('calm','Calm',u.motion)}${opt('off','Off',u.motion)}</select></div>
