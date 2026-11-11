@@ -1,5 +1,5 @@
 {
-  "version": "1.0.15",
+  "version": "1.0.16",
   "repo": "calinado/cove",
-  "notes": "New soft bell sounds. Folders: drag a game onto another game, or right-click the menu. calinado.com link in About."
+  "notes": "Dolphin keeps its own window so you can reach its settings and controller setup. New 'Open emulator' button in a game's Options."
 }

@@ -402,7 +402,7 @@ const KINDS=[
   data:['{emudir}\\user','%APPDATA%\\{exe}','%APPDATA%\\eden'],saves:['nand\\user\\save','nand\\system\\save\\8000000000000010'],cfg:['config']},
  {id:'ryujinx',name:'Switch (Ryujinx family: Ryubing, Kenji-NX)',rx:/^(ryujinx(\.ava)?|kenji-nx)\.exe$/,args:'--fullscreen "{rom}"',sys:['switch'],
   data:['{emudir}\\portable','%APPDATA%\\Ryujinx'],saves:['bis\\user\\save','bis\\user\\saveMeta','bis\\system\\save'],cfg:['Config.json','profiles','system\\Profiles.json']},
- {id:'dolphin',name:'Dolphin',rx:/^dolphin\.exe$/,args:'-b -e "{rom}"',sys:['gc','wii'],
+ {id:'dolphin',name:'Dolphin',rx:/^dolphin\.exe$/,args:'-e "{rom}"',sys:['gc','wii'],
   data:['{emudir}\\User','%DOCS%\\Dolphin Emulator','%APPDATA%\\Dolphin Emulator'],saves:['GC','Wii','StateSaves'],cfg:['Config','GameSettings']},
  {id:'cemu',name:'Cemu',rx:/^cemu\.exe$/,args:'-f -g "{rom}"',sys:['wiiu'],data:['{emudir}\\portable','%APPDATA%\\Cemu'],saves:['mlc01\\usr\\save'],cfg:['settings.xml','controllerProfiles']},
  {id:'azahar',name:'Azahar / Lime3DS / Citra',rx:/^(azahar|lime3ds|lime-qt|citra-qt)\.exe$/,args:'-f "{rom}"',sys:['n3ds'],data:['{emudir}\\user','%APPDATA%\\Azahar','%APPDATA%\\Citra'],saves:['sdmc','nand','states'],cfg:['config']},
@@ -1183,7 +1183,7 @@ function details(g){
     <div class="row"><label>Display name</label><input class="w" type="text" data-set="title" value="${esc(g.title)}"></div>
     <div class="row"><label>Folder</label><select data-set="dir">${opt('','None',o.dir||'')}${(S.folders||[]).map(f=>opt(f.id,f.name,o.dir)).join('')}</select><input class="w" type="text" data-set="newdir" placeholder="or type a new folder name"></div>
     <code>${esc(target)}</code>`,
-    `<button class="btn bad" data-act="del">Delete</button><button class="btn" data-act="hide">Hide</button><button class="btn" data-act="show">Show file</button><button class="btn" data-act="art">Set artwork</button><button class="btn" data-act="match">Fix match</button>${r&&MODDIR[S.emus.find(e=>e.exe===r.exe)?.kind]?'<button class="btn" data-act="mods">Mods</button>':''}<button class="btn" data-act="lnk">Desktop shortcut</button><button class="btn" data-act="fav">${o.fav?'Unfavourite':'Favourite'}</button><button class="btn pri" data-act="play">Launch</button>`);
+    `<button class="btn bad" data-act="del">Delete</button><button class="btn" data-act="hide">Hide</button><button class="btn" data-act="show">Show file</button>${r&&!INFO.android?'<button class="btn" data-act="emu">Open emulator</button>':''}<button class="btn" data-act="art">Set artwork</button><button class="btn" data-act="match">Fix match</button>${r&&MODDIR[S.emus.find(e=>e.exe===r.exe)?.kind]?'<button class="btn" data-act="mods">Mods</button>':''}<button class="btn" data-act="lnk">Desktop shortcut</button><button class="btn" data-act="fav">${o.fav?'Unfavourite':'Favourite'}</button><button class="btn pri" data-act="play">Launch</button>`);
   const hide=async()=>{o.hide=true;save();await scan();closeModal();toast('Hidden. Bring it back from Settings > Library')};
   onChange=(k,v)=>{
     if(k==='sys'&&v==='unsorted')return;
@@ -1197,6 +1197,7 @@ function details(g){
     if(a==='fav'){o.fav=!o.fav;save();details(g)}
     if(a==='play'){closeModal();launch(g)}
     if(a==='show')api('open',{path:dir(target)});
+    if(a==='emu')api('open',{path:r.exe});   // the emulator on its own, to set up controls and settings
     if(a==='hide')return hide();
     if(a==='mods')return mods(g);
     if(a==='art'){const p=await pick('image');if(p){o.art=p;save();toast('Artwork set')}}
