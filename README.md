@@ -1,6 +1,18 @@
 # Cove
 
+![Cove's shelf layout](docs/shelf.png)
+
 One launcher for every emulator. Cove finds your emulators and your games, opens each game in the right emulator with the right settings, and looks like a console home screen.
+
+## Screenshots
+
+The covers shown here are Cove's placeholders with made-up titles. With your own library, Cove fills them with real box art.
+
+| | |
+|---|---|
+| ![Grid layout, Aurora theme](docs/grid.png) Grid layout, Aurora theme | ![Theme and style picker](docs/themes.png) Fifteen themes, three styles |
+| ![Paper light theme](docs/light.png) Light themes | ![Surprise me roll](docs/surprise.png) Surprise me: a case-opening roll |
+| ![Settings](docs/settings.png) Settings, basics first | |
 
 ## Download
 
@@ -25,6 +37,9 @@ The `android` folder holds an early Android version for handhelds, with a second
 - Looks up a cover, a short description and the year for each game.
 - Shows a preview card before a game starts: the game file, the emulator, and whether save data was found.
 - Five layouts, fifteen themes, three styles, menu sounds, and full controller support.
+- Covers shaped like each console's real game cases, and a launch screen that shows the game on its own disc or cartridge.
+- Sorting, your own folders (drag one game onto another), and a Surprise me roll.
+- Downloads RetroArch and the right core for older systems when you have no emulator for them.
 - Imports saves and settings from one emulator into another of the same family, with a backup first.
 - Optional Discord status showing what you are playing.
 
