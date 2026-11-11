@@ -10,7 +10,8 @@ $Utf8 = New-Object System.Text.UTF8Encoding($false)
 
 function Open-UI {
   if ($NoBrowser) { return }
-  try { Start-Process 'msedge.exe' "--app=$Url" } catch { Start-Process $Url }
+  # the autoplay switch lets menu sounds play for controller-only use (browsers otherwise wait for a key press or click)
+  try { Start-Process 'msedge.exe' "--app=$Url --autoplay-policy=no-user-gesture-required" } catch { Start-Process $Url }
 }
 
 $listener = New-Object System.Net.HttpListener

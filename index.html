@@ -328,7 +328,7 @@ const NOT_MAIN=/(cli|cmd|room|tests?|precompile|redist|crash|updat|unins|setup)/
 
 /* ---------- state ---------- */
 let S, INFO, GAMES=[], HIDDEN=[], ART={}, NOW=null, tab='all', saveT;
-const DEF={setup:false,library:'',roots:[],emus:[],defaults:{},games:{},systems:[],art:{},meta:{},discord:{on:false,id:'',art:true},ui:{theme:'frost',accent:'',wall:'',size:150,view:'shelf',corners:'soft',motion:'full',sound:true,confirm:true}};
+const DEF={setup:false,library:'',roots:[],emus:[],defaults:{},games:{},systems:[],art:{},meta:{},discord:{on:false,id:'',art:true},ui:{theme:'frost',accent:'',wall:'',size:150,view:'shelf',corners:'soft',motion:'full',sound:true,vol:70,confirm:true}};
 const save=()=>{clearTimeout(saveT);saveT=setTimeout(()=>api('state',JSON.stringify(S,null,1)).catch(e=>toast('Could not save settings: '+e.message)),250)};
 const systems=()=>SYS.concat(S.systems.map(s=>({...s,auto:s.exts,lr:''})));
 const sysOf=id=>systems().find(s=>s.id===id)||(id==='unsorted'?UNSORTED:undefined);
@@ -685,7 +685,7 @@ addEventListener('gamepadconnected',e=>toast('Controller connected: '+e.gamepad.
       if(hit('u')){mstep(-1);padT=now} if(hit('d')){mstep(1);padT=now}
       if(hit('l')){madjust(-1);padT=now} if(hit('r')){madjust(1);padT=now}
       if(hit('a'))document.activeElement.click?.();
-      if(hit('bk')){closeModal();blip('back')} if(hit('lb'))mtab(-1); if(hit('rb'))mtab(1);
+      if(hit('bk'))closeModal(); if(hit('lb'))mtab(-1); if(hit('rb'))mtab(1);
     }else{
       for(const [k,d] of [['l',[-1,0]],['r',[1,0]],['u',[0,-1]],['d',[0,1]]])if(hit(k)){move(...d);padT=now}
       if(hit('a')&&g)start(g); if(hit('x'))fav(g); if(hit('y')&&g)details(g);
@@ -695,15 +695,38 @@ addEventListener('gamepadconnected',e=>toast('Controller connected: '+e.gamepad.
   }
   requestAnimationFrame(pad);
 })();
-let actx;
-const SOUNDS={move:[880],tab:[660,990],ok:[587,880],back:[523,392],launch:[523,659,784,1047]};
-function blip(kind){
-  if(!S?.ui.sound)return;
-  try{actx=actx||new AudioContext();(SOUNDS[kind]||SOUNDS.move).forEach((f,i)=>{
-    const o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime+i*.075;o.type='sine';o.frequency.value=f;
-    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.05,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+.16);
-    o.connect(g).connect(actx.destination);o.start(t);o.stop(t+.18)})}catch{}
+// menu sounds: small synth voices through a short echo, so they ring instead of beep. No audio files.
+let actx,bus;
+function audio(){
+  if(!actx){
+    actx=new AudioContext(); bus=actx.createGain();
+    const dl=actx.createDelay(.5), fb=actx.createGain(), wet=actx.createGain(), lp=actx.createBiquadFilter();
+    dl.delayTime.value=.17; fb.gain.value=.34; wet.gain.value=.4; lp.type='lowpass'; lp.frequency.value=2400;
+    bus.connect(actx.destination); bus.connect(dl); dl.connect(lp); lp.connect(fb); fb.connect(dl); lp.connect(wet); wet.connect(actx.destination);
+  }
+  if(actx.state==='suspended')actx.resume();
+  bus.gain.value=(S.ui.vol??70)/100;
 }
+function note(f,at,o={}){
+  const {type='sine',dur=.22,gain=.3,to}=o, osc=actx.createOscillator(), g=actx.createGain(), t=actx.currentTime+at;
+  osc.type=type; osc.frequency.setValueAtTime(f,t); if(to)osc.frequency.exponentialRampToValueAtTime(to,t+dur);
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(gain,t+.008); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  osc.connect(g).connect(bus); osc.start(t); osc.stop(t+dur+.03);
+}
+const SFX={
+  move:()=>{note(784,0,{type:'triangle',dur:.1,gain:.3,to:659});note(1568,0,{dur:.07,gain:.08})},
+  tab:()=>{note(523,0,{type:'triangle',dur:.13,gain:.3});note(784,.06,{type:'triangle',dur:.18,gain:.3})},
+  ok:()=>{note(659,0,{dur:.3,gain:.3});note(988,.05,{dur:.36,gain:.24});note(1319,.1,{dur:.42,gain:.14})},
+  back:()=>{note(587,0,{type:'triangle',dur:.14,gain:.28,to:440});note(392,.07,{type:'triangle',dur:.22,gain:.24})},
+  open:()=>{note(392,0,{dur:.2,gain:.22,to:784});note(1175,.09,{dur:.32,gain:.14})},
+  error:()=>{note(196,0,{type:'sawtooth',dur:.16,gain:.14});note(175,.13,{type:'sawtooth',dur:.22,gain:.14})},
+  launch:()=>{[392,523,659,784,1047,1319].forEach((f,i)=>note(f,i*.07,{type:i%2?'sine':'triangle',dur:.55,gain:.26}));note(98,0,{dur:.7,gain:.45,to:49})},
+  boot:()=>[523,784,1047,1568].forEach((f,i)=>note(f,i*.11,{dur:.8,gain:.2})),
+};
+function blip(kind){if(!S?.ui.sound)return;try{audio();(SFX[kind]||SFX.move)()}catch{}}
+// browsers keep sound off until the first key press or click; wake it then, with the start-up chime
+let woke=false;
+for(const ev of ['pointerdown','keydown'])addEventListener(ev,()=>{if(!S?.ui.sound)return;try{audio()}catch{};if(!woke){woke=true;blip('boot')}},true);
 let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),3800)}
 function look(){
   const u=S.ui, d=document.documentElement;
@@ -720,15 +743,16 @@ let onAct=()=>{}, onChange=()=>{}, escHook=null;
 const sig=e=>e&&e.closest?.('#layer')?(e.dataset.set?'s'+e.dataset.set:e.dataset.act?'a'+e.dataset.act:e.id)+'|'+(e.dataset.arg||''):'';
 function modal(title,body,foot,tabsHtml){
   const was=sig(document.activeElement);   // keep the cursor on the same control when a panel redraws
+  if(!$('#layer').children.length)blip('open');
   $('#layer').innerHTML=`<div class="scrim"><div class="modal glass"><h2>${title}</h2>${tabsHtml||''}<div class="body">${body}</div>${foot?`<div class="foot">${foot}</div>`:''}</div></div>`;
   (was&&focusables().find(e=>sig(e)===was)||$('#layer .btn.pri')||focusables()[0])?.focus();
 }
 function closeModal(){
   if(escHook){const h=escHook;escHook=null;return h()}
   if(!S.setup)return;
-  $('#layer').innerHTML='';render(true);
+  $('#layer').innerHTML='';render(true);blip('back');
 }
-$('#layer').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b)Promise.resolve(onAct(b.dataset.act,b.dataset.arg,b)).catch(err=>toast(err.message));else if(e.target.classList.contains('scrim'))closeModal()});
+$('#layer').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b)Promise.resolve(onAct(b.dataset.act,b.dataset.arg,b)).catch(err=>{toast(err.message);blip('error')});else if(e.target.classList.contains('scrim'))closeModal()});
 $('#layer').addEventListener('change',e=>{if(e.target.dataset.set)Promise.resolve(onChange(e.target.dataset.set,e.target.type==='checkbox'?e.target.checked:e.target.value,e.target.dataset.arg)).catch(err=>toast(err.message))});
 $('#empty').addEventListener('click',async e=>{if(e.target.dataset.act==='addgames'){const p=await pick('folder');if(p){addRoot(p);await scan();render()}}});
 const opt=(v,l,sel)=>`<option value="${esc(v)}" ${v===sel?'selected':''}>${esc(l)}</option>`;
@@ -942,7 +966,7 @@ async function settings(t='lib'){
     <div class="row"><label>Accent colour</label><input type="color" data-set="accent" value="${esc(u.accent||'#ccff00')}"><button class="btn" data-act="noaccent">Use theme colour</button></div>
     <div class="row"><label>Wallpaper</label><code>${esc(u.wall||'follows the selected game')}</code><button class="btn" data-act="wall">Choose image</button><button class="btn" data-act="nowall">Clear</button></div>
     <div class="row"><label>Preview card</label><input type="checkbox" data-set="confirm" ${u.confirm!==false?'checked':''}><small>Show the game, emulator and save check before starting</small></div>
-    <div class="row"><label>Sounds</label><input type="checkbox" data-set="sound" ${u.sound?'checked':''}></div>
+    <div class="row"><label>Sounds</label><input type="checkbox" data-set="sound" ${u.sound?'checked':''}><input type="range" min="0" max="100" data-set="vol" value="${u.vol??70}"><button class="btn" data-act="sfx">Play them</button></div>
     <div class="row"><label>Artwork</label><button class="btn" data-act="reart">Look for missing covers again</button></div>`}
   if(t==='share')body=`
     <div class="card"><b>Desktop shortcut</b><p class="dim">Puts a Cove shortcut on this PC's desktop.</p><button class="btn pri" data-act="applnk">Create desktop shortcut</button></div>
@@ -952,7 +976,7 @@ async function settings(t='lib'){
   modal('Settings',body,'<button class="btn pri" data-act="x">Done</button>',tabsHtml);
   const E=id=>S.emus.find(e=>e.id===id), again=()=>settings(t);
   onChange=(k,v,arg)=>{
-    if(t==='look'){S.ui[k]=k==='size'?+v:v;look();save();return}
+    if(t==='look'){S.ui[k]=k==='size'||k==='vol'?+v:v;look();save();if(k==='vol'||k==='sound')blip('ok');return}
     if(t==='discord'){S.discord[k]=typeof v==='string'?v.trim():v;save();return}
     if(k==='def'){S.defaults[arg]=v;save();return}
     const e=E(arg); if(k==='sys')v=v.trim()?v.trim().split(/[\s,]+/):undefined;
@@ -999,6 +1023,7 @@ async function settings(t='lib'){
       if(!/^\d{15,22}$/.test(did())){toast('One step first: paste an Application ID below');return $('#layer input[data-set=id]')?.focus()}
       await api('discord',{clientId:did(),activity:{type:0,details:'In the library',state:'Choosing a game',timestamps:{start:Date.now()},assets:{large_image:'cove',large_text:'Cove'}}});
       d.on=true;save();blip('ok');toast('Connected. Check your Discord profile');return again()}
+    if(a==='sfx'){['move','tab','ok','back','open','launch'].forEach((k,i)=>setTimeout(()=>blip(k),i*650));return}
     if(a==='noaccent'){S.ui.accent='';look();save();return again()}
     if(a==='theme'||a==='view'){S.ui[a]=arg;look();save();blip('tab');return again()}
     if(a==='reart'){for(const k in S.art)if(!S.art[k]){delete S.art[k];delete S.meta[k]}LRFAIL.clear();save();closeModal();return toast('Looking for covers')}
