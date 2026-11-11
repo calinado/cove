@@ -1,18 +1,15 @@
 # Cove
 
-![Cove's shelf layout](docs/shelf.png)
+![Cove's shelf layout with the full art style](docs/shelf.jpg)
 
 One launcher for every emulator. Cove finds your emulators and your games, opens each game in the right emulator with the right settings, and looks like a console home screen.
 
 ## Screenshots
 
-The covers shown here are Cove's placeholders with made-up titles. With your own library, Cove fills them with real box art.
-
 | | |
 |---|---|
-| ![Grid layout, Aurora theme](docs/grid.png) Grid layout, Aurora theme | ![Theme and style picker](docs/themes.png) Fifteen themes, three styles |
-| ![Paper light theme](docs/light.png) Light themes | ![Surprise me roll](docs/surprise.png) Surprise me: a case-opening roll |
-| ![Settings](docs/settings.png) Settings, basics first | |
+| ![Full art style, home layout](docs/full-art.jpg) Full art style | ![List layout, Aurora theme](docs/aurora.png) List layout, Aurora theme |
+| ![List layout, Sakura theme](docs/sakura.png) Light themes | ![CRT retro theme](docs/crt.jpg) CRT retro theme |
 
 ## Download
 

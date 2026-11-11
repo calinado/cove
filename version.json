@@ -1,5 +1,5 @@
 {
-  "version": "1.0.17",
+  "version": "1.0.18",
   "repo": "calinado/cove",
-  "notes": "RetroArch games open in a window with its menu bar, so settings and controls are reachable. Website link moved beside the copyright line."
+  "notes": "Folders are now tiles among your games: drag one game onto another to make one, click it to open. Dragging rebuilt so it works."
 }

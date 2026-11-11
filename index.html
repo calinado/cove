@@ -151,6 +151,15 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .tile.playing .art{outline:3px solid var(--acc);outline-offset:-3px}
 .tile.playing{scale:1.16;margin:0 18px;z-index:1}
 .v-list .tile.playing,.v-wheel .tile.playing{scale:1;margin:0}
+.fold .art{background:rgba(var(--tint),.1);display:grid;place-items:center}
+.mini{position:absolute;inset:11%;display:grid;grid-template:1fr 1fr/1fr 1fr;gap:7%}.mini i{border-radius:16%;background:center/cover rgba(var(--tint),.12)}
+.fold .fi{position:absolute;right:7px;bottom:7px;width:20px;height:20px;color:var(--acc);filter:drop-shadow(0 1px 3px rgba(0,0,0,.7))}
+.fold .bk{width:38%;height:38%;color:var(--acc)}
+.tile img{-webkit-user-drag:none}
+.dragging{user-select:none;cursor:grabbing}
+.tile.drop .art{outline:3px dashed var(--acc);outline-offset:4px}
+#ghost{position:fixed;z-index:50;pointer-events:none;translate:-50% -50%;width:110px!important;height:auto!important;aspect-ratio:var(--ar,1);border-radius:16px;overflow:hidden;opacity:.92;box-shadow:0 16px 40px rgba(0,0,0,.6)}
+#ghost img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .btn.bad{color:#ff6b6b;border-color:rgba(255,90,90,.45)}
 .foot.stack{flex-direction:column}.foot.stack .btn{width:100%}
 body:not(.pad) #hints,body:not(.pad) .cta .gl{display:none}
@@ -724,7 +733,9 @@ const glyph=id=>GLYPH[Object.keys(KIND).find(k=>KIND[k].includes(id))||'disc'];
 // drop <system id>.png into Library\Art\systems (gba.png, switch2.png ...) and it replaces the name everywhere
 const SORTS=[['console','By console','Grouped by system, A to Z inside each'],['az','A to Z',''],['za','Z to A',''],['new','Newest first','By release year'],['old','Oldest first','By release year'],['recent','Recently played',''],['most','Most played','']];
 const FLOOK={folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',star:'<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9 6.8 19.6l1-5.8-4.3-4.1 5.9-.8z"/>',heart:'<path d="M12 20s-7-4.4-7-9.6A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.4C19 15.6 12 20 12 20z"/>',bolt:'<path d="M13 3L5 13.5h6L10 21l8-10.5h-6z"/>',stack:'<path d="M12 4l8 4-8 4-8-4zM4 12l8 4 8-4M4 16l8 4 8-4"/>'};
-const mark=(id,label)=>id.startsWith('f:')?`<svg class="ic" style="color:var(--acc)" viewBox="0 0 24 24">${FLOOK[(S.folders||[]).find(f=>'f:'+f.id===id)?.look]||FLOOK.folder}</svg><span>${esc(label)}</span>`:ART['systems/'+id]?`<img class="lg" alt="${esc(label)}" src="/file?t=${T}&p=${encodeURIComponent(ART['systems/'+id])}">`:`<svg class="ic" viewBox="0 0 24 24">${glyph(id)}</svg><span>${esc(label)}</span>`;
+let INF=null;   // the folder that is open, if any
+const fById=id=>(S.folders||[]).find(f=>f.id===id);
+const mark=(id,label)=>ART['systems/'+id]?`<img class="lg" alt="${esc(label)}" src="/file?t=${T}&p=${encodeURIComponent(ART['systems/'+id])}">`:`<svg class="ic" viewBox="0 0 24 24">${glyph(id)}</svg><span>${esc(label)}</span>`;
 // little pictures of each layout for the layout menu
 const LAYPIC={shelf:'<rect x="1" y="6" width="7" height="10" rx="1.5" opacity=".5"/><rect x="10" y="3" width="12" height="16" rx="2"/><rect x="24" y="6" width="7" height="10" rx="1.5" opacity=".5"/>',
   home:'<rect x="1" y="1" width="30" height="8" rx="2"/><rect x="1" y="11" width="6" height="4.5" rx="1"/><rect x="9" y="11" width="6" height="4.5" rx="1"/><rect x="17" y="11" width="6" height="4.5" rx="1"/><rect x="25" y="11" width="6" height="4.5" rx="1"/><rect x="1" y="16.5" width="6" height="4.5" rx="1"/><rect x="9" y="16.5" width="6" height="4.5" rx="1"/><rect x="17" y="16.5" width="6" height="4.5" rx="1"/><rect x="25" y="16.5" width="6" height="4.5" rx="1"/>',
@@ -754,7 +765,8 @@ function media(g){
 const cover=g=>{const u=artUrl(g),h=hue(g.title);return `style="--ar:${AR[g.sys]||1};background:linear-gradient(140deg,hsl(${h} 70% 46%),hsl(${(h+60)%360} 65% 22%));--img:${u?`url('${esc(u)}')`:'none'}"><span class="ph">${esc(g.title[0].toUpperCase())}</span>${u?`<img loading="lazy" data-id="${esc(g.id)}" alt="" src="${esc(u)}" onload="artOk(this)" onerror="artFail(this)">`:''}`};
 function visible(){
   const q=$('#q').value.trim().toLowerCase();
-  let l=GAMES.filter(g=>tab==='all'||tab==='recent'?true:tab==='fav'?gs(g.id).fav:tab.startsWith('f:')?gs(g.id).dir===tab.slice(2):g.sys===tab);
+  let l=GAMES.filter(g=>tab==='all'||tab==='recent'?true:tab==='fav'?gs(g.id).fav:g.sys===tab);
+  if(INF)l=GAMES.filter(g=>gs(g.id).dir===INF); else if(tab==='all'&&!q)l=l.filter(g=>!fById(gs(g.id).dir)||NOW&&NOW.id===g.id);   // on the main screen a game inside a folder is shown only as part of that folder
   if(tab==='recent')l=l.filter(g=>gs(g.id).last).sort((a,b)=>gs(b.id).last-gs(a.id).last).slice(0,40);
   l=q?l.filter(g=>g.title.toLowerCase().includes(q)):l;
   const so=S.ui.sort||'console', y=g=>+S.meta[artKey(g)]?.y||0, o=g=>gs(g.id);
@@ -765,21 +777,25 @@ function visible(){
 }
 function render(keep){
   const used=systems().concat(UNSORTED).filter(s=>GAMES.some(g=>g.sys===s.id));
-  const tabs=[['all','All'],['fav','Favourites'],['recent','Recent']].concat((S.folders||[]).map(f=>['f:'+f.id,f.name]),used.map(s=>[s.id,s.label||s.name]));
+  const tabs=[['all','All'],['fav','Favourites'],['recent','Recent']].concat(used.map(s=>[s.id,s.label||s.name]));
   if(!tabs.some(t=>t[0]===tab))tab='all';
   $('#dock').innerHTML=tabs.map(t=>`<button class="${t[0]===tab?'on':''}" data-tab="${esc(t[0])}" title="${esc(t[1])}" tabindex="-1">${mark(t[0],t[1])}</button>`).join('');
   $('#dock .on')?.scrollIntoView({inline:'center',block:'nearest'});
-  const list=visible(), focusId=keep&&document.activeElement.dataset.id, heads=tab==='all'&&used.length>1&&(S.ui.sort||'console')==='console';
+  const list=visible(), focusId=keep&&document.activeElement.dataset.id, heads=!INF&&tab==='all'&&used.length>1&&(S.ui.sort||'console')==='console';
+  if(INF&&!fById(INF))INF=null;
+  const inF=f=>GAMES.filter(g=>gs(g.id).dir===f.id), q0=$('#q').value.trim();
+  const pre=INF?`<button class="tile fold" data-f="" title="Back"><span class="art" style="--ar:1"><svg class="ic bk" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span><span class="name">Back</span><span class="meta">${esc(fById(INF).name)}</span></button>`
+    :tab==='all'&&!q0?(S.folders||[]).map(f=>`<button class="tile fold" data-f="${f.id}" title="${esc(f.name)}"><span class="art" style="--ar:1"><span class="mini">${inF(f).slice(0,4).map(g=>`<i style="background-image:url('${esc(artUrl(g))}')"></i>`).join('')}</span><svg class="ic fi" viewBox="0 0 24 24">${FLOOK[f.look]||FLOOK.folder}</svg></span><span class="name">${esc(f.name)}</span><span class="meta">${inF(f).length} games</span></button>`).join(''):'';
   $('#count').textContent=list.length+(list.length===1?' game':' games');
   let last='';
   $('#grid').classList.toggle('still',!!keep);
-  $('#grid').innerHTML=list.map((g,i)=>{
+  $('#grid').innerHTML=pre+list.map((g,i)=>{
     const s=sysOf(g.sys), o=gs(g.id), head=heads&&g.sys!==last?`<div class="sec">${esc(s.name)}</div>`:''; last=g.sys;
     findArt(g);
-    return `${head}<button draggable="true" class="tile ${NOW&&NOW.id===g.id?'playing':''}" data-id="${esc(g.id)}" title="${esc(g.title)}" style="--i:${Math.min(i,28)}">
+    return `${head}<button class="tile ${NOW&&NOW.id===g.id?'playing':''}" data-id="${esc(g.id)}" title="${esc(g.title)}" style="--i:${Math.min(i,28)}">
       <span class="art" ${cover(g)}${o.fav?'<span class="fav">&#9733;</span>':''}${NOW&&NOW.id===g.id?'<span class="run">Running</span>':''}</span>${o.last?'':'<span class="new"></span>'}
       <span class="name">${esc(g.title)}</span><span class="meta">${esc(s.label||s.name)}${played(o.time)?' &middot; '+played(o.time):''}</span></button>`}).join('');
-  const em=$('#empty'); em.hidden=list.length>0;
+  const em=$('#empty'); em.hidden=list.length>0||!!pre;
   if(!list.length)em.innerHTML=GAMES.length?'Nothing here yet.':'No games yet.<br>Point Cove at the folder where your games are and they show up here. Nothing gets moved.<br><br><button class="btn pri xl" data-act="addgames">Add a games folder</button>';
   const t=focusId&&tiles().find(x=>x.dataset.id===focusId);
   (t||$('.tile'))?.focus({preventScroll:!!keep});
@@ -934,29 +950,41 @@ function launchFx(g,r){
   d.innerHTML=`<div>${media(g)}<h2>${esc(g.title)}</h2><p>Starting in ${esc(r.name)}${r.need?' &middot; F1 or Start + Select opens its menu':''}</p><div class="bar"><i></i></div></div>`;
   document.body.append(d);setTimeout(()=>d.classList.add('out'),2300);setTimeout(()=>d.remove(),2800);
 }
-$('#grid').addEventListener('click',e=>{const g=game(e.target.closest('.tile'));if(g)start(g)});
-$('#grid').addEventListener('contextmenu',e=>{const g=game(e.target.closest('.tile'));if(g){e.preventDefault();details(g)}});
-// folders: drop a game on another game to start one, drop it on a folder's tab to add it, right-click (long-press on a touch screen) the background to make one, right-click a folder's tab to change it
+$('#grid').addEventListener('click',e=>{if(dragged)return;const t=e.target.closest('.tile'),g=game(t);if(g)start(g);else if(t){INF=t.dataset.f||null;render();blip(INF?'open':'back')}});
+$('#grid').addEventListener('contextmenu',e=>{const t=e.target.closest('.tile'),g=game(t);if(!t)return;e.preventDefault();g?details(g):fById(t.dataset.f)&&folderEdit(fById(t.dataset.f))});
+// folders: drop a game on another game to start one, drop it on a folder to add it, right-click (long-press on a touch screen) the background to make one, right-click a folder to change it
 const newFolder=name=>{const f={id:uid(),name,look:'folder'};(S.folders=S.folders||[]).push(f);return f};
 function folderEdit(f){
   modal('Folder',`<div class="row"><label>Name</label><input class="w" type="text" data-set="name" value="${esc(f.name)}"></div>
     <div class="row"><label>Icon</label><select data-set="look">${Object.keys(FLOOK).map(k=>opt(k,k[0].toUpperCase()+k.slice(1),f.look)).join('')}</select></div>
-    <small>Drag games onto this folder's tab to add them, or pick it under Folder in a game's Options.</small>`,
+    <small>Drag games onto this folder to add them, or pick it under Folder in a game's Options. Inside the folder, drag a game onto Back to take it out.</small>`,
     `<button class="btn bad" data-act="del">Delete folder</button><button class="btn pri" data-act="x">Done</button>`);
   $('#layer input').focus(); $('#layer input').select();
   onChange=(k,v)=>{f[k]=v.trim()||f[k];save()};
   onAct=a=>{if(a==='del'){S.folders=S.folders.filter(x=>x!==f);save()}closeModal()};
 }
-let DRAG;
-$('#grid').addEventListener('dragstart',e=>{DRAG=game(e.target.closest('.tile'))});
-for(const el of [$('#grid'),$('#dock')])el.addEventListener('dragover',e=>{if(DRAG&&e.target.closest('.tile,[data-tab^="f:"]'))e.preventDefault()});
-$('#grid').addEventListener('drop',e=>{
-  const t=game(e.target.closest('.tile')); if(!DRAG||!t||t===DRAG)return; e.preventDefault();
-  const made=!gs(t.id).dir, f=made?newFolder('New folder'):S.folders.find(x=>x.id===gs(t.id).dir);
-  gs(t.id).dir=gs(DRAG.id).dir=f.id; save(); blip('ok'); made?folderEdit(f):(render(true),toast('Added to '+f.name));
+// dragging is done by hand (press, move, release) because the browser's own drag does not start from these tiles
+let drag=null, ghost=null, dragged=false;
+const under=e=>{const t=document.elementFromPoint(e.clientX,e.clientY)?.closest('.tile');return t&&t!==drag.t?t:null};
+$('#grid').addEventListener('pointerdown',e=>{const t=e.target.closest('.tile');if(t&&!e.button&&game(t))drag={t,x:e.clientX,y:e.clientY}});
+addEventListener('pointermove',e=>{
+  if(!drag)return;
+  if(!ghost){
+    if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<14)return;
+    ghost=drag.t.querySelector('.art').cloneNode(true); ghost.id='ghost'; document.body.append(ghost); document.body.classList.add('dragging');
+  }
+  ghost.style.left=e.clientX+'px'; ghost.style.top=e.clientY+'px';
+  document.querySelector('.tile.drop')?.classList.remove('drop'); under(e)?.classList.add('drop');
 });
-$('#dock').addEventListener('drop',e=>{const b=e.target.closest('[data-tab^="f:"]');if(!DRAG||!b)return;e.preventDefault();gs(DRAG.id).dir=b.dataset.tab.slice(2);save();blip('ok');toast('Added to '+b.title)});
-$('#dock').addEventListener('contextmenu',e=>{const b=e.target.closest('[data-tab^="f:"]');if(b){e.preventDefault();folderEdit(S.folders.find(f=>'f:'+f.id===b.dataset.tab))}});
+for(const ev of ['pointerup','pointercancel'])addEventListener(ev,e=>{
+  if(!drag)return; const d=drag, t=ghost&&ev==='pointerup'&&under(e); drag=null;
+  if(!ghost)return; ghost.remove(); ghost=null; document.body.classList.remove('dragging'); dragged=true; setTimeout(()=>dragged=false,60);   // the release is not a click on the game
+  if(!t)return render(true);
+  const g=game(d.t), o=game(t);
+  if(o){const made=!fById(gs(o.id).dir), f=made?newFolder('New folder'):fById(gs(o.id).dir); gs(o.id).dir=gs(g.id).dir=f.id; save(); blip('ok'); return made?folderEdit(f):(render(true),toast('Added to '+f.name))}
+  if(t.dataset.f){gs(g.id).dir=t.dataset.f;toast('Added to '+fById(t.dataset.f).name)}else{delete gs(g.id).dir;toast('Taken out of the folder')}
+  save(); blip('ok'); render(true);
+});
 document.addEventListener('contextmenu',e=>{
   if(e.target.closest('.tile,#dock,#layer,#dd,input'))return; e.preventDefault();
   $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${Math.min(e.clientX,innerWidth-340)}px;top:${Math.min(e.clientY,innerHeight-90)}px;transform-origin:top left"><div class="body list"><button class="item" data-act="new"><svg class="ic" style="color:var(--acc)" viewBox="0 0 24 24">${FLOOK.folder}</svg><b>Create new folder</b></button></div></div></div>`;
@@ -967,7 +995,7 @@ function wheel(){if(S.ui.view!=='wheel')return;const t=tiles(),i=t.indexOf(docum
 let heroT;
 $('#grid').addEventListener('focusin',e=>{wheel();clearTimeout(heroT);heroT=setTimeout(()=>hero(game(e.target)),70)});   // settle before redrawing, so fast scrolling stays light
 $('#grid').addEventListener('mousemove',e=>{const t=e.target.closest('.tile');if(t&&t!==document.activeElement&&!$('#layer').children.length){t.focus({preventScroll:true});blip('move')}});
-$('#dock').addEventListener('click',e=>{const b=e.target.closest('button');if(b){tab=b.dataset.tab;render();blip('tab')}});
+$('#dock').addEventListener('click',e=>{const b=e.target.closest('button');if(b){tab=b.dataset.tab;INF=null;render();blip('tab')}});
 $('#quick').addEventListener('click',async e=>{
   const q=e.target.closest('button')?.dataset.q;
   if(q==='settings')settings(); if(q==='layout'||q==='theme'||q==='sort')menu(q); if(q==='random')surprise();
@@ -984,7 +1012,7 @@ document.addEventListener('keydown',e=>{
   if($('#dd')&&e.key==='Escape')return $('#dd').click();
   if($('#layer').children.length){if(e.key==='Escape')closeModal();const a={ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r'}[e.key],el=document.activeElement;if(a&&!(el.tagName==='SELECT'||(el.tagName==='INPUT'&&el.type!=='checkbox'))){e.preventDefault();navKey(a)}return}
   const typing=document.activeElement===$('#q');
-  if(e.key==='Escape'){$('#q').value='';render();return}
+  if(e.key==='Escape'){$('#q').value='';INF=null;render();return}
   if(typing){if(e.key==='ArrowDown'||e.key==='Enter'){e.preventDefault();$('.tile')?.focus()}return}
   const k=e.key.toLowerCase(), g=game(document.activeElement);
   const m={arrowleft:[-1,0],arrowright:[1,0],arrowup:[0,-1],arrowdown:[0,1]}[k];
@@ -1037,7 +1065,7 @@ window.navKey=k=>{
     if(k==='a'){const e=document.activeElement;e.tagName==='SELECT'?dropdown(e):e.click?.()} if(k==='bk')closeModal(); if(k==='lb')mtab(-1); if(k==='rb')mtab(1);
   }else{
     const m={l:[-1,0],r:[1,0],u:[0,-1],d:[0,1]}[k]; if(m)move(...m);
-    if(k==='a'){if(g)start(g);else document.activeElement.closest?.('#quick button')?.click()} if(k==='x')fav(g); if(k==='y'&&g)details(g);
+    if(k==='a'){if(g)start(g);else document.activeElement.closest?.('#quick button,.fold')?.click()} if(k==='x'&&g)fav(g); if(k==='bk'&&INF){INF=null;render();blip('back')} if(k==='y'&&g)details(g);
     if(k==='lb')cycle(-1); if(k==='rb')cycle(1); if(k==='start')settings(); if(k==='sel'||k==='lt')menu('layout'); if(k==='rt')menu('theme');
   }
 };
