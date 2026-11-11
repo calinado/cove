@@ -818,7 +818,8 @@ function render(keep){
 const game=el=>GAMES.find(g=>g.id===el?.dataset?.id);
 const tiles=()=>[...document.querySelectorAll('.tile')];
 function hero(g){
-  const h=$('#hero'); h.classList.toggle('none',!g); if(!g)return;
+  const h=$('#hero'); h.classList.toggle('none',!g);
+  if(!g){if(!S.ui.wall)for(const b of [$('#bg'),$('#bgart')]){b.dataset.img='';b.classList.add('swap')}return}   // a folder or Back has no art of its own: fade the last game's out
   const o=gs(g.id), s=sysOf(g.sys), r=resolve(g), u=artUrl(g);
   h.innerHTML=`<div class="cover" ${cover(g)}</div><div class="info">${ART['systems/'+g.sys]?`<img class="lg big" alt="" src="/file?t=${T}&p=${encodeURIComponent(ART['systems/'+g.sys])}">`:`<span class="chip" style="--h:${hue(g.sys)}">${esc(s.name)}</span>`}${S.meta[artKey(g)]?.y?` <span class="chip yr">${S.meta[artKey(g)].y}</span>`:''}<h1>${esc(g.title)}</h1>
     <p>${esc([played(o.time)&&'Played '+played(o.time),ago(o.last),r?r.name:g.sys==='unsorted'?'Pick a system to play':'No emulator set up yet'].filter(Boolean).join('   ·   '))}</p>
@@ -828,8 +829,8 @@ function hero(g){
   if(window.CoveNative)try{CoveNative.call('second',JSON.stringify({title:g.title,sys:s.name,year:S.meta[artKey(g)]?.y||'',about:S.meta[artKey(g)]?.d||'',img:/^https:/.test(u)?u:u?'https://cove.local'+u:'',acc:getComputedStyle(document.documentElement).getPropertyValue('--acc').trim()}))}catch{}
   const bg=$('#bg'), img=S.ui.wall?`url("/file?t=${T}&p=${encodeURIComponent(S.ui.wall)}")`:u?`url("${u}")`:'';
   const wide=S.wide[artKey(g)], sharp=$('#bgart'), big=S.ui.wall?img:wide?`url("${wide}")`:img;
-  if(bg.dataset.img!==img){bg.dataset.img=img;bg.classList.add('swap');setTimeout(()=>{bg.style.backgroundImage=img;bg.classList.remove('swap')},240)}
-  if(sharp.dataset.img!==big){sharp.dataset.img=big;sharp.classList.add('swap');setTimeout(()=>{sharp.style.backgroundImage=big;sharp.classList.toggle('wide',!!(wide||S.ui.wall));sharp.classList.remove('swap')},240)}
+  if(bg.dataset.img!==img){bg.dataset.img=img;bg.classList.add('swap');setTimeout(()=>{if(bg.dataset.img!==img)return;bg.style.backgroundImage=img;bg.classList.remove('swap')},240)}
+  if(sharp.dataset.img!==big){sharp.dataset.img=big;sharp.classList.add('swap');setTimeout(()=>{if(sharp.dataset.img!==big)return;sharp.style.backgroundImage=big;sharp.classList.toggle('wide',!!(wide||S.ui.wall));sharp.classList.remove('swap')},240)}
 }
 // eased scrolling that can be redirected mid-flight (wheel, keys and controller all feed the same target)
 const glides=new Map();

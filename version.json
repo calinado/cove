@@ -1,5 +1,5 @@
 {
-  "version": "1.0.20",
+  "version": "1.0.21",
   "repo": "calinado/cove",
-  "notes": "Dragging a game onto another quietly makes an Untitled folder. New edit mode: right-click the background, Edit home screen, then drag covers to rearrange. Cleaner folder tiles."
+  "notes": "Background art clears when a folder is selected."
 }
