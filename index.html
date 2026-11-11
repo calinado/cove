@@ -149,6 +149,16 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .new{position:absolute;z-index:3;right:-5px;top:-5px;width:15px;height:15px;border-radius:50%;background:var(--acc);border:3px solid var(--bg)}   /* never played yet */
 .v-list .new{display:none}
 .tile.playing .art{outline:3px solid var(--acc);outline-offset:-3px}
+.tile.playing{scale:1.16;margin:0 18px;z-index:1}
+.v-list .tile.playing,.v-wheel .tile.playing{scale:1;margin:0}
+.btn.bad{color:#ff6b6b;border-color:rgba(255,90,90,.45)}
+.foot.stack{flex-direction:column}.foot.stack .btn{width:100%}
+body:not(.pad) #hints,body:not(.pad) .cta .gl{display:none}
+.gl::before{content:attr(data-x)}[data-pad=ps] .gl::before{content:attr(data-p)}[data-pad=nin] .gl::before{content:attr(data-n)}
+.modal .body.pgin{animation:rise .22s both}
+.modal:has(.tabs){height:min(88vh,860px)}.modal:has(.tabs) .body{flex:1}
+details.adv{margin:14px 0}details.adv>summary{cursor:pointer;font-weight:700;padding:10px 14px;border-radius:12px;background:rgba(var(--tint),.06);list-style:none}details.adv>summary::after{content:' +';opacity:.6}details.adv[open]>summary::after{content:' -'}
+details.adv>summary:focus{outline:2px solid var(--acc);outline-offset:2px}
 .tile .name{font-weight:700;font-size:13px;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tile .meta{font:500 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--dim);padding:0 10px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sec{grid-column:1/-1;margin:14px 4px -8px;font:600 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
@@ -234,6 +244,14 @@ footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:
 #fx .cart b{position:absolute;background:center/cover;border-radius:4px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.3),inset 0 0 18px rgba(0,0,0,.18)}
 @keyframes spin{to{transform:rotate(720deg)}}
 @keyframes slot{from{transform:translateY(-70px)}55%{transform:translateY(10px)}}
+#gacha{position:fixed;inset:0;z-index:40;background:color-mix(in srgb,var(--bg) 70%,transparent);backdrop-filter:blur(26px);display:grid;place-content:center;text-align:center;animation:fade .25s}
+#gacha .reel{width:100vw;overflow:hidden;position:relative;padding:26px 0}
+#gacha .strip{display:flex;gap:16px;width:max-content;align-items:center;transition:transform 3.3s cubic-bezier(.1,.62,.08,1)}
+#gacha .cover{height:min(30vh,260px);aspect-ratio:var(--ar,1);border-radius:var(--r);overflow:hidden;position:relative;flex:none;transition:scale .3s,box-shadow .3s}
+#gacha .cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#gacha .reel>i{position:absolute;left:50%;top:6px;bottom:6px;width:3px;border-radius:3px;background:var(--acc);transform:translateX(-50%);box-shadow:0 0 14px var(--acc)}
+#gacha .win{scale:1.12;box-shadow:0 0 0 4px var(--acc),0 0 70px var(--acc);z-index:1}
+#gacha h2{font-size:30px;font-weight:900;margin:18px 0 0}
 #fx h2{font-size:30px;font-weight:900;margin:26px 0 4px;animation:rise .4s .15s both}
 #fx p{margin:0;opacity:.75;animation:rise .4s .22s both}
 #fx .bar{width:220px;height:5px;border-radius:9px;background:rgba(255,255,255,.2);margin:22px auto 0;overflow:hidden}
@@ -247,17 +265,17 @@ footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:
 .s-art #bgart{display:block;background:no-repeat right top/auto 70%;transition:opacity .35s;mask-image:linear-gradient(90deg,transparent 56%,#000 80%),linear-gradient(0deg,transparent,#000 38%);mask-composite:intersect}
 .s-art #bgart.wide{background-size:cover;background-position:center;mask-image:none}
 .s-art #bgart.swap{opacity:0}
-.s-art #wash{display:block;background:linear-gradient(90deg,rgba(0,0,0,.84),rgba(0,0,0,.4) 58%,rgba(0,0,0,.12)),linear-gradient(0deg,rgba(0,0,0,.94) 16%,transparent 64%)}   /* keeps text and the cover row readable over any art */
-.s-art,.s-art .modal,.s-art .menu{--bg:#0b0b0d;--fg:#fff;--dim:rgba(255,255,255,.7);--tint:255,255,255;--ga:.1;--gb:.1;--edge:.14;--shine:0;--field:rgba(0,0,0,.4);color:var(--fg)}
-.s-art .glass,.s-flat .glass{background:rgba(12,12,14,.72);box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.s-art #bgart:not(.wide){display:none}
+.s-art #wash{display:block;background:linear-gradient(90deg,color-mix(in srgb,var(--bg) 86%,transparent),color-mix(in srgb,var(--bg) 42%,transparent) 58%,color-mix(in srgb,var(--bg) 14%,transparent)),linear-gradient(0deg,color-mix(in srgb,var(--bg) 95%,transparent) 16%,transparent 64%)}   /* keeps text and the cover row readable over any art */
+.s-art .glass,.s-flat .glass{background:color-mix(in srgb,var(--bg) 74%,transparent);box-shadow:0 10px 30px var(--shade)}
 .s-art .tile,.s-flat .tile{padding:0 0 10px;gap:8px;background:none;border-color:transparent;box-shadow:none}
 .s-art .art,.s-flat .art{border-radius:var(--r);box-shadow:0 10px 28px rgba(0,0,0,.5)}
 .s-art .art::after,.s-flat .art::after,.s-art #hero .cover::after,.s-flat #hero .cover::after,.s-art #hero::before,.s-flat #hero::before{display:none}
 .s-art #hero,.s-art.v-list #hero{background:none;border-color:transparent;box-shadow:none}
 .s-art #hero .cover{display:none}
 .s-art.v-list #hero .cover{display:block}
-.s-art #hero h1{text-shadow:0 2px 20px rgba(0,0,0,.6)}
-.s-art .v-list .tile,.s-art.v-list .tile,.s-flat.v-list .tile{padding:8px 24px 8px 8px;background:rgba(12,12,14,.6)}
+.s-art #hero h1{text-shadow:0 2px 20px var(--bg)}
+.s-art .v-list .tile,.s-art.v-list .tile,.s-flat.v-list .tile{padding:8px 24px 8px 8px;background:color-mix(in srgb,var(--bg) 62%,transparent)}
 .s-art.v-list .art,.s-flat.v-list .art{border-radius:12px;box-shadow:none}
 /* style: Flat. Solid theme colour, no glow, no blur. */
 .s-flat #orbs,.s-flat #bg{display:none}
@@ -327,7 +345,7 @@ code{font-family:var(--mono);font-size:12px;word-break:break-all;color:var(--dim
 </div>
 <footer>
   <div id="quick"></div><span id="count"></span><span id="ver"></span>
-  <div id="hints"><span><b class="gl">A</b>Start</span><span><b class="gl">Y</b>Options</span><span><b class="gl">X</b>Favourite</span><span><b class="gl w">LB RB</b>Systems</span><span><b class="gl w">LT</b>Layout</span><span><b class="gl w">RT</b>Theme</span><span><b class="gl w">START</b>Settings</span><span id="padhint"></span></div>
+  <div id="hints"><span><b class="gl" data-x="A" data-p="✕" data-n="B"></b>Start</span><span><b class="gl" data-x="Y" data-p="△" data-n="X"></b>Options</span><span><b class="gl" data-x="X" data-p="□" data-n="Y"></b>Favourite</span><span><b class="gl w" data-x="LB RB" data-p="L1 R1" data-n="L R"></b>Systems</span><span><b class="gl w" data-x="LT" data-p="L2" data-n="ZL"></b>Layout</span><span><b class="gl w" data-x="RT" data-p="R2" data-n="ZR"></b>Theme</span><span><b class="gl w" data-x="START" data-p="OPTIONS" data-n="+"></b>Settings</span></div>
 </footer>
 <div id="toast" class="glass"></div>
 <div id="layer"></div>
@@ -409,7 +427,7 @@ const KINDS=[
  {id:'custom',name:'Custom (write the arguments yourself)',rx:/^$/,args:'"{rom}"',sys:[]},
 ];
 KINDS.find(k=>k.id==='retroarch').sys=Object.keys(KINDS.find(k=>k.id==='retroarch').cores);
-const VER=9;
+const VER=10;
 const RAK=KINDS.find(k=>k.id==='retroarch');
 // other cores you can switch a system to; the first is what Cove picks
 const ALT={gb:['gambatte','sameboy','mgba'],gbc:['gambatte','sameboy','mgba'],gba:['mgba','vbam'],nes:['mesen','nestopia','fceumm'],snes:['snes9x','bsnes'],n64:['mupen64plus_next','parallel_n64'],nds:['melondsds','desmume'],
@@ -461,7 +479,7 @@ const NOT_MAIN=/(cli|cmd|room|tests?|precompile|redist|crash|updat|unins|setup)/
 
 /* ---------- state ---------- */
 let S, INFO, GAMES=[], HIDDEN=[], ART={}, ESDE={}, NOW=null, tab='all', saveT;
-const DEF={setup:false,library:'',roots:[],emus:[],defaults:{},games:{},systems:[],art:{},meta:{},wide:{},scrape:{order:['igdb','sgdb','wiki'],off:{},keys:{}},discord:{on:false,id:'',art:true},ui:{theme:'frost',accent:'',wall:'',size:150,view:'shelf',style:'frost',corners:'soft',motion:'full',sound:true,vol:70,confirm:true}};
+const DEF={setup:false,library:'',roots:[],emus:[],defaults:{},games:{},systems:[],art:{},meta:{},wide:{},scrape:{order:['igdb','sgdb','steam','wiki'],off:{},keys:{}},discord:{on:false,id:'',art:true},ui:{theme:'frost',accent:'',wall:'',size:150,view:'shelf',style:'frost',corners:'soft',motion:'full',sound:true,vol:70,confirm:true}};
 const save=()=>{clearTimeout(saveT);saveT=setTimeout(()=>api('state',JSON.stringify(S,null,1)).catch(e=>toast('Could not save settings: '+e.message)),250)};
 const systems=()=>SYS.concat(S.systems.map(s=>({...s,auto:s.exts,lr:''})));
 const sysOf=id=>systems().find(s=>s.id===id)||(id==='unsorted'?UNSORTED:undefined);
@@ -572,6 +590,11 @@ const SRC={
       }
       return out;
     }},
+  steam:{name:'Steam',gives:'Tall box art and a wide HD banner for any game that is also sold on Steam. No sign-up.',ready:()=>true,
+    find:async q=>{
+      const flat=x=>nrm(x).replace(/[^a-z0-9]/g,''), r=await viaHelper('https://store.steampowered.com/api/storesearch/?l=english&cc=US&term='+encodeURIComponent(q));
+      return (r.items||[]).filter(x=>flat(x.name)===flat(q)).map(x=>({title:x.name,img:`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.id}/library_600x900_2x.jpg`,hero:`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.id}/library_hero.jpg`,about:'',year:'',kind:'Steam'}));   // exact names only: a near miss would put the wrong game's art on a Nintendo exclusive
+    }},
   wiki:{name:'Wikipedia',gives:'Cover, short description and year. Works with no sign-up.',ready:()=>true,
     find:async q=>(await wikiSearch(q+' video game')).map(p=>({...p,year:yr(p.kind+' '+p.about)}))},
 };
@@ -581,7 +604,8 @@ function applyMatch(g,hit){
   const k=artKey(g);
   S.meta[k]=hit?{t:hit.title,d:hit.about,y:hit.year||yr(hit.kind+' '+hit.about)}:0;
   if(hit&&hit.hero)S.wide[k]=hit.hero; else if(heroReady()&&!(k in S.wide))S.wide[k]=0;   // 0 = looked, none there
-  if(hit&&hit.img&&(needsArt(g)||hit.force))S.art[k]=hit.img; else if(!(k in S.art)&&needsArt(g))S.art[k]=0;
+  const wk=u=>/wiki[mp]edia/.test(u||'');
+  if(hit&&hit.img&&(needsArt(g)||hit.force||wk(S.art[k])&&!wk(hit.img)))S.art[k]=hit.img;   // proper box art replaces a Wikipedia picture found earlier else if(!(k in S.art)&&needsArt(g))S.art[k]=0;
   save();
   for(const x of GAMES.filter(x=>artKey(x)===k)){
     const a=tiles().find(t=>t.dataset.id===x.id)?.querySelector('.art');
@@ -645,8 +669,9 @@ async function launch(g){
     if(r.need&&!(await api('exists',{paths:[coreDll(r.need.ra,r.need.core)]})).r[0]){   // first game on this system: fetch its core
       toast('Getting the '+r.need.core+' core');await api('core',{kind:'core',name:r.need.core,dir:dir(r.need.ra.exe)});
     }
+    blip('launch');launchFx(g,r);await new Promise(d=>setTimeout(d,2100));   // let the disc or cartridge play before Cove gets out of the way
     await api('launch',r.intent?{id:g.id,...r.intent}:{id:g.id,exe:r.exe,args:r.args,cwd:r.cwd,after:S.ui.after||'taskbar'});
-    gs(g.id).last=Date.now();save();blip('launch');launchFx(g,r);
+    gs(g.id).last=Date.now();save();
     NOW={id:g.id,title:g.title,emu:r.name,t:Date.now()};nowUI();render();syncPresence();   // re-drawn so the running game moves to the front and takes the cursor
   }catch(e){toast('Could not launch: '+e.message)}
 }
@@ -689,15 +714,17 @@ const LAYOUTS=[['shelf','Shelf','One row of large covers'],['home','Home','Big c
 const THEMES=[['frost','Frost','#CCFF00','#0b0d08'],['aurora','Aurora','#b9a2ff','#090818'],['joy','Joy','#ff4554','#0f0f13'],['midnight','Midnight','#ffd166','#050a1c'],['mint','Mint','#5eead4','#03110f'],['sunset','Sunset','#ffb347','#160910'],['mono','Mono','#ffffff','#111'],['neon','Arcade neon','#ff2bd6','#05010d'],['crt','CRT retro','#7cff6b','#060b06'],['dark','Console dark','#4da3ff','#0c0d10'],
   ['daylight','Daylight','#2563eb','#dde6f6'],['channel','Channel','#00a3e0','#eef4f8'],['pocket','Pocket','#f26b1d','#f5ede2'],['sakura','Sakura','#e2457f','#fbeaf1'],['paper','Paper light','#d9480f','#f4f1ea']];
 const ICON={settings:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',layout:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
-  theme:'<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17z" fill="currentColor"/>',add:'<path d="M12 5v14M5 12h14"/>',random:'<rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r=".8" fill="currentColor"/><circle cx="15" cy="15" r=".8" fill="currentColor"/><circle cx="12" cy="12" r=".8" fill="currentColor"/>'};
-$('#quick').innerHTML=[['settings','Settings'],['layout','Change layout'],['theme','Change theme'],['random','Surprise me'],['add','Add games']].map(q=>`<button class="glass" data-q="${q[0]}" title="${q[1]}" tabindex="-1"><svg viewBox="0 0 24 24">${ICON[q[0]]}</svg></button>`).join('');
+  theme:'<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17z" fill="currentColor"/>',add:'<path d="M12 5v14M5 12h14"/>',sort:'<path d="M7 5v14M4 16l3 3 3-3M14 7h6M14 12h4M14 17h2"/>',random:'<rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r=".8" fill="currentColor"/><circle cx="15" cy="15" r=".8" fill="currentColor"/><circle cx="12" cy="12" r=".8" fill="currentColor"/>'};
+$('#quick').innerHTML=[['settings','Settings'],['layout','Change layout'],['sort','Sort games'],['theme','Change theme'],['random','Surprise me'],['add','Add games']].map(q=>`<button class="glass" data-q="${q[0]}" title="${q[1]}" tabindex="-1"><svg viewBox="0 0 24 24">${ICON[q[0]]}</svg></button>`).join('');
 const KIND={handheld:['gb','gbc','gba','nds','n3ds','psp','gamegear'],hybrid:['switch','switch2'],cart:['nes','snes','n64','genesis','mastersystem'],arcade:['arcade'],pc:['pc'],all:['all'],fav:['fav'],recent:['recent'],unsorted:['unsorted']};
 const GLYPH={handheld:'<rect x="6" y="3" width="12" height="18" rx="2.5"/><rect x="8.5" y="5.5" width="7" height="6" rx="1"/><circle cx="12" cy="16" r="1.3"/>',hybrid:'<rect x="2.5" y="7" width="19" height="10" rx="3"/><path d="M7.5 7v10M16.5 7v10"/>',
   disc:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.2"/>',cart:'<path d="M5 5h14v14h-3v-3H8v3H5z"/><path d="M9 9h6"/>',arcade:'<circle cx="12" cy="6" r="2.5"/><path d="M12 8.5V15M6 15h12v4H6z"/>',pc:'<rect x="3.5" y="5" width="17" height="11" rx="1.5"/><path d="M9 20h6M12 16v4"/>',
   all:ICON.layout,fav:'<path d="M12 4l2.4 5 5.5.7-4 3.8 1 5.4-4.9-2.7-4.9 2.7 1-5.4-4-3.8 5.5-.7z"/>',recent:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/>',unsorted:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 16.5v.1"/>'};
 const glyph=id=>GLYPH[Object.keys(KIND).find(k=>KIND[k].includes(id))||'disc'];
 // drop <system id>.png into Library\Art\systems (gba.png, switch2.png ...) and it replaces the name everywhere
-const mark=(id,label)=>ART['systems/'+id]?`<img class="lg" alt="${esc(label)}" src="/file?t=${T}&p=${encodeURIComponent(ART['systems/'+id])}">`:`<svg class="ic" viewBox="0 0 24 24">${glyph(id)}</svg><span>${esc(label)}</span>`;
+const SORTS=[['console','By console','Grouped by system, A to Z inside each'],['az','A to Z',''],['za','Z to A',''],['new','Newest first','By release year'],['old','Oldest first','By release year'],['recent','Recently played',''],['most','Most played','']];
+const FLOOK={folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',star:'<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9 6.8 19.6l1-5.8-4.3-4.1 5.9-.8z"/>',heart:'<path d="M12 20s-7-4.4-7-9.6A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.4C19 15.6 12 20 12 20z"/>',bolt:'<path d="M13 3L5 13.5h6L10 21l8-10.5h-6z"/>',stack:'<path d="M12 4l8 4-8 4-8-4zM4 12l8 4 8-4M4 16l8 4 8-4"/>'};
+const mark=(id,label)=>id.startsWith('f:')?`<svg class="ic" style="color:var(--acc)" viewBox="0 0 24 24">${FLOOK[(S.folders||[]).find(f=>'f:'+f.id===id)?.look]||FLOOK.folder}</svg><span>${esc(label)}</span>`:ART['systems/'+id]?`<img class="lg" alt="${esc(label)}" src="/file?t=${T}&p=${encodeURIComponent(ART['systems/'+id])}">`:`<svg class="ic" viewBox="0 0 24 24">${glyph(id)}</svg><span>${esc(label)}</span>`;
 // little pictures of each layout for the layout menu
 const LAYPIC={shelf:'<rect x="1" y="6" width="7" height="10" rx="1.5" opacity=".5"/><rect x="10" y="3" width="12" height="16" rx="2"/><rect x="24" y="6" width="7" height="10" rx="1.5" opacity=".5"/>',
   home:'<rect x="1" y="1" width="30" height="8" rx="2"/><rect x="1" y="11" width="6" height="4.5" rx="1"/><rect x="9" y="11" width="6" height="4.5" rx="1"/><rect x="17" y="11" width="6" height="4.5" rx="1"/><rect x="25" y="11" width="6" height="4.5" rx="1"/><rect x="1" y="16.5" width="6" height="4.5" rx="1"/><rect x="9" y="16.5" width="6" height="4.5" rx="1"/><rect x="17" y="16.5" width="6" height="4.5" rx="1"/><rect x="25" y="16.5" width="6" height="4.5" rx="1"/>',
@@ -727,20 +754,22 @@ function media(g){
 const cover=g=>{const u=artUrl(g),h=hue(g.title);return `style="--ar:${AR[g.sys]||1};background:linear-gradient(140deg,hsl(${h} 70% 46%),hsl(${(h+60)%360} 65% 22%));--img:${u?`url('${esc(u)}')`:'none'}"><span class="ph">${esc(g.title[0].toUpperCase())}</span>${u?`<img loading="lazy" data-id="${esc(g.id)}" alt="" src="${esc(u)}" onload="artOk(this)" onerror="artFail(this)">`:''}`};
 function visible(){
   const q=$('#q').value.trim().toLowerCase();
-  let l=GAMES.filter(g=>tab==='all'||tab==='recent'?true:tab==='fav'?gs(g.id).fav:g.sys===tab);
+  let l=GAMES.filter(g=>tab==='all'||tab==='recent'?true:tab==='fav'?gs(g.id).fav:tab.startsWith('f:')?gs(g.id).dir===tab.slice(2):g.sys===tab);
   if(tab==='recent')l=l.filter(g=>gs(g.id).last).sort((a,b)=>gs(b.id).last-gs(a.id).last).slice(0,40);
   l=q?l.filter(g=>g.title.toLowerCase().includes(q)):l;
+  const so=S.ui.sort||'console', y=g=>+S.meta[artKey(g)]?.y||0, o=g=>gs(g.id);
+  if(tab!=='recent'&&so!=='console')l=[...l].sort({az:(a,b)=>a.title.localeCompare(b.title),za:(a,b)=>b.title.localeCompare(a.title),new:(a,b)=>y(b)-y(a),old:(a,b)=>(y(a)||9999)-(y(b)||9999),recent:(a,b)=>(o(b).last||0)-(o(a).last||0),most:(a,b)=>(o(b).time||0)-(o(a).time||0)}[so]);
   const run=NOW?l.findIndex(g=>g.id===NOW.id):-1;
   if(run>0)l.unshift(l.splice(run,1)[0]);   // the running game is always first
   return l;
 }
 function render(keep){
   const used=systems().concat(UNSORTED).filter(s=>GAMES.some(g=>g.sys===s.id));
-  const tabs=[['all','All'],['fav','Favourites'],['recent','Recent']].concat(used.map(s=>[s.id,s.label||s.name]));
+  const tabs=[['all','All'],['fav','Favourites'],['recent','Recent']].concat((S.folders||[]).map(f=>['f:'+f.id,f.name]),used.map(s=>[s.id,s.label||s.name]));
   if(!tabs.some(t=>t[0]===tab))tab='all';
   $('#dock').innerHTML=tabs.map(t=>`<button class="${t[0]===tab?'on':''}" data-tab="${esc(t[0])}" title="${esc(t[1])}" tabindex="-1">${mark(t[0],t[1])}</button>`).join('');
   $('#dock .on')?.scrollIntoView({inline:'center',block:'nearest'});
-  const list=visible(), focusId=keep&&document.activeElement.dataset.id, heads=tab==='all'&&used.length>1;
+  const list=visible(), focusId=keep&&document.activeElement.dataset.id, heads=tab==='all'&&used.length>1&&(S.ui.sort||'console')==='console';
   $('#count').textContent=list.length+(list.length===1?' game':' games');
   let last='';
   $('#grid').classList.toggle('still',!!keep);
@@ -765,7 +794,7 @@ function hero(g){
   h.innerHTML=`<div class="cover" ${cover(g)}</div><div class="info">${ART['systems/'+g.sys]?`<img class="lg big" alt="" src="/file?t=${T}&p=${encodeURIComponent(ART['systems/'+g.sys])}">`:`<span class="chip" style="--h:${hue(g.sys)}">${esc(s.name)}</span>`}${S.meta[artKey(g)]?.y?` <span class="chip yr">${S.meta[artKey(g)].y}</span>`:''}<h1>${esc(g.title)}</h1>
     <p>${esc([played(o.time)&&'Played '+played(o.time),ago(o.last),r?r.name:g.sys==='unsorted'?'Pick a system to play':'No emulator set up yet'].filter(Boolean).join('   ·   '))}</p>
     ${S.meta[artKey(g)]?.d?`<p class="about">${esc(S.meta[artKey(g)].d)}</p>`:''}
-    <div class="cta"><span><b class="gl">A</b>Start</span><span><b class="gl">Y</b>Options</span>${o.fav?'<span>&#9733; Favourite</span>':''}</div></div>`;
+    <div class="cta"><span><b class="gl" data-x="A" data-p="✕" data-n="B"></b>Start</span><span><b class="gl" data-x="Y" data-p="△" data-n="X"></b>Options</span>${o.fav?'<span>&#9733; Favourite</span>':''}</div></div>`;
   h.classList.remove('in'); void h.offsetWidth; h.classList.add('in');
   if(window.CoveNative)try{CoveNative.call('second',JSON.stringify({title:g.title,sys:s.name,year:S.meta[artKey(g)]?.y||'',about:S.meta[artKey(g)]?.d||'',img:/^https:/.test(u)?u:u?'https://cove.local'+u:'',acc:getComputedStyle(document.documentElement).getPropertyValue('--acc').trim()}))}catch{}
   const bg=$('#bg'), img=S.ui.wall?`url("/file?t=${T}&p=${encodeURIComponent(S.ui.wall)}")`:u?`url("${u}")`:'';
@@ -823,10 +852,11 @@ let LASTT;
 function cycle(d){const b=[...$('#dock').children],i=b.findIndex(x=>x.classList.contains('on'));tab=b[(i+d+b.length)%b.length].dataset.tab;render();blip('tab')}
 function fav(g){if(!g)return;const o=gs(g.id);o.fav=!o.fav;save();render(true);hero(g);blip('ok')}
 function menu(kind){
-  const isT=kind==='theme', key=isT?'theme':'view', cur=S.ui[key];
-  const b=$(`#quick [data-q=${isT?'theme':'layout'}]`).getBoundingClientRect();
-  $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${b.left}px;bottom:${innerHeight-b.top+12}px"><h2>${isT?'Theme':'Layout'}</h2><div class="body ${isT?'sws':'list'}">${
+  const isT=kind==='theme', isS=kind==='sort', key=isT?'theme':isS?'sort':'view', cur=S.ui[key]||(isS?'console':'');
+  const b=$(`#quick [data-q=${kind}]`).getBoundingClientRect();
+  $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${b.left}px;bottom:${innerHeight-b.top+12}px"><h2>${isT?'Theme':isS?'Sort':'Layout'}</h2><div class="body ${isT?'sws':'list'}">${
     isT?THEMES.map(x=>`<button class="sw ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}" style="--a:${x[2]};--b:${x[3]}"><i></i><span>${x[1]}</span></button>`).join('')
+       :isS?SORTS.map(x=>`<button class="item ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}"><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')
        :LAYOUTS.map(x=>`<button class="item ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}"><svg class="lp" viewBox="0 0 32 22">${LAYPIC[x[0]]}</svg><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')}</div>${
     isT?`<h2>Style</h2><div class="body list">${STYLES.map(x=>`<button class="item ${x[0]===(S.ui.style||'frost')?'on':''}" data-act="sty" data-arg="${x[0]}"><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')}</div>`:''}</div></div>`;
   ($('#layer .on')||focusables()[0])?.focus();
@@ -834,14 +864,25 @@ function menu(kind){
   onAct=(a,arg)=>{S.ui[a==='sty'?'style':key]=arg;look();save();closeModal();blip('ok')};
   blip('tab');
 }
-function surprise(){const l=visible();if(!l.length)return;const g=l[Math.floor(Math.random()*l.length)],t=tiles().find(x=>x.dataset.id===g.id);if(t){goto(t);blip('ok')}}
+function surprise(){
+  const l=visible(), t0=tiles(); if(l.length<2)return t0[0]&&goto(t0[0]);
+  const win=l[Math.floor(Math.random()*l.length)], n=36, at=n-5, strip=Array.from({length:n},(_,i)=>i===at?win:l[Math.floor(Math.random()*l.length)]);
+  const d=document.createElement('div'); d.id='gacha';
+  d.innerHTML=`<div class="reel"><div class="strip">${strip.map(g=>`<div class="cover" ${cover(g).replace('loading="lazy"','')}</div>`).join('')}</div><i></i></div><h2>&nbsp;</h2>`;
+  document.body.append(d);
+  const st=d.querySelector('.strip'), w=st.children[at];
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{st.style.transform=`translateX(${innerWidth/2-w.offsetLeft-w.offsetWidth/2}px)`}));
+  for(let i=1;i<=at;i++)setTimeout(()=>blip('move'),3300*(1-(1-i/at)**2.4));   // ticks slow down with the reel
+  setTimeout(()=>{w.classList.add('win');d.querySelector('h2').textContent=win.title;blip('ok')},3400);
+  setTimeout(()=>{d.remove();const t=tiles().find(x=>x.dataset.id===win.id);if(t)goto(t)},4900);
+}
 // the card shown before a game starts: confirms the game, the emulator, and that its saves are where they should be
 const begin=g=>S.ui.confirm===false?launch(g):preview(g);
 const start=g=>!NOW||INFO.android?begin(g):NOW.id===g.id?running(g):another(g);
 const since=()=>{const m=Math.floor((Date.now()-NOW.t)/60000);return m<1?'less than a minute':m<60?m+' min':Math.floor(m/60)+' h '+m%60+' min'};
 function running(g){
   modal(esc(g.title)+' is running',`<p>It has been open for ${since()}. Go back to it, or close it before starting something else.</p>`,
-    `<button class="btn" data-act="x">Back</button><button class="btn" data-act="stop">Close the game</button><button class="btn pri xl" data-act="focus">Return to game</button>`);
+    `<button class="btn" data-act="x">Back</button><button class="btn bad" data-act="stop">Close the game</button><button class="btn pri xl" data-act="focus">Return to game</button>`);
   onChange=()=>{};
   onAct=async a=>{
     if(a==='focus')await api('focus',{id:g.id});
@@ -852,7 +893,8 @@ function running(g){
 function another(g){
   const n=NOW;
   modal('A game is already running',`<p><b>${esc(n.title)}</b> has been open for ${since()}. Two emulators at once fight over the controller and slow each other down.</p>`,
-    `<button class="btn" data-act="x">Cancel</button><button class="btn" data-act="both">Start anyway</button><button class="btn" data-act="focus">Return to ${esc(n.title)}</button><button class="btn pri" data-act="swap">Close it and start ${esc(g.title)}</button>`);
+    `<button class="btn pri" data-act="focus">Return to ${esc(n.title)}</button><button class="btn" data-act="swap">Close it and start ${esc(g.title)}</button><button class="btn" data-act="both">Start both anyway</button><button class="btn bad" data-act="x">Cancel</button>`);
+  $('#layer .foot').classList.add('stack');
   onChange=()=>{};
   onAct=async a=>{
     if(a==='focus'){await api('focus',{id:n.id});return closeModal()}
@@ -902,7 +944,7 @@ $('#grid').addEventListener('mousemove',e=>{const t=e.target.closest('.tile');if
 $('#dock').addEventListener('click',e=>{const b=e.target.closest('button');if(b){tab=b.dataset.tab;render();blip('tab')}});
 $('#quick').addEventListener('click',async e=>{
   const q=e.target.closest('button')?.dataset.q;
-  if(q==='settings')settings(); if(q==='layout')menu('layout'); if(q==='theme')menu('theme'); if(q==='random')surprise();
+  if(q==='settings')settings(); if(q==='layout'||q==='theme'||q==='sort')menu(q); if(q==='random')surprise();
   if(q==='add'){const p=await pick('folder');if(p){addRoot(p);await scan();render();toast(GAMES.length+' games in your library')}}
 });
 for(const el of [$('main'),$('#dock')])el.addEventListener('wheel',e=>{
@@ -929,7 +971,10 @@ document.addEventListener('keydown',e=>{
 // controller: works everywhere, including settings and the folder browser
 // main: d-pad/stick move, A start, X favourite, Y options, LB/RB systems, Select layout, Start settings
 // panels: up/down move between controls, left/right change a dropdown or slider, A press, B back, LB/RB switch settings tab
-const focusables=()=>[...document.querySelectorAll('#layer button,#layer select,#layer input')].filter(e=>e.offsetParent);
+const focusables=()=>[...document.querySelectorAll('#layer button,#layer select,#layer input,#layer summary')].filter(e=>e.offsetParent);
+// a fold-away section for the settings most people never need; it remembers being open while the panel redraws
+const OPEN=new Set(), adv=(id,title,html)=>`<details class="adv" data-d="${id}" ${OPEN.has(id)?'open':''}><summary tabindex="0">${title}</summary>${html}</details>`;
+$('#layer').addEventListener('toggle',e=>{const d=e.target.dataset?.d;if(d)OPEN[e.target.open?'add':'delete'](d)},true);
 function mstep(d){const f=focusables(), i=f.indexOf(document.activeElement);f[Math.max(0,Math.min(f.length-1,i<0?0:i+d))]?.focus();document.activeElement.scrollIntoView({block:'nearest'});blip('move')}
 function mgo(dx,dy){
   const f=focusables(), cur=document.activeElement; if(!f.includes(cur))return mstep(0);
@@ -1007,8 +1052,8 @@ function audio(){
 }
 function note(f,at,o={}){
   const {type='sine',dur=.22,gain=.3,to}=o, osc=actx.createOscillator(), g=actx.createGain(), t=actx.currentTime+at;
-  osc.type=type; osc.frequency.setValueAtTime(f,t); if(to)osc.frequency.exponentialRampToValueAtTime(to,t+dur);
-  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(gain,t+.008); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  osc.type='sine'; osc.frequency.setValueAtTime(f,t); if(to)osc.frequency.exponentialRampToValueAtTime(to,t+dur);
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(gain*.6,t+Math.min(.04,dur/3));   // a slow attack is what keeps it from clicking g.gain.exponentialRampToValueAtTime(.0001,t+dur);
   osc.connect(g).connect(bus); osc.start(t); osc.stop(t+dur+.03);
 }
 // low, round voices: a fundamental with a quiet octave above it, played dry (no echo)
@@ -1040,7 +1085,8 @@ function look(){
   document.body.className='v-'+u.view+' m-'+u.motion+' s-'+(u.style||'frost')+(INFO&&INFO.android?' android':'')+(u.fit==='contain'?' fit-whole':u.fit==='cover'?'':' fit-box');
   if(u.wall)$('#bg').style.backgroundImage=`url("/file?t=${T}&p=${encodeURIComponent(u.wall)}")`;
 }
-setInterval(()=>{const n=[...navigator.getGamepads()].filter(p=>p&&p.connected).length;$('#padhint').textContent=n?'':'Controller: press any button to wake it'},1500);
+// button hints appear only once a controller is connected, labelled the way that controller is
+setInterval(()=>{const p=[...navigator.getGamepads()].find(p=>p&&p.connected);document.body.classList.toggle('pad',!!p);document.body.dataset.pad=!p?'':/054c|playstation|dualsense|dualshock|wireless controller/i.test(p.id)?'ps':/057e|nintendo|pro controller|joy-con/i.test(p.id)?'nin':'xbox'},1000);
 const tick=()=>$('#clock').textContent=new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}); tick(); setInterval(tick,5000);
 
 /* ---------- modals ---------- */
@@ -1049,7 +1095,15 @@ const sig=e=>e&&e.closest?.('#layer')?(e.dataset.set?'s'+e.dataset.set:e.dataset
 function modal(title,body,foot,tabsHtml){
   const was=sig(document.activeElement);   // keep the cursor on the same control when a panel redraws
   if(!$('#layer').children.length)blip('open');
-  $('#layer').innerHTML=`<div class="scrim"><div class="modal glass"><h2>${title}</h2>${tabsHtml||''}<div class="body">${body}</div>${foot?`<div class="foot">${foot}</div>`:''}</div></div>`;
+  const m=tabsHtml&&$('#layer .modal'), tb=m&&m.querySelector('.tabs');
+  if(tb){   // a tabbed panel that is already open keeps its window and only swaps the page inside
+    const moved=m.dataset.tabs!==tabsHtml, b=m.querySelector('.body'); m.dataset.tabs=tabsHtml;
+    tb.outerHTML=tabsHtml; b.innerHTML=body; m.querySelector('.foot').innerHTML=foot;
+    if(moved){b.scrollTop=0;b.classList.remove('pgin');void b.offsetWidth;b.classList.add('pgin');blip('tab')}
+  }else{
+    $('#layer').innerHTML=`<div class="scrim"><div class="modal glass"><h2>${title}</h2>${tabsHtml||''}<div class="body">${body}</div>${foot?`<div class="foot">${foot}</div>`:''}</div></div>`;
+    if(tabsHtml)$('#layer .modal').dataset.tabs=tabsHtml;
+  }
   (was&&focusables().find(e=>sig(e)===was)||$('#layer .btn.pri')||focusables()[0])?.focus();
 }
 function closeModal(){
@@ -1099,11 +1153,13 @@ function details(g){
     <div class="row"><label>Extra arguments</label><input class="w" type="text" data-set="args" value="${esc(o.args)}" placeholder="added after the emulator's own arguments"></div>
     <div class="row"><label>Runs as</label><code>${r?esc('"'+r.exe+'" '+r.args):'no emulator set up for this system yet'}</code></div>`}
     <div class="row"><label>Display name</label><input class="w" type="text" data-set="title" value="${esc(g.title)}"></div>
+    <div class="row"><label>Folder</label><select data-set="dir">${opt('','None',o.dir||'')}${(S.folders||[]).map(f=>opt(f.id,f.name,o.dir)).join('')}</select><input class="w" type="text" data-set="newdir" placeholder="or type a new folder name"></div>
     <code>${esc(target)}</code>`,
-    `<button class="btn" data-act="del">Delete</button><button class="btn" data-act="hide">Hide</button><button class="btn" data-act="show">Show file</button><button class="btn" data-act="art">Set artwork</button><button class="btn" data-act="match">Fix match</button>${r&&MODDIR[S.emus.find(e=>e.exe===r.exe)?.kind]?'<button class="btn" data-act="mods">Mods</button>':''}<button class="btn" data-act="lnk">Desktop shortcut</button><button class="btn" data-act="fav">${o.fav?'Unfavourite':'Favourite'}</button><button class="btn pri" data-act="play">Launch</button>`);
+    `<button class="btn bad" data-act="del">Delete</button><button class="btn" data-act="hide">Hide</button><button class="btn" data-act="show">Show file</button><button class="btn" data-act="art">Set artwork</button><button class="btn" data-act="match">Fix match</button>${r&&MODDIR[S.emus.find(e=>e.exe===r.exe)?.kind]?'<button class="btn" data-act="mods">Mods</button>':''}<button class="btn" data-act="lnk">Desktop shortcut</button><button class="btn" data-act="fav">${o.fav?'Unfavourite':'Favourite'}</button><button class="btn pri" data-act="play">Launch</button>`);
   const hide=async()=>{o.hide=true;save();await scan();closeModal();toast('Hidden. Bring it back from Settings > Library')};
   onChange=(k,v)=>{
     if(k==='sys'&&v==='unsorted')return;
+    if(k==='newdir'){if(!v.trim())return;const f={id:uid(),name:v.trim(),look:'folder'};(S.folders=S.folders||[]).push(f);k='dir';v=f.id}
     v?o[k]=v:delete o[k];
     if(k==='title')g.title=v||pretty(g.base);
     if(k==='sys'){g.sys=v;delete o.emu}
@@ -1260,20 +1316,25 @@ async function settings(t='lib'){
     ${romRoots().map((r,i)=>`<div class="row"><code>${esc(r)}</code>${i?`<button class="btn" data-act="delroot" data-arg="${i-1}">Remove</button>`:'<small>(Cove\'s own folder)</small>'}</div>`).join('')}
     <div class="row"><button class="btn pri" data-act="addroot">Add a games folder</button><button class="btn" data-act="rescan">Rescan</button></div>
     ${HIDDEN.length?`<h3>Hidden games</h3>${HIDDEN.map(g=>`<div class="row"><button class="btn" data-act="unhide" data-arg="${esc(g.id)}">Show again</button><small>${esc(g.title)}</small></div>`).join('')}`:''}
-    <h3>Scraper</h3><small>Cove looks up a cover, a description and the year for each game in the background. Details found for <b>${GAMES.filter(g=>S.meta[artKey(g)]).length}</b> of ${GAMES.length} games${artQ.length?', '+artQ.length+' still in the queue':''}. Sources are tried from the top down; move the ones you trust most to the top. A wrong match can be fixed from the game's options.</small>
+    <h3>Folders</h3><small>Your own groups of games, shown as tabs along the top. Add a game to one from its Options. The folder icons take the theme's colour.</small>
+    ${(S.folders||[]).map(f=>`<div class="row"><input class="w" type="text" data-set="fname" data-arg="${f.id}" value="${esc(f.name)}"><select data-set="flook" data-arg="${f.id}">${Object.keys(FLOOK).map(k=>opt(k,k[0].toUpperCase()+k.slice(1),f.look)).join('')}</select><button class="btn bad" data-act="delfolder" data-arg="${f.id}">Remove</button></div>`).join('')}
+    <div class="row"><input class="w" type="text" id="nfname" placeholder="New folder name"><button class="btn" data-act="addfolder">Add folder</button></div>
+    <h3>Artwork</h3><small>Cove finds a cover, a wide background, a description and the year for each game in the background. Found for <b>${GAMES.filter(g=>S.meta[artKey(g)]).length}</b> of ${GAMES.length} games${artQ.length?', '+artQ.length+' still in the queue':''}. Fix a wrong match from the game's Options.</small>
+    <div class="row"><input type="checkbox" data-set="src" data-arg="libretro" ${S.scrape.off.libretro?'':'checked'}><b>Box art scans</b><small>Real box scans for cartridge and disc systems.</small></div>
+    <div class="row"><button class="btn pri" data-act="scrape">Scrape missing now</button><button class="btn" data-act="rescrape">Scrape everything again</button></div>
+    ${adv('src','More artwork sources and keys',`<small>Sources are tried from the top down. The ones that need a free key give the best covers and HD backgrounds.</small>
     ${S.scrape.order.map((id,i)=>{const x=SRC[id],on=!S.scrape.off[id];return `<div class="card"><div class="row" style="margin:0"><input type="checkbox" data-set="src" data-arg="${id}" ${on?'checked':''}><b>${i+1}. ${x.name}</b><small>${x.ready()?(on?'In use':'Switched off'):'Needs a key to work'}</small>
       <span style="margin-left:auto;display:flex;gap:6px"><button class="btn" data-act="srcup" data-arg="${i}" ${i?'':'disabled'}>Up</button><button class="btn" data-act="srcdn" data-arg="${i}" ${i<S.scrape.order.length-1?'':'disabled'}>Down</button></span></div>
       <small>${x.gives}${x.needs?' '+x.needs:''}</small>${x.url&&!x.ready()?`<div class="row"><button class="btn" data-act="keysite" data-arg="${x.url}">Open the key page</button></div>`:''}
       ${(x.fields||[]).map(f=>`<div class="row"><label>${f[1]}</label><input class="w" type="text" data-set="key" data-arg="${f[0]}" value="${esc(K()[f[0]])}"></div>`).join('')}</div>`}).join('')}
     <div class="card"><b>ES-DE artwork</b><small style="display:block">If you already scrape with ES-DE (or Skyscraper set to write ES-DE media), point Cove at the ES-DE folder and it uses those covers first, with no lookups. It reads <code>downloaded_media</code>.</small>
       <div class="row"><code>${esc(S.esde||'not set')}</code><button class="btn" data-act="esde">Choose folder</button>${S.esde?'<button class="btn" data-act="noesde">Stop using it</button>':''}</div></div>
-    <div class="row"><input type="checkbox" data-set="src" data-arg="libretro" ${S.scrape.off.libretro?'':'checked'}><b>libretro box art</b><small>Official box scans for cartridge and disc systems, tried first when on. No sign-up.</small></div>
-    <div class="row"><button class="btn" data-act="scrape">Scrape missing now</button><button class="btn" data-act="rescrape">Scrape everything again</button></div>
-    <h3>Tidy up (optional)</h3><small>Moves loose files into one folder per system inside Cove's library, taking matching save files along. Use it for an Inbox of new downloads; you never have to.</small>
+`)}
+    ${adv('tidy','Advanced: tidy up files and custom systems',`<h3>Tidy up (optional)</h3><small>Moves loose files into one folder per system inside Cove's library, taking matching save files along. Use it for an Inbox of new downloads; you never have to.</small>
     <div class="row"><button class="btn" data-act="inbox">Organize Inbox</button><button class="btn" data-act="orgother">Organize another folder</button><button class="btn" data-act="open" data-arg="${esc(S.library)}">Open library folder</button></div>
     <h3>Custom systems</h3><small>For anything not built in. Folder id is a folder name Cove should recognise; extensions are separated by spaces.</small>
     ${S.systems.map((s,i)=>`<div class="row"><code>${esc(s.id)} &middot; ${esc(s.name)} &middot; ${esc(s.exts.join(' '))}</code><button class="btn" data-act="delsys" data-arg="${i}">Remove</button></div>`).join('')}
-    <div class="row"><input type="text" id="nsid" placeholder="folder id"><input type="text" id="nsname" placeholder="Name"><input type="text" id="nsext" placeholder=".ext .ext2"><button class="btn" data-act="addsys">Add system</button></div>`;
+    <div class="row"><input type="text" id="nsid" placeholder="folder id"><input type="text" id="nsname" placeholder="Name"><input type="text" id="nsext" placeholder=".ext .ext2"><button class="btn" data-act="addsys">Add system</button></div>`)}`;
   if(t==='emus'){
     const sysWith=systems().filter(s=>S.emus.some(e=>emuSys(e).includes(s.id)));
     body=`<div class="row"><button class="btn pri" data-act="scanemu">Scan a folder for emulators</button><button class="btn" data-act="addemu">Add an .exe by hand</button></div>
@@ -1281,13 +1342,13 @@ async function settings(t='lib'){
     ${S.emus.map(e=>{const k=kindOf(e);return `<div class="card">
       <div class="row"><input class="w" type="text" data-set="name" data-arg="${e.id}" value="${esc(e.name)}"><button class="btn" data-act="dup" data-arg="${e.id}">Duplicate</button><button class="btn" data-act="delemu" data-arg="${e.id}">Remove</button></div>
       <code>${esc(e.exe)}</code>
-      <div class="row"><label>Works like</label><select data-set="kind" data-arg="${e.id}">${KINDS.map(x=>opt(x.id,x.name,e.kind)).join('')}</select></div>
+      ${adv('e'+e.id,'Launch options',`<div class="row"><label>Works like</label><select data-set="kind" data-arg="${e.id}">${KINDS.map(x=>opt(x.id,x.name,e.kind)).join('')}</select></div>
       <div class="row"><label>Arguments</label><input class="w" type="text" data-set="args" data-arg="${e.id}" value="${esc(e.args)}" placeholder="${esc(k.args)}"></div>
-      <div class="row"><label>Systems</label><input class="w" type="text" data-set="sys" data-arg="${e.id}" value="${esc((e.sys||[]).join(' '))}" placeholder="${esc(k.sys.join(' ')||'folder ids, e.g. gba nds')}"></div></div>`}).join('')||'<p class="dim">No emulators yet.</p>'}
+      <div class="row"><label>Systems</label><input class="w" type="text" data-set="sys" data-arg="${e.id}" value="${esc((e.sys||[]).join(' '))}" placeholder="${esc(k.sys.join(' ')||'folder ids, e.g. gba nds')}"></div>`)}</div>`}).join('')||'<p class="dim">No emulators yet.</p>'}
     <h3>RetroArch cores</h3>
     ${INFO.android?'<small>On Android, cores are downloaded inside RetroArch itself.</small>':S.emus.some(e=>e.kind==='retroarch')?`<small>A core is the emulator RetroArch loads for a system. Cove downloads one the first time you start a game that needs it, or get them here.</small>
       <div class="row"><button class="btn" data-act="coreall">Get all missing cores</button></div>
-      ${Object.keys(RAK.cores).map(s=>`<div class="row"><label>${esc((sysOf(s)||{name:s}).name)}</label><select data-set="core" data-arg="${s}">${(ALT[s]||[RAK.cores[s]]).map(c=>opt(c,c,coreFor(s))).join('')}</select><small class="dim"></small><button class="btn" data-act="core" data-arg="${s}">Get</button></div>`).join('')}`
+      ${adv('cores','Choose or remove cores',Object.keys(RAK.cores).map(s=>`<div class="row"><label>${esc((sysOf(s)||{name:s}).name)}</label><select data-set="core" data-arg="${s}">${(ALT[s]||[RAK.cores[s]]).map(c=>opt(c,c,coreFor(s))).join('')}</select><small class="dim"></small><button class="btn" data-act="core" data-arg="${s}">Get</button></div>`).join(''))}`
      :`<small>RetroArch runs older systems (NES, SNES, Game Boy, DS, N64, PlayStation and more) through small emulators called cores. Cove can download it for you: about 200 MB, from libretro, kept in Cove's own folder on this PC.</small>
       <div class="row"><button class="btn pri" data-act="getra">Get RetroArch</button></div>`}
     ${sysWith.length?'<h3>Default per system</h3>':''}
@@ -1351,6 +1412,7 @@ async function settings(t='lib'){
     if(t==='look'){S.ui[k]=k==='size'||k==='vol'?+v:v;look();save();if(k==='vol'||k==='sound')blip('ok');return}
     if(t==='discord'){S.discord[k]=typeof v==='string'?v.trim():v;save();return}
     if(k==='def'){S.defaults[arg]=v;save();return}
+    if(k==='fname'||k==='flook'){S.folders.find(f=>f.id===arg)[k==='fname'?'name':'look']=v;save();return render(true)}
     if(k==='core'){(S.cores=S.cores||{})[arg]=v;save();return coreMarks()}
     if(k==='src'){v?delete S.scrape.off[arg]:S.scrape.off[arg]=1;save();return again()}
     if(k==='key'){S.scrape.keys[arg]=String(v).trim();igdbTok=null;save();GAMES.forEach(findArt);return again()}   // a new key sends the games back for HD art
@@ -1361,6 +1423,8 @@ async function settings(t='lib'){
     if(a==='x')return closeModal();
     if(a==='tab')return settings(arg);
     if(a==='keysite')return window.open(arg,'_blank');
+    if(a==='addfolder'){const n=$('#nfname').value.trim();if(n){(S.folders=S.folders||[]).push({id:uid(),name:n,look:'folder'});save();render(true)}return again()}
+    if(a==='delfolder'){S.folders=S.folders.filter(f=>f.id!==arg);save();render(true);return again()}
     if(a==='getra'){toast('Downloading RetroArch. This takes a few minutes.');try{await getRA();toast('RetroArch is ready')}catch(e){toast(e.message)}return again()}
     if(a==='core'||a==='coreall'){
       const ra=S.emus.find(e=>e.kind==='retroarch'), b=[...document.querySelectorAll('#layer [data-act=core]')].filter(x=>a==='core'?x.dataset.arg===arg:!x.dataset.have);
@@ -1481,6 +1545,7 @@ async function checkUpdate(manual){
   if(INFO.android){KINDS.length=0;KINDS.push(...AKINDS.map(k=>({...k,rx:/^$/,args:''})),{id:'custom',name:'Custom',rx:/^$/,args:'',sys:[]})}
   const raw=await api('state');
   S={...structuredClone(DEF),...raw,ui:{...DEF.ui,...raw.ui},discord:{...DEF.discord,...raw.discord},scrape:{...structuredClone(DEF.scrape),...raw.scrape}};
+  if(!S.scrape.order.includes('steam'))S.scrape.order.splice(Math.max(0,S.scrape.order.indexOf('wiki')),0,'steam');
   if(S.artV!==2){S.artV=2;for(const k in S.art)if(!S.art[k])delete S.art[k]}   // retry covers recorded as missing by older versions
   if(S.ui.v2!==2){S.ui.v2=2;S.ui.view='shelf'}   // one-time switch to the current default layout
   if(!LAYOUTS.some(l=>l[0]===S.ui.view))S.ui.view='shelf';

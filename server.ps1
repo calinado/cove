@@ -254,7 +254,7 @@ function Handle($ctx) {
       # RetroArch reads this on top of its own settings when Cove starts a game: Start + Select on the controller opens its menu
       $ra = Join-Path $Data 'retroarch-cove.cfg'
       if (-not (Test-Path -LiteralPath $ra)) { [void](New-Item -ItemType Directory -Force -Path $Data); [IO.File]::WriteAllText($ra, 'input_menu_toggle_gamepad_combo = "4"' + "`r`n") }
-      Json $res @{ v = 9; version = [string]$ver.version; repo = [string]$ver.repo; sep = [string][IO.Path]::DirectorySeparatorChar; app = $App; appdata = $env:APPDATA; local = $env:LOCALAPPDATA
+      Json $res @{ v = 10; version = [string]$ver.version; repo = [string]$ver.repo; sep = [string][IO.Path]::DirectorySeparatorChar; app = $App; appdata = $env:APPDATA; local = $env:LOCALAPPDATA
         docs = [Environment]::GetFolderPath('MyDocuments'); desktop = [Environment]::GetFolderPath('Desktop') }
     }
     '/api/ping' { Sweep; $d = @($done); $done.Clear(); Json $res @{ done = $d; running = $running.Count; ids = @($running | ForEach-Object { $_.id }) } }
@@ -348,7 +348,7 @@ function Handle($ctx) {
     }
     '/api/fetch' {   # the page cannot call these scraper sites itself (browsers block it), so the helper does; fixed list only
       $u = [Uri][string]$j.url
-      if ($u.Scheme -ne 'https' -or @('www.steamgriddb.com', 'api.igdb.com', 'id.twitch.tv') -notcontains $u.Host) { throw 'That address is not allowed' }
+      if ($u.Scheme -ne 'https' -or @('www.steamgriddb.com', 'api.igdb.com', 'id.twitch.tv', 'store.steampowered.com') -notcontains $u.Host) { throw 'That address is not allowed' }
       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
       $wc = New-Object System.Net.WebClient
       $wc.Encoding = $Utf8
