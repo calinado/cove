@@ -1,5 +1,5 @@
 {
-  "version": "1.0.14",
+  "version": "1.0.15",
   "repo": "calinado/cove",
-  "notes": "Simpler settings with fold-away advanced sections, sorting, folders, softer sounds, a case-opening Surprise roll, light themes that stay light, controller hints that match your pad, and Steam box art and banners with no key."
+  "notes": "New soft bell sounds. Folders: drag a game onto another game, or right-click the menu. calinado.com link in About."
 }

@@ -776,7 +776,7 @@ function render(keep){
   $('#grid').innerHTML=list.map((g,i)=>{
     const s=sysOf(g.sys), o=gs(g.id), head=heads&&g.sys!==last?`<div class="sec">${esc(s.name)}</div>`:''; last=g.sys;
     findArt(g);
-    return `${head}<button class="tile ${NOW&&NOW.id===g.id?'playing':''}" data-id="${esc(g.id)}" title="${esc(g.title)}" style="--i:${Math.min(i,28)}">
+    return `${head}<button draggable="true" class="tile ${NOW&&NOW.id===g.id?'playing':''}" data-id="${esc(g.id)}" title="${esc(g.title)}" style="--i:${Math.min(i,28)}">
       <span class="art" ${cover(g)}${o.fav?'<span class="fav">&#9733;</span>':''}${NOW&&NOW.id===g.id?'<span class="run">Running</span>':''}</span>${o.last?'':'<span class="new"></span>'}
       <span class="name">${esc(g.title)}</span><span class="meta">${esc(s.label||s.name)}${played(o.time)?' &middot; '+played(o.time):''}</span></button>`}).join('');
   const em=$('#empty'); em.hidden=list.length>0;
@@ -936,6 +936,32 @@ function launchFx(g,r){
 }
 $('#grid').addEventListener('click',e=>{const g=game(e.target.closest('.tile'));if(g)start(g)});
 $('#grid').addEventListener('contextmenu',e=>{const g=game(e.target.closest('.tile'));if(g){e.preventDefault();details(g)}});
+// folders: drop a game on another game to start one, drop it on a folder's tab to add it, right-click (long-press on a touch screen) the background to make one, right-click a folder's tab to change it
+const newFolder=name=>{const f={id:uid(),name,look:'folder'};(S.folders=S.folders||[]).push(f);return f};
+function folderEdit(f){
+  modal('Folder',`<div class="row"><label>Name</label><input class="w" type="text" data-set="name" value="${esc(f.name)}"></div>
+    <div class="row"><label>Icon</label><select data-set="look">${Object.keys(FLOOK).map(k=>opt(k,k[0].toUpperCase()+k.slice(1),f.look)).join('')}</select></div>
+    <small>Drag games onto this folder's tab to add them, or pick it under Folder in a game's Options.</small>`,
+    `<button class="btn bad" data-act="del">Delete folder</button><button class="btn pri" data-act="x">Done</button>`);
+  $('#layer input').focus(); $('#layer input').select();
+  onChange=(k,v)=>{f[k]=v.trim()||f[k];save()};
+  onAct=a=>{if(a==='del'){S.folders=S.folders.filter(x=>x!==f);save()}closeModal()};
+}
+let DRAG;
+$('#grid').addEventListener('dragstart',e=>{DRAG=game(e.target.closest('.tile'))});
+for(const el of [$('#grid'),$('#dock')])el.addEventListener('dragover',e=>{if(DRAG&&e.target.closest('.tile,[data-tab^="f:"]'))e.preventDefault()});
+$('#grid').addEventListener('drop',e=>{
+  const t=game(e.target.closest('.tile')); if(!DRAG||!t||t===DRAG)return; e.preventDefault();
+  const made=!gs(t.id).dir, f=made?newFolder('New folder'):S.folders.find(x=>x.id===gs(t.id).dir);
+  gs(t.id).dir=gs(DRAG.id).dir=f.id; save(); blip('ok'); made?folderEdit(f):(render(true),toast('Added to '+f.name));
+});
+$('#dock').addEventListener('drop',e=>{const b=e.target.closest('[data-tab^="f:"]');if(!DRAG||!b)return;e.preventDefault();gs(DRAG.id).dir=b.dataset.tab.slice(2);save();blip('ok');toast('Added to '+b.title)});
+$('#dock').addEventListener('contextmenu',e=>{const b=e.target.closest('[data-tab^="f:"]');if(b){e.preventDefault();folderEdit(S.folders.find(f=>'f:'+f.id===b.dataset.tab))}});
+document.addEventListener('contextmenu',e=>{
+  if(e.target.closest('.tile,#dock,#layer,#dd,input'))return; e.preventDefault();
+  $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${Math.min(e.clientX,innerWidth-340)}px;top:${Math.min(e.clientY,innerHeight-90)}px;transform-origin:top left"><div class="body list"><button class="item" data-act="new"><svg class="ic" style="color:var(--acc)" viewBox="0 0 24 24">${FLOOK.folder}</svg><b>Create new folder</b></button></div></div></div>`;
+  focusables()[0].focus(); onChange=()=>{}; onAct=()=>{const f=newFolder('New folder');save();folderEdit(f)};
+});
 // Wheel layout: tell each title how far it is from the selected one, so the CSS can bend the list
 function wheel(){if(S.ui.view!=='wheel')return;const t=tiles(),i=t.indexOf(document.activeElement);t.forEach((x,n)=>x.style.setProperty('--d',i<0?0:Math.min(9,Math.abs(n-i))))}
 let heroT;
@@ -1050,24 +1076,26 @@ function audio(){
   if(actx.state==='suspended')actx.resume();
   bus.gain.value=(S.ui.vol??70)/100;
 }
-function note(f,at,o={}){
-  const {type='sine',dur=.22,gain=.3,to}=o, osc=actx.createOscillator(), g=actx.createGain(), t=actx.currentTime+at;
-  osc.type='sine'; osc.frequency.setValueAtTime(f,t); if(to)osc.frequency.exponentialRampToValueAtTime(to,t+dur);
-  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(gain*.6,t+Math.min(.04,dur/3));   // a slow attack is what keeps it from clicking g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-  osc.connect(g).connect(bus); osc.start(t); osc.stop(t+dur+.03);
+function note(f,at=0,gain=.1,dur=.22){
+  const osc=actx.createOscillator(), g=actx.createGain(), t=actx.currentTime+at+.01;
+  osc.frequency.value=f;   // a plain sine
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(gain,t+.03); g.gain.setTargetAtTime(0,t+.03,dur/4);   // eased in and eased out, so nothing starts or stops abruptly
+  osc.connect(g).connect(bus); osc.start(t); osc.stop(t+dur*2+.1);
 }
-// low, round voices: a fundamental with a quiet octave above it, played dry (no echo)
+// soft bells: every sound uses notes of one scale (C D E G A, around the middle of a piano's upper half), so nothing clashes
+const [C,D,E,G,A,C2]=[523,587,659,784,880,1047];
 const SFX={
-  move:()=>{note(294,0,{type:'triangle',dur:.2,gain:.34});note(588,0,{dur:.1,gain:.07})},
-  tab:()=>{note(196,0,{type:'triangle',dur:.2,gain:.34});note(294,.07,{type:'triangle',dur:.28,gain:.32})},
-  ok:()=>{note(262,0,{dur:.36,gain:.34});note(392,.06,{dur:.42,gain:.28});note(523,.12,{dur:.5,gain:.16})},
-  back:()=>{note(247,0,{type:'triangle',dur:.2,gain:.32,to:185});note(165,.08,{type:'triangle',dur:.3,gain:.3})},
-  open:()=>{note(147,0,{dur:.26,gain:.3,to:294});note(440,.1,{dur:.4,gain:.14})},
-  error:()=>{note(110,0,{type:'triangle',dur:.2,gain:.34});note(98,.14,{type:'triangle',dur:.28,gain:.34})},
-  launch:()=>{[131,196,262,330,392,523].forEach((f,i)=>note(f,i*.08,{type:i%2?'sine':'triangle',dur:.7,gain:.3}));note(65,0,{dur:.9,gain:.5,to:41})},
-  boot:()=>[196,294,392,587].forEach((f,i)=>note(f,i*.13,{dur:1,gain:.24})),
+  move:()=>note(E,0,.05,.12),
+  tab:()=>note(G,0,.06,.16),
+  ok:()=>{note(E,0,.07,.2);note(A,.07,.07,.3)},
+  back:()=>{note(G,0,.06,.16);note(D,.07,.06,.24)},
+  open:()=>{note(C,0,.06,.3);note(G,.05,.05,.36)},
+  error:()=>{note(D,0,.07,.2);note(C,.12,.07,.3)},
+  launch:()=>[C,E,G,C2].forEach((f,i)=>note(f,i*.11,.08,.8)),
+  boot:()=>[C,G,C2].forEach((f,i)=>note(f,i*.14,.06,.9)),
 };
-function blip(kind){if(!S?.ui.sound)return;try{audio();(SFX[kind]||SFX.move)()}catch{}}
+let blipT=0;
+function blip(kind){if(!S?.ui.sound)return;const n=performance.now();if(kind==='move'&&n-blipT<90)return;blipT=n;try{audio();(SFX[kind]||SFX.move)()}catch{}}   // quick sweeps across the covers do not machine-gun
 // browsers keep sound off until the first key press or click; wake it then, with the start-up chime
 let woke=false;
 for(const ev of ['pointerdown','keydown'])addEventListener(ev,()=>{if(!S?.ui.sound)return;try{audio()}catch{};if(!woke){woke=true;blip('boot')}},true);
@@ -1316,9 +1344,6 @@ async function settings(t='lib'){
     ${romRoots().map((r,i)=>`<div class="row"><code>${esc(r)}</code>${i?`<button class="btn" data-act="delroot" data-arg="${i-1}">Remove</button>`:'<small>(Cove\'s own folder)</small>'}</div>`).join('')}
     <div class="row"><button class="btn pri" data-act="addroot">Add a games folder</button><button class="btn" data-act="rescan">Rescan</button></div>
     ${HIDDEN.length?`<h3>Hidden games</h3>${HIDDEN.map(g=>`<div class="row"><button class="btn" data-act="unhide" data-arg="${esc(g.id)}">Show again</button><small>${esc(g.title)}</small></div>`).join('')}`:''}
-    <h3>Folders</h3><small>Your own groups of games, shown as tabs along the top. Add a game to one from its Options. The folder icons take the theme's colour.</small>
-    ${(S.folders||[]).map(f=>`<div class="row"><input class="w" type="text" data-set="fname" data-arg="${f.id}" value="${esc(f.name)}"><select data-set="flook" data-arg="${f.id}">${Object.keys(FLOOK).map(k=>opt(k,k[0].toUpperCase()+k.slice(1),f.look)).join('')}</select><button class="btn bad" data-act="delfolder" data-arg="${f.id}">Remove</button></div>`).join('')}
-    <div class="row"><input class="w" type="text" id="nfname" placeholder="New folder name"><button class="btn" data-act="addfolder">Add folder</button></div>
     <h3>Artwork</h3><small>Cove finds a cover, a wide background, a description and the year for each game in the background. Found for <b>${GAMES.filter(g=>S.meta[artKey(g)]).length}</b> of ${GAMES.length} games${artQ.length?', '+artQ.length+' still in the queue':''}. Fix a wrong match from the game's Options.</small>
     <div class="row"><input type="checkbox" data-set="src" data-arg="libretro" ${S.scrape.off.libretro?'':'checked'}><b>Box art scans</b><small>Real box scans for cartridge and disc systems.</small></div>
     <div class="row"><button class="btn pri" data-act="scrape">Scrape missing now</button><button class="btn" data-act="rescrape">Scrape everything again</button></div>
@@ -1403,7 +1428,7 @@ async function settings(t='lib'){
       <p class="dim">One launcher for every emulator.</p>
       <button class="btn pri xl" data-act="upd">Check for updates</button></div>
     <div class="card"><b>How updates work</b><p class="dim">Each time Cove opens it compares this version with the newest one at ${esc(INFO.repo?'github.com/'+INFO.repo:'its update address')}. If there is a newer one it shows what changed and asks before installing. Your games, settings and saves are never touched, and the version you had is kept in the data folder. You can also check any time with the button above.</p></div>
-    <div class="row"><button class="btn" data-act="applnk">Add Cove to the desktop</button><button class="btn" data-act="site">Open the Cove page</button><button class="btn" data-act="open" data-arg="${esc(INFO.app)}">Open Cove's folder</button></div>
+    <div class="row"><button class="btn" data-act="applnk">Add Cove to the desktop</button><button class="btn" data-act="site">Open the Cove page</button><button class="btn" data-act="keysite" data-arg="https://calinado.com">calinado.com</button><button class="btn" data-act="open" data-arg="${esc(INFO.app)}">Open Cove's folder</button></div>
     <small>CALINADO &copy; ${new Date().getFullYear()}</small>`;
   modal('Settings',body,'<button class="btn pri" data-act="x">Done</button>',tabsHtml);
   const E=id=>S.emus.find(e=>e.id===id), again=()=>settings(t);
@@ -1412,7 +1437,6 @@ async function settings(t='lib'){
     if(t==='look'){S.ui[k]=k==='size'||k==='vol'?+v:v;look();save();if(k==='vol'||k==='sound')blip('ok');return}
     if(t==='discord'){S.discord[k]=typeof v==='string'?v.trim():v;save();return}
     if(k==='def'){S.defaults[arg]=v;save();return}
-    if(k==='fname'||k==='flook'){S.folders.find(f=>f.id===arg)[k==='fname'?'name':'look']=v;save();return render(true)}
     if(k==='core'){(S.cores=S.cores||{})[arg]=v;save();return coreMarks()}
     if(k==='src'){v?delete S.scrape.off[arg]:S.scrape.off[arg]=1;save();return again()}
     if(k==='key'){S.scrape.keys[arg]=String(v).trim();igdbTok=null;save();GAMES.forEach(findArt);return again()}   // a new key sends the games back for HD art
@@ -1423,8 +1447,6 @@ async function settings(t='lib'){
     if(a==='x')return closeModal();
     if(a==='tab')return settings(arg);
     if(a==='keysite')return window.open(arg,'_blank');
-    if(a==='addfolder'){const n=$('#nfname').value.trim();if(n){(S.folders=S.folders||[]).push({id:uid(),name:n,look:'folder'});save();render(true)}return again()}
-    if(a==='delfolder'){S.folders=S.folders.filter(f=>f.id!==arg);save();render(true);return again()}
     if(a==='getra'){toast('Downloading RetroArch. This takes a few minutes.');try{await getRA();toast('RetroArch is ready')}catch(e){toast(e.message)}return again()}
     if(a==='core'||a==='coreall'){
       const ra=S.emus.find(e=>e.kind==='retroarch'), b=[...document.querySelectorAll('#layer [data-act=core]')].filter(x=>a==='core'?x.dataset.arg===arg:!x.dataset.have);
