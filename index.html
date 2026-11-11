@@ -108,7 +108,7 @@ header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align
 /* stage: hero card + games */
 .stage{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:8px 24px 0}
 #hero{display:flex;gap:26px;align-items:center;padding:18px;border-radius:calc(var(--r) + 10px);flex:none;position:relative;overflow:hidden}
-#hero.none{display:none}
+#hero.none{visibility:hidden}
 #hero::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 1px 1px,rgba(var(--tint),.16) 1px,transparent 0) 0 0/18px 18px;mask:linear-gradient(100deg,transparent 30%,#000);pointer-events:none}
 #hero .cover{width:clamp(110px,21vh,210px);aspect-ratio:1;border-radius:var(--r);overflow:hidden;position:relative;flex:none;box-shadow:0 14px 34px var(--shade),inset 0 0 0 1px rgba(255,255,255,.2)}
 #hero .cover img,.art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:fade .35s}
@@ -169,7 +169,8 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .btn.bad{color:#ff6b6b;border-color:rgba(255,90,90,.45)}
 .foot.stack{flex-direction:column}.foot.stack .btn{width:100%}
 body:not(.pad) #hints,body:not(.pad) .cta .gl{display:none}
-.gl::before{content:attr(data-x)}[data-pad=ps] .gl::before{content:attr(data-p)}[data-pad=nin] .gl::before{content:attr(data-n)}
+.gl span{display:none}body:not([data-pad=ps]):not([data-pad=nin]) .gx,[data-pad=ps] .gp,[data-pad=nin] .gn{display:contents}
+.gl svg{width:11px;height:11px;display:block;fill:none;stroke:currentColor;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
 .modal .body.pgin{animation:rise .22s both}
 .modal:has(.tabs){height:min(88vh,860px)}.modal:has(.tabs) .body{flex:1}
 details.adv{margin:14px 0}details.adv>summary{cursor:pointer;font-weight:700;padding:10px 14px;border-radius:12px;background:rgba(var(--tint),.06);list-style:none}details.adv>summary::after{content:' +';opacity:.6}details.adv[open]>summary::after{content:' -'}
@@ -203,6 +204,7 @@ details.adv>summary:focus{outline:2px solid var(--acc);outline-offset:2px}
 .v-list #hero .info{padding:0 8px}
 .v-list #grid{display:flex;flex-direction:column;gap:8px}
 .v-list .tile{flex-direction:row;align-items:center;gap:16px;padding:8px 24px 8px 8px;border-radius:calc(var(--r)*.7)}
+.v-list .tile:hover,.v-wheel .tile:hover{transform:translateX(4px)}
 .v-list .tile:focus{transform:translateX(8px)}
 .v-list .tile:focus::after{inset:-5px;border-radius:calc(var(--r)*.7 + 5px)}
 .v-list .art{width:52px;border-radius:12px}
@@ -362,7 +364,7 @@ code{font-family:var(--mono);font-size:12px;word-break:break-all;color:var(--dim
 </div>
 <footer>
   <div id="quick"></div><span id="count"></span><span id="ver"></span>
-  <div id="hints"><span><b class="gl" data-x="A" data-p="✕" data-n="B"></b>Start</span><span><b class="gl" data-x="Y" data-p="△" data-n="X"></b>Options</span><span><b class="gl" data-x="X" data-p="□" data-n="Y"></b>Favourite</span><span><b class="gl w" data-x="LB RB" data-p="L1 R1" data-n="L R"></b>Systems</span><span><b class="gl w" data-x="LT" data-p="L2" data-n="ZL"></b>Layout</span><span><b class="gl w" data-x="RT" data-p="R2" data-n="ZR"></b>Theme</span><span><b class="gl w" data-x="START" data-p="OPTIONS" data-n="+"></b>Settings</span></div>
+  <div id="hints"><span><b class="gl"><span class="gx">A</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span class="gn">B</span></b>Start</span><span><b class="gl"><span class="gx">Y</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M12 5l8 14H4z"/></svg></span><span class="gn">X</span></b>Options</span><span><b class="gl"><span class="gx">X</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg></span><span class="gn">Y</span></b>Favourite</span><span><b class="gl w"><span class="gx">LB RB</span><span class="gp">L1 R1</span><span class="gn">L R</span></b>Systems</span><span><b class="gl w"><span class="gx">LT</span><span class="gp">L2</span><span class="gn">ZL</span></b>Layout</span><span><b class="gl w"><span class="gx">RT</span><span class="gp">R2</span><span class="gn">ZR</span></b>Theme</span><span><b class="gl w"><span class="gx">START</span><span class="gp">OPTIONS</span><span class="gn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></b>Settings</span></div>
 </footer>
 <div id="toast" class="glass"></div>
 <button id="editdone" class="btn pri xl" hidden>Done arranging</button>
@@ -617,14 +619,16 @@ const SRC={
   wiki:{name:'Wikipedia',gives:'Cover, short description and year. Works with no sign-up.',ready:()=>true,
     find:async q=>(await wikiSearch(q+' video game')).map(p=>({...p,year:yr(p.kind+' '+p.about)}))},
 };
+const only=()=>{const o=S.scrape.only;return o&&SRC[o]&&SRC[o].ready()?o:''};   // the one source pictures should come from, if chosen
 const sources=()=>S.scrape.order.filter(id=>SRC[id]&&!S.scrape.off[id]&&SRC[id].ready());
-const needsArt=g=>{const k=artKey(g),lr=!S.scrape.off.libretro&&sysOf(g.sys).lr;return !gs(g.id).art&&!ART[g.sys+'/'+g.base]&&!ESDE[g.sys+'/'+g.base]&&!S.art[k]&&(!lr||LRFAIL.has(k)||!lrBase(g))};
+const needsArt=g=>{const k=artKey(g),lr=!S.scrape.off.libretro&&sysOf(g.sys).lr;return !gs(g.id).art&&!ART[g.sys+'/'+g.base]&&!ESDE[g.sys+'/'+g.base]&&!S.art[k]&&(!!only()||!lr||LRFAIL.has(k)||!lrBase(g))};
 function applyMatch(g,hit){
   const k=artKey(g);
-  S.meta[k]=hit?{t:hit.title,d:hit.about,y:hit.year||yr(hit.kind+' '+hit.about)}:0;
+  S.meta[k]=hit?{t:hit.title,d:hit.about,y:hit.year||yr(hit.kind+' '+hit.about),...(hit.force?{m:1}:{})}:0;   // m marks a match picked by hand
   if(hit&&hit.hero)S.wide[k]=hit.hero; else if(heroReady()&&!(k in S.wide))S.wide[k]=0;   // 0 = looked, none there
   const wk=u=>/wiki[mp]edia/.test(u||'');
-  if(hit&&hit.img&&(needsArt(g)||hit.force||wk(S.art[k])&&!wk(hit.img)))S.art[k]=hit.img;   // proper box art replaces a Wikipedia picture found earlier else if(!(k in S.art)&&needsArt(g))S.art[k]=0;
+  if(hit&&hit.img&&(needsArt(g)||hit.force||only()||wk(S.art[k])&&!wk(hit.img)))S.art[k]=hit.img;   // proper box art replaces a Wikipedia picture found earlier   
+  else if(!(k in S.art)&&needsArt(g))S.art[k]=0;
   save();
   for(const x of GAMES.filter(x=>artKey(x)===k)){
     const a=tiles().find(t=>t.dataset.id===x.id)?.querySelector('.art');
@@ -647,7 +651,7 @@ async function pumpArt(){
       let res; try{res=await SRC[id].find(lookFor(g),id==='wiki'?5:2)}catch(e){if(id==='wiki')throw e;continue}   // a paid-for source failing just falls through to the next
       const hit=res.find(fits); if(!hit)continue;
       got=got||{title:hit.title,img:'',about:'',year:'',hero:'',kind:hit.kind};
-      for(const f of ['img','about','year','hero'])if(!got[f]&&hit[f])got[f]=hit[f];
+      for(const f of ['img','about','year','hero'])if(!got[f]&&hit[f]&&(!only()||id===only()||f==='about'||f==='year'))got[f]=hit[f];   // with one picture source chosen, others only fill in the text
       if(got.img&&got.about&&got.year&&got.hero)break;
     }
     applyMatch(g,got); artPending.delete(k);
@@ -824,7 +828,7 @@ function hero(g){
   h.innerHTML=`<div class="cover" ${cover(g)}</div><div class="info">${ART['systems/'+g.sys]?`<img class="lg big" alt="" src="/file?t=${T}&p=${encodeURIComponent(ART['systems/'+g.sys])}">`:`<span class="chip" style="--h:${hue(g.sys)}">${esc(s.name)}</span>`}${S.meta[artKey(g)]?.y?` <span class="chip yr">${S.meta[artKey(g)].y}</span>`:''}<h1>${esc(g.title)}</h1>
     <p>${esc([played(o.time)&&'Played '+played(o.time),ago(o.last),r?r.name:g.sys==='unsorted'?'Pick a system to play':'No emulator set up yet'].filter(Boolean).join('   ·   '))}</p>
     ${S.meta[artKey(g)]?.d?`<p class="about">${esc(S.meta[artKey(g)].d)}</p>`:''}
-    <div class="cta"><span><b class="gl" data-x="A" data-p="✕" data-n="B"></b>Start</span><span><b class="gl" data-x="Y" data-p="△" data-n="X"></b>Options</span>${o.fav?'<span>&#9733; Favourite</span>':''}</div></div>`;
+    <div class="cta"><span><b class="gl"><span class="gx">A</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span class="gn">B</span></b>Start</span><span><b class="gl"><span class="gx">Y</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M12 5l8 14H4z"/></svg></span><span class="gn">X</span></b>Options</span>${o.fav?'<span>&#9733; Favourite</span>':''}</div></div>`;
   h.classList.remove('in'); void h.offsetWidth; h.classList.add('in');
   if(window.CoveNative)try{CoveNative.call('second',JSON.stringify({title:g.title,sys:s.name,year:S.meta[artKey(g)]?.y||'',about:S.meta[artKey(g)]?.d||'',img:/^https:/.test(u)?u:u?'https://cove.local'+u:'',acc:getComputedStyle(document.documentElement).getPropertyValue('--acc').trim()}))}catch{}
   const bg=$('#bg'), img=S.ui.wall?`url("/file?t=${T}&p=${encodeURIComponent(S.ui.wall)}")`:u?`url("${u}")`:'';
@@ -987,7 +991,11 @@ function edit(on){
 }
 $('#editdone').onclick=()=>edit(false);
 const shift=(a,x,y)=>{const from=a.indexOf(x);a.splice(from,1);const to=a.indexOf(y);a.splice(from<=to?to+1:to,0,x)};   // x lands on the far side of y, the way it looks on screen
-const under=e=>{const t=document.elementFromPoint(e.clientX,e.clientY)?.closest('.tile');return t&&t!==drag.t?t:null};
+const under=e=>{
+  let t=document.elementFromPoint(e.clientX,e.clientY)?.closest('.tile');
+  if(!t&&EDIT){let best=160;for(const x of tiles()){const r=x.getBoundingClientRect(),d=Math.hypot(e.clientX-r.left-r.width/2,e.clientY-r.top-r.height/2);if(x!==drag.t&&d<best){best=d;t=x}}}   // in the gap between two covers, the nearer one counts
+  return t&&t!==drag.t?t:null;
+};
 $('#grid').addEventListener('pointerdown',e=>{const t=e.target.closest('.tile');if(t&&!e.button&&(game(t)||EDIT&&t.dataset.f))drag={t,x:e.clientX,y:e.clientY}});
 addEventListener('pointermove',e=>{
   if(!drag)return;
@@ -1004,7 +1012,8 @@ for(const ev of ['pointerup','pointercancel'])addEventListener(ev,e=>{
   if(!t)return render(true);
   const g=game(d.t), o=game(t);
   if(!g){if(fById(t.dataset.f)){shift(S.folders,fById(d.t.dataset.f),fById(t.dataset.f));save();blip('ok')}return render(true)}   // a folder dragged onto a folder swaps their places
-  if(o&&EDIT){S.order=(S.order||[]).filter(i=>game({dataset:{id:i}})).concat(GAMES.map(x=>x.id).filter(i=>!(S.order||[]).includes(i)));shift(S.order,g.id,o.id);save();blip('ok');return render(true)}
+  if(o&&EDIT){S.order=(S.order||[]).filter(i=>game({dataset:{id:i}})).concat(GAMES.map(x=>x.id).filter(i=>!(S.order||[]).includes(i)));const r=t.getBoundingClientRect(), after=/list|wheel/.test(S.ui.view)?e.clientY>r.top+r.height/2:e.clientX>r.left+r.width/2;   // which side of the cover it was let go on
+    S.order.splice(S.order.indexOf(g.id),1);S.order.splice(S.order.indexOf(o.id)+(after?1:0),0,g.id);save();blip('ok');return render(true)}
   if(o){const made=!fById(gs(o.id).dir), f=made?newFolder('Untitled folder'):fById(gs(o.id).dir); gs(o.id).dir=gs(g.id).dir=f.id; save(); blip('ok'); render(true); return toast(made?'Folder made. Right-click it to name it':'Added to '+f.name)}
   if(t.dataset.f){gs(g.id).dir=t.dataset.f;toast('Added to '+fById(t.dataset.f).name)}else{delete gs(g.id).dir;toast('Taken out of the folder')}
   save(); blip('ok'); render(true);
@@ -1399,6 +1408,7 @@ async function settings(t='lib'){
     ${HIDDEN.length?`<h3>Hidden games</h3>${HIDDEN.map(g=>`<div class="row"><button class="btn" data-act="unhide" data-arg="${esc(g.id)}">Show again</button><small>${esc(g.title)}</small></div>`).join('')}`:''}
     <h3>Artwork</h3><small>Cove finds a cover, a wide background, a description and the year for each game in the background. Found for <b>${GAMES.filter(g=>S.meta[artKey(g)]).length}</b> of ${GAMES.length} games${artQ.length?', '+artQ.length+' still in the queue':''}. Fix a wrong match from the game's Options.</small>
     <div class="row"><input type="checkbox" data-set="src" data-arg="libretro" ${S.scrape.off.libretro?'':'checked'}><b>Box art scans</b><small>Real box scans for cartridge and disc systems.</small></div>
+    <div class="row"><label>Pictures from</label><select data-set="only">${opt('','Best available',S.scrape.only||'')}${Object.keys(SRC).filter(id=>SRC[id].ready()).map(id=>opt(id,'Only '+SRC[id].name,S.scrape.only||'')).join('')}</select><small>Choose one, then "Scrape everything again". Matches you fixed by hand are kept.</small></div>
     <div class="row"><button class="btn pri" data-act="scrape">Scrape missing now</button><button class="btn" data-act="rescrape">Scrape everything again</button></div>
     ${adv('src','More artwork sources and keys',`<small>Sources are tried from the top down. The ones that need a free key give the best covers and HD backgrounds.</small>
     ${S.scrape.order.map((id,i)=>{const x=SRC[id],on=!S.scrape.off[id];return `<div class="card"><div class="row" style="margin:0"><input type="checkbox" data-set="src" data-arg="${id}" ${on?'checked':''}><b>${i+1}. ${x.name}</b><small>${x.ready()?(on?'In use':'Switched off'):'Needs a key to work'}</small>
@@ -1490,6 +1500,7 @@ async function settings(t='lib'){
     if(t==='look'){S.ui[k]=k==='size'||k==='vol'?+v:v;look();save();if(k==='vol'||k==='sound')blip('ok');return}
     if(t==='discord'){S.discord[k]=typeof v==='string'?v.trim():v;save();return}
     if(k==='def'){S.defaults[arg]=v;save();return}
+    if(k==='only'){S.scrape.only=v;save();return}
     if(k==='core'){(S.cores=S.cores||{})[arg]=v;save();return coreMarks()}
     if(k==='src'){v?delete S.scrape.off[arg]:S.scrape.off[arg]=1;save();return again()}
     if(k==='key'){S.scrape.keys[arg]=String(v).trim();igdbTok=null;save();GAMES.forEach(findArt);return again()}   // a new key sends the games back for HD art
@@ -1515,7 +1526,8 @@ async function settings(t='lib'){
     if(a==='noesde'){delete S.esde;save();await scan();return again()}
     if(a==='srcup'||a==='srcdn'){const o=S.scrape.order,i=+arg,j=a==='srcup'?i-1:i+1;[o[i],o[j]]=[o[j],o[i]];save();return again()}
     if(a==='scrape'||a==='rescrape'){
-      for(const g of GAMES){const k=artKey(g);if(a==='rescrape'||!S.meta[k]){delete S.meta[k];if(!S.art[k]||a==='rescrape')delete S.art[k]}}
+      for(const g of GAMES){const k=artKey(g);if(S.meta[k]?.m)continue;if(a==='rescrape'||!S.meta[k]){   // matches you picked by hand are left alone
+       delete S.meta[k];if(!S.art[k]||a==='rescrape')delete S.art[k]}}
       LRFAIL.clear();save();GAMES.forEach(findArt);toast('Scraping '+artQ.length+' games in the background');return again()}
     if(a==='unhide'){delete gs(arg).hide;save();await scan();return again()}
     if(a==='delroot'){S.roots.splice(arg,1);save();await scan();return again()}

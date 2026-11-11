@@ -1,5 +1,5 @@
 {
-  "version": "1.0.21",
+  "version": "1.0.22",
   "repo": "calinado/cove",
-  "notes": "Background art clears when a folder is selected."
+  "notes": "Drop a cover between two others to reorder. Home layout no longer jumps on folders. List rows no longer clip on hover. Choose one picture source; hand-fixed matches survive a rescrape. Controller icons are drawn, not typed."
 }
