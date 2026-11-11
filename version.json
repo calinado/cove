@@ -1,5 +1,5 @@
 {
-  "version": "1.0.7",
+  "version": "1.0.8",
   "repo": "calinado/cove",
-  "notes": "Shelf covers keep their own shape: no cropping and no gaps. Other layouts fill the tile."
+  "notes": "Controller: menus move in the direction you press, LT opens layouts and RT opens themes, press down from the games to reach the bottom buttons, steadier hold-to-scroll."
 }

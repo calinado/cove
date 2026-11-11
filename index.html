@@ -199,10 +199,10 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:rise .5s .1s both}
 #quick{display:flex;gap:10px}
 #quick button{position:relative;width:46px;height:46px;border-radius:50%;cursor:pointer;display:grid;place-items:center;padding:0;transition:transform .2s var(--spring),border-color .2s}
-#quick button:hover,#quick button:focus-visible{transform:scale(1.14);border-color:var(--acc);outline:none}
+#quick button:hover,#quick button:focus{transform:scale(1.14);border-color:var(--acc);outline:none}
 #quick svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #quick button::after{content:attr(title);position:absolute;bottom:54px;left:50%;transform:translateX(-50%) translateY(6px);white-space:nowrap;font-size:12px;font-weight:700;background:#111;color:#fff;border:1px solid rgba(255,255,255,.25);padding:4px 10px;border-radius:99px;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s}
-#quick button:hover::after{opacity:1;transform:translateX(-50%)}
+#quick button:hover::after,#quick button:focus::after{opacity:1;transform:translateX(-50%)}
 #ver{color:var(--dim);font:500 12px var(--mono);letter-spacing:.04em;opacity:.7;cursor:pointer}
 #count{color:var(--dim);font:500 12px var(--mono);letter-spacing:.04em;text-transform:uppercase}
 #hints{margin-left:auto;color:var(--dim);font-size:12px;white-space:nowrap;display:flex;gap:14px;align-items:center}
@@ -308,7 +308,7 @@ code{font-family:var(--mono);font-size:12px;word-break:break-all;color:var(--dim
 </div>
 <footer>
   <div id="quick"></div><span id="count"></span><span id="ver"></span>
-  <div id="hints"><span><b class="gl">A</b>Start</span><span><b class="gl">Y</b>Options</span><span><b class="gl">X</b>Favourite</span><span><b class="gl w">LB RB</b>Systems</span><span><b class="gl w">SELECT</b>Layout</span><span><b class="gl w">START</b>Settings</span><span id="padhint"></span></div>
+  <div id="hints"><span><b class="gl">A</b>Start</span><span><b class="gl">Y</b>Options</span><span><b class="gl">X</b>Favourite</span><span><b class="gl w">LB RB</b>Systems</span><span><b class="gl w">LT</b>Layout</span><span><b class="gl w">RT</b>Theme</span><span><b class="gl w">START</b>Settings</span><span id="padhint"></span></div>
 </footer>
 <div id="toast" class="glass"></div>
 <div id="layer"></div>
@@ -724,19 +724,30 @@ function goto(t){
   glide(m,m.scrollLeft+b.left+b.width/2-a.left-a.width/2,m.scrollTop+b.top+b.height/2-a.top-a.height/2);
   blip('move');
 }
-function move(dx,dy){
-  const t=tiles(), cur=document.activeElement; if(!t.length)return;
-  if(!t.includes(cur))return goto(t[0]);
-  const box=x=>{const r=x.getBoundingClientRect();return{x,cx:r.left+r.width/2,cy:r.top+r.height/2}}, me=box(cur), all=t.filter(x=>x!==cur).map(box);
-  let n;
-  if(dx){   // stay in the row; at the end of a row carry on in reading order
-    n=all.filter(o=>(o.cx-me.cx)*dx>30&&Math.abs(o.cy-me.cy)<60).sort((a,b)=>Math.abs(a.cx-me.cx)-Math.abs(b.cx-me.cx))[0]?.x||t[t.indexOf(cur)+dx];
-  }else{    // nearest row up or down, then the closest tile in it
-    const rows=all.filter(o=>(o.cy-me.cy)*dy>40);
-    if(rows.length){const edge=Math.min(...rows.map(o=>Math.abs(o.cy-me.cy)));n=rows.filter(o=>Math.abs(Math.abs(o.cy-me.cy)-edge)<40).sort((a,b)=>Math.abs(a.cx-me.cx)-Math.abs(b.cx-me.cx))[0].x}
+// the control nearest in the pressed direction; things lined up with the current one win over things off to the side
+function nearest(list,cur,dx,dy,lined){
+  const r=cur.getBoundingClientRect(); let best,bs=1e9;
+  for(const x of list){ if(x===cur)continue;
+    const q=x.getBoundingClientRect();
+    const fwd=dx?((q.left+q.right)-(r.left+r.right))/2*dx:((q.top+q.bottom)-(r.top+r.bottom))/2*dy; if(fwd<8)continue;
+    const off=Math.max(0,dx?Math.max(q.top-r.bottom,r.top-q.bottom):Math.max(q.left-r.right,r.left-q.right)); if(lined&&off)continue;
+    const side=Math.abs(dx?(q.top+q.bottom)-(r.top+r.bottom):(q.left+q.right)-(r.left+r.right))/2;
+    const sc=fwd+off*4+side*.3; if(sc<bs){bs=sc;best=x}
   }
-  if(n)goto(n);
+  return best;
 }
+function move(dx,dy){
+  const t=tiles(), q=[...document.querySelectorAll('#quick button')], cur=document.activeElement;
+  if(q.includes(cur)){   // the round buttons under the games: left/right along them, up back to the games
+    const n=dx?q[q.indexOf(cur)+dx]:dy<0?(LASTT&&LASTT.isConnected?LASTT:t[0]):null;
+    if(n){t.includes(n)?goto(n):(n.focus(),blip('move'))} return;
+  }
+  if(!t.length){if(dy>0){q[0].focus();blip('move')}return}
+  if(!t.includes(cur))return goto(t[0]);
+  const n=nearest(t,cur,dx,dy,!!dx)||(dx?t[t.indexOf(cur)+dx]:null);   // end of a row carries on in reading order
+  if(n)goto(n); else if(dy>0){LASTT=cur;q[0].focus();blip('move')}
+}
+let LASTT;
 function cycle(d){const b=[...$('#dock').children],i=b.findIndex(x=>x.classList.contains('on'));tab=b[(i+d+b.length)%b.length].dataset.tab;render();blip('tab')}
 function fav(g){if(!g)return;const o=gs(g.id);o.fav=!o.fav;save();render(true);hero(g);blip('ok')}
 function menu(kind){
@@ -830,7 +841,7 @@ for(const el of [$('main'),$('#dock')])el.addEventListener('wheel',e=>{
 $('#now').addEventListener('click',()=>{const g=NOW&&GAMES.find(x=>x.id===NOW.id);if(g)running(g)});
 $('#q').addEventListener('input',()=>render());
 document.addEventListener('keydown',e=>{
-  if($('#layer').children.length){if(e.key==='Escape')closeModal();return}
+  if($('#layer').children.length){if(e.key==='Escape')closeModal();const a={ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r'}[e.key],el=document.activeElement;if(a&&!(el.tagName==='SELECT'||(el.tagName==='INPUT'&&el.type!=='checkbox'))){e.preventDefault();navKey(a)}return}
   const typing=document.activeElement===$('#q');
   if(e.key==='Escape'){$('#q').value='';render();return}
   if(typing){if(e.key==='ArrowDown'||e.key==='Enter'){e.preventDefault();$('.tile')?.focus()}return}
@@ -847,25 +858,30 @@ document.addEventListener('keydown',e=>{
 // panels: up/down move between controls, left/right change a dropdown or slider, A press, B back, LB/RB switch settings tab
 const focusables=()=>[...document.querySelectorAll('#layer button,#layer select,#layer input')].filter(e=>e.offsetParent);
 function mstep(d){const f=focusables(), i=f.indexOf(document.activeElement);f[Math.max(0,Math.min(f.length-1,i<0?0:i+d))]?.focus();document.activeElement.scrollIntoView({block:'nearest'});blip('move')}
+function mgo(dx,dy){
+  const f=focusables(), cur=document.activeElement; if(!f.includes(cur))return mstep(0);
+  const n=nearest(f,cur,dx,dy); if(!n)return;
+  n.focus();n.scrollIntoView({block:'nearest'});blip('move');
+}
 function madjust(d){
   const e=document.activeElement, fire=()=>e.dispatchEvent(new Event('change',{bubbles:true}));
   if(e.tagName==='SELECT'){const n=e.selectedIndex+d;if(n>=0&&n<e.options.length){e.selectedIndex=n;fire();blip('tab')}}
   else if(e.type==='range'){e.value=+e.value+d*10;fire()}
-  else mstep(d);
+  else mgo(d,0);
 }
 function mtab(d){const b=[...document.querySelectorAll('#layer .tabs .btn')], i=b.findIndex(x=>x.classList.contains('on'));b[i+d]?.click()}
 window.navKey=k=>{
   const open=$('#layer').children.length, g=game(document.activeElement);
   if(open){
-    if(k==='u')mstep(-1); if(k==='d')mstep(1); if(k==='l')madjust(-1); if(k==='r')madjust(1);
+    if(k==='u')mgo(0,-1); if(k==='d')mgo(0,1); if(k==='l')madjust(-1); if(k==='r')madjust(1);
     if(k==='a')document.activeElement.click?.(); if(k==='bk')closeModal(); if(k==='lb')mtab(-1); if(k==='rb')mtab(1);
   }else{
     const m={l:[-1,0],r:[1,0],u:[0,-1],d:[0,1]}[k]; if(m)move(...m);
-    if(k==='a'&&g)start(g); if(k==='x')fav(g); if(k==='y'&&g)details(g);
-    if(k==='lb')cycle(-1); if(k==='rb')cycle(1); if(k==='start')settings(); if(k==='sel')menu('layout');
+    if(k==='a'){if(g)start(g);else document.activeElement.closest?.('#quick button')?.click()} if(k==='x')fav(g); if(k==='y'&&g)details(g);
+    if(k==='lb')cycle(-1); if(k==='rb')cycle(1); if(k==='start')settings(); if(k==='sel'||k==='lt')menu('layout'); if(k==='rt')menu('theme');
   }
 };
-let padPrev={},padT=0;
+let padPrev={},padT=0,padRep=0;
 addEventListener('gamepadconnected',e=>toast('Controller connected: '+e.gamepad.id.replace(/\s*\(.*$/,'')));
 (function pad(){
   if(window.CoveNative)return;   // the Android app sends buttons itself
@@ -877,12 +893,14 @@ addEventListener('gamepadconnected',e=>toast('Controller connected: '+e.gamepad.
       const b=i=>p.buttons[i]?.pressed, ax=p.axes, std=p.mapping==='standard';
       // pads the browser cannot map report the d-pad as a "hat" on the last axis: 8 directions from -1 (up) clockwise to 1
       const hat=!std&&ax.length>=10?Math.round((ax[9]+1)*3.5):-1, H=(...v)=>v.includes(hat);
-      const cur={l:(std&&b(14))||ax[0]<-.5||H(5,6,7),r:(std&&b(15))||ax[0]>.5||H(1,2,3),u:(std&&b(12))||ax[1]<-.5||H(7,0,1),d:(std&&b(13))||ax[1]>.5||H(3,4,5),
-        a:b(std?0:1),bk:b(std?1:2),x:b(std?2:0),y:b(3),lb:b(4),rb:b(5),sel:b(8),start:b(9)};
+      const big=Math.abs(ax[0])>=Math.abs(ax[1]), sx=big?ax[0]:0, sy=big?0:ax[1];   // a stick pushed diagonally means its stronger direction
+      const cur={l:(std&&b(14))||sx<-.5||H(5,6,7),r:(std&&b(15))||sx>.5||H(1,2,3),u:(std&&b(12))||sy<-.5||H(7,0,1),d:(std&&b(13))||sy>.5||H(3,4,5),
+        a:b(std?0:1),bk:b(std?1:2),x:b(std?2:0),y:b(3),lb:b(4),rb:b(5),lt:std&&b(6),rt:std&&b(7),sel:b(8),start:b(9)};
       for(const k in cur)st[k]=st[k]||cur[k];
     }
-    const hit=k=>st[k]&&(!padPrev[k]||('lrud'.includes(k)&&now-padT>190));
-    for(const k in st)if(hit(k)){navKey(k);if('lrud'.includes(k))padT=now}
+    const hit=k=>st[k]&&(!padPrev[k]||('lrud'.includes(k)&&now-padT>(padRep?110:380)));   // hold: a pause, then steady steps
+    if(!'lrud'.split('').some(k=>st[k]))padRep=0;
+    for(const k in st)if(hit(k)){if('lrud'.includes(k)){padRep=padPrev[k]?1:0;padT=now}navKey(k)}
     padPrev=st;
   }
   requestAnimationFrame(pad);
