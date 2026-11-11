@@ -251,6 +251,8 @@ footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:
 #fx .cart{width:var(--w);aspect-ratio:var(--r);position:relative;border-radius:var(--rad);background:linear-gradient(165deg,color-mix(in srgb,var(--col),#fff 14%),var(--col) 45%,color-mix(in srgb,var(--col),#000 30%));
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 -8px 14px rgba(0,0,0,.25);animation:slot .9s .1s var(--spring) both}
 #fx .cart b{position:absolute;background:center/cover;border-radius:4px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.3),inset 0 0 18px rgba(0,0,0,.18)}
+#fx .real{display:block;height:min(38vh,340px);animation:slot .9s .1s var(--spring) both}
+#fx .real.rot{animation:spin 2.1s .25s cubic-bezier(.3,0,.15,1) both}
 @keyframes spin{to{transform:rotate(720deg)}}
 @keyframes slot{from{transform:translateY(-70px)}55%{transform:translateY(10px)}}
 #gacha{position:fixed;inset:0;z-index:40;background:color-mix(in srgb,var(--bg) 70%,transparent);backdrop-filter:blur(26px);display:grid;place-content:center;text-align:center;animation:fade .25s}
@@ -487,7 +489,7 @@ const AKINDS=[
 const NOT_MAIN=/(cli|cmd|room|tests?|precompile|redist|crash|updat|unins|setup)/i;
 
 /* ---------- state ---------- */
-let S, INFO, GAMES=[], HIDDEN=[], ART={}, ESDE={}, NOW=null, tab='all', saveT;
+let S, INFO, GAMES=[], HIDDEN=[], ART={}, ESDE={}, DISC={}, NOW=null, tab='all', saveT;
 const DEF={setup:false,library:'',roots:[],emus:[],defaults:{},games:{},systems:[],art:{},meta:{},wide:{},scrape:{order:['igdb','sgdb','steam','wiki'],off:{},keys:{}},discord:{on:false,id:'',art:true},ui:{theme:'frost',accent:'',wall:'',size:150,view:'shelf',style:'frost',corners:'soft',motion:'full',sound:true,vol:70,confirm:true}};
 const save=()=>{clearTimeout(saveT);saveT=setTimeout(()=>api('state',JSON.stringify(S,null,1)).catch(e=>toast('Could not save settings: '+e.message)),250)};
 const systems=()=>SYS.concat(S.systems.map(s=>({...s,auto:s.exts,lr:''})));
@@ -518,7 +520,7 @@ function classify(rel,folderGame){
   return sure.length===1?sure[0].id:all.some(s=>s.exts.includes(e))?'unsorted':'';
 }
 async function scan(){
-  GAMES=[];HIDDEN=[];ART={};
+  GAMES=[];HIDDEN=[];ART={};DISC={};
   if(!S.library)return;
   const art=await api('ls',{path:J(S.library,'Art'),depth:2});
   art.items.forEach(i=>{const p=i.p.split(/[\\/]/);ART[p[0]+'/'+stem(i.p)]=J(art.root,i.p)});
@@ -526,6 +528,7 @@ async function scan(){
   if(S.esde)try{   // ES-DE layout: downloaded_media/<system>/<kind>/<game file name>.png ; first kind in this order wins
     const m=await api('ls',{path:J(S.esde,'downloaded_media'),depth:3,exts:['.png','.jpg','.jpeg','.webp']}), order=['covers','3dboxes','miximages','screenshots','titlescreens'];
     for(const kind of order.slice().reverse())m.items.forEach(i=>{const p=i.p.split(/[\\/]/);if(p.length===3&&p[1]===kind)ESDE[p[0]+'/'+stem(i.p)]=J(m.root,i.p)});
+    m.items.forEach(i=>{const p=i.p.split(/[\\/]/);if(p.length===3&&p[1]==='physicalmedia')DISC[p[0]+'/'+stem(i.p)]=J(m.root,i.p)});   // real disc and cartridge scans, used on the launch screen
   }catch{}
   const exts=[...new Set(systems().flatMap(s=>s.exts))].concat(['']), seen=new Set();
   for(const root of romRoots()){
@@ -757,6 +760,8 @@ const MEDIA={wiiu:120,wii:120,gc:80,ps3:120,ps2:120,psx:120,xbox:120,xbox360:120
   n64:[116,76.6,'#7c7c85',[15,10,70,62],'16% 16% 3% 3%/24% 24% 4% 4%'],snes:[136,88,'#b6b3bb',[22,15,56,62],'3%/5%'],nes:[120,134,'#8c8c92',[46,5,46,72],'3%'],
   genesis:[109,70,'#1d1d20',[20,8,60,74],'9% 9% 3% 3%/14% 14% 4% 4%'],mastersystem:[108,69,'#1d1d20',[8,26,84,62],'3%/5%'],gamegear:[66,68,'#1d1d20',[11,22,78,62],'8%'],psp:[64,65,'#e9e9ee',[12,12,76,76],'18%']};
 function media(g){
+  const real=DISC[g.sys+'/'+g.base];
+  if(real)return `<div class="media"><img class="real ${MEDIA[g.sys]>0?'rot':''}" alt="" src="/file?t=${T}&p=${encodeURIComponent(real)}"></div>`;
   const m=MEDIA[g.sys], u=artUrl(g); if(!m||!u)return `<div class="cover" ${cover(g)}</div>`;
   if(!m.length)return `<div class="media"><div class="disc" style="--d:${.55+.45*m/120};--img:url('${esc(u)}')"><i></i></div></div>`;
   const [w,h,col,l,rad]=m, big=Math.max(w,h), px=`calc(min(36vh,320px)*${(.62+.38*big/136)*w/big})`;   // small game cards are shown larger than life so the label can be read
@@ -1381,7 +1386,7 @@ async function settings(t='lib'){
       <span style="margin-left:auto;display:flex;gap:6px"><button class="btn" data-act="srcup" data-arg="${i}" ${i?'':'disabled'}>Up</button><button class="btn" data-act="srcdn" data-arg="${i}" ${i<S.scrape.order.length-1?'':'disabled'}>Down</button></span></div>
       <small>${x.gives}${x.needs?' '+x.needs:''}</small>${x.url&&!x.ready()?`<div class="row"><button class="btn" data-act="keysite" data-arg="${x.url}">Open the key page</button></div>`:''}
       ${(x.fields||[]).map(f=>`<div class="row"><label>${f[1]}</label><input class="w" type="text" data-set="key" data-arg="${f[0]}" value="${esc(K()[f[0]])}"></div>`).join('')}</div>`}).join('')}
-    <div class="card"><b>ES-DE artwork</b><small style="display:block">If you already scrape with ES-DE (or Skyscraper set to write ES-DE media), point Cove at the ES-DE folder and it uses those covers first, with no lookups. It reads <code>downloaded_media</code>.</small>
+    <div class="card"><b>ES-DE artwork</b><small style="display:block">If you already scrape with ES-DE (or Skyscraper set to write ES-DE media), point Cove at the ES-DE folder and it uses those covers first, with no lookups. It reads <code>downloaded_media</code>, including <code>physicalmedia</code>: real disc and cartridge scans, shown on the launch screen.</small>
       <div class="row"><code>${esc(S.esde||'not set')}</code><button class="btn" data-act="esde">Choose folder</button>${S.esde?'<button class="btn" data-act="noesde">Stop using it</button>':''}</div></div>
 `)}
     ${adv('tidy','Advanced: tidy up files and custom systems',`<h3>Tidy up (optional)</h3><small>Moves loose files into one folder per system inside Cove's library, taking matching save files along. Use it for an Inbox of new downloads; you never have to.</small>

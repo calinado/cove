@@ -1,5 +1,5 @@
 {
-  "version": "1.0.18",
+  "version": "1.0.19",
   "repo": "calinado/cove",
-  "notes": "Folders are now tiles among your games: drag one game onto another to make one, click it to open. Dragging rebuilt so it works."
+  "notes": "Launch screen uses real disc and cartridge scans when your ES-DE folder has them (physicalmedia)."
 }
