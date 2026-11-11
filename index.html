@@ -280,6 +280,10 @@ code{font-family:var(--mono);font-size:12px;word-break:break-all;color:var(--dim
 .list{display:flex;flex-direction:column;gap:4px;margin-top:12px}
 .item{display:flex;gap:10px;align-items:center;text-align:left;background:rgba(var(--tint),.05);border:1px solid transparent;border-radius:12px;padding:9px 12px;cursor:pointer}
 .item:hover{background:rgba(var(--tint),.12)}
+#dd{z-index:20}
+#dd .menu{position:static;max-height:70vh;overflow:auto;animation:none}
+#dd .item{width:100%}
+#dd .item:focus{outline:2px solid var(--acc);outline-offset:2px}
 .item i{width:14px;height:11px;border-radius:3px;background:var(--acc);flex:none}
 .sw{width:74px;height:64px;border-radius:16px;border:2px solid rgba(var(--tint),.22);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:9px 4px 6px;background:var(--b);transition:transform .2s var(--spring)}
 .sw i{width:34px;height:12px;border-radius:99px;background:var(--a)}
@@ -869,6 +873,7 @@ for(const el of [$('main'),$('#dock')])el.addEventListener('wheel',e=>{
 $('#now').addEventListener('click',()=>{const g=NOW&&GAMES.find(x=>x.id===NOW.id);if(g)running(g)});
 $('#q').addEventListener('input',()=>render());
 document.addEventListener('keydown',e=>{
+  if($('#dd')&&e.key==='Escape')return $('#dd').click();
   if($('#layer').children.length){if(e.key==='Escape')closeModal();const a={ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r'}[e.key],el=document.activeElement;if(a&&!(el.tagName==='SELECT'||(el.tagName==='INPUT'&&el.type!=='checkbox'))){e.preventDefault();navKey(a)}return}
   const typing=document.activeElement===$('#q');
   if(e.key==='Escape'){$('#q').value='';render();return}
@@ -898,11 +903,27 @@ function madjust(d){
   else mgo(d,0);
 }
 function mtab(d){const b=[...document.querySelectorAll('#layer .tabs .btn')], i=b.findIndex(x=>x.classList.contains('on'));b[i+d]?.click()}
+// a dropdown opened with A: the browser's own list cannot be driven from a controller, so Cove shows the choices itself
+function dropdown(sel){
+  const d=document.createElement('div'); d.id='dd'; d.className='scrim';
+  d.innerHTML=`<div class="glass menu"><div class="body list">${[...sel.options].map((o,i)=>`<button class="item ${i===sel.selectedIndex?'on':''}" data-i="${i}"><b>${esc(o.textContent)}</b></button>`).join('')}</div></div>`;
+  d.onclick=e=>{const b=e.target.closest('[data-i]'); d.remove();
+    if(b&&+b.dataset.i!==sel.selectedIndex){sel.selectedIndex=+b.dataset.i;sel.dispatchEvent(new Event('change',{bubbles:true}));blip('ok')}
+    if(sel.isConnected)sel.focus()};
+  document.body.append(d); (d.querySelector('.on')||d.querySelector('button')).focus(); blip('tab');
+}
 window.navKey=k=>{
+  const dd=$('#dd');
+  if(dd){
+    const b=[...dd.querySelectorAll('button')], i=b.indexOf(document.activeElement);
+    if(k==='u'||k==='d'){b[Math.max(0,Math.min(b.length-1,i+(k==='d'?1:-1)))].focus();document.activeElement.scrollIntoView({block:'nearest'});blip('move')}
+    if(k==='a')document.activeElement.click(); if(k==='bk')dd.click();
+    return;
+  }
   const open=$('#layer').children.length, g=game(document.activeElement);
   if(open){
     if(k==='u')mgo(0,-1); if(k==='d')mgo(0,1); if(k==='l')madjust(-1); if(k==='r')madjust(1);
-    if(k==='a')document.activeElement.click?.(); if(k==='bk')closeModal(); if(k==='lb')mtab(-1); if(k==='rb')mtab(1);
+    if(k==='a'){const e=document.activeElement;e.tagName==='SELECT'?dropdown(e):e.click?.()} if(k==='bk')closeModal(); if(k==='lb')mtab(-1); if(k==='rb')mtab(1);
   }else{
     const m={l:[-1,0],r:[1,0],u:[0,-1],d:[0,1]}[k]; if(m)move(...m);
     if(k==='a'){if(g)start(g);else document.activeElement.closest?.('#quick button')?.click()} if(k==='x')fav(g); if(k==='y'&&g)details(g);
