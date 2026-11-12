@@ -560,6 +560,8 @@ const AKINDS=[
 const NOT_MAIN=/(cli|cmd|room|tests?|precompile|redist|crash|updat|unins|setup)/i;
 
 /* ---------- state ---------- */
+// play time a store keeps (minutes, and last played in seconds): Cove keeps whichever is higher, its own count or the store's
+const takeTime=(id,mins,last)=>{if(!mins&&!last)return;const o=gs(id);if(mins*60>(o.time||0))o.time=mins*60;if(last*1000>(o.last||0))o.last=last*1000};
 let STEAM=null, S, INFO, GAMES=[], HIDDEN=[], ART={}, ESDE={}, DISC={}, NOW=null, tab='all', saveT;
 const DEF={setup:false,library:'',roots:[],emus:[],defaults:{},games:{},systems:[],art:{},meta:{},wide:{},scrape:{order:['igdb','sgdb','steam','wiki'],off:{},keys:{}},discord:{on:false,id:'',art:true},ui:{theme:'frost',accent:'',wall:'',size:150,view:'shelf',style:'frost',corners:'soft',motion:'full',sound:true,vol:70,confirm:true}};
 const save=()=>{clearTimeout(saveT);saveT=setTimeout(()=>api('state',JSON.stringify(S,null,1)).catch(e=>toast('Could not save settings: '+e.message)),250)};
@@ -662,12 +664,12 @@ async function scan(){
     }
   }
   if(!INFO.android&&S.stores!==false)try{   // games installed through Steam, Epic and GOG, started through their own launcher
-    const st=await api('stores',{}); STEAM={libs:st.libs||[],sid:S.steamid||st.steamid,accts:st.accounts||[],n:st.games.filter(x=>x.store==='steam').length,owned:''};
+    const st=await api('stores',{sid:S.steamid||''}); STEAM={libs:st.libs||[],sid:S.steamid||st.steamid,accts:st.accounts||[],n:st.games.filter(x=>x.store==='steam').length,owned:''};
     for(const x of st.games){
       if(!x.name)continue; x.name=String(x.name);   // one odd entry must not stop the rest from loading
       const id='store:'+x.store+':'+x.id, o=S.games[id]||{}, g={id,sys:x.store,store:x.store,path:x.uri,home:x.dir,base:x.name.replace(/[™®©]/g,'').trim(),title:o.title||x.name.replace(/[™®©]/g,'').trim(),img:x.store==='steam'?`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.id}/library_600x900_2x.jpg`:''};
       if(x.store==='steam'&&!S.wide[artKey(g)])S.wide[artKey(g)]=`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.id}/library_hero.jpg`;
-      (o.hide?HIDDEN:GAMES).push(g);
+      (o.hide?HIDDEN:GAMES).push(g); takeTime(id,x.mins,x.last);
     }
     const key=S.scrape.keys.steamweb, sid=STEAM.sid;   // the account picked in Settings, else the one signed in most recently
     if(key&&sid){   // with a Steam key, games you own but have not installed are listed too; starting one opens Steam's install window
@@ -676,7 +678,7 @@ async function scan(){
       const r=await viaHelper(`https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${encodeURIComponent(key)}&steamid=${sid}&include_appinfo=1&include_played_free_games=1`);
       STEAM.owned=r.response?.games?r.response.games.length+' games in your Steam library':'Steam sent back no games. In Steam, set your profile\'s Game details to Public, then turn this switch off and on';
       for(const x of r.response?.games||[]){
-        const id='store:steam:'+x.appid, o=S.games[id]||{}; if(have.has(id))continue;
+        const id='store:steam:'+x.appid, o=S.games[id]||{}; takeTime(id,x.playtime_forever,x.rtime_last_played); if(have.has(id))continue;
         const g={id,sys:'steam',store:'steam',owned:true,path:'steam://install/'+x.appid,home:'',base:x.name,title:o.title||x.name,img:`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.appid}/library_600x900_2x.jpg`};
         if(!S.wide[artKey(g)])S.wide[artKey(g)]=`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.appid}/library_hero.jpg`;
         (o.hide?HIDDEN:GAMES).push(g);

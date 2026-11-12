@@ -1,5 +1,5 @@
 {
-  "version": "1.1.11",
+  "version": "1.1.12",
   "repo": "calinado/cove",
-  "notes": "Steam: a library on an unplugged drive no longer hides the rest of your games, and you can pick which Steam account is yours."
+  "notes": "Steam play time and last played now show in Cove, read from Steam on your PC (and from your Steam key for games not installed)."
 }
