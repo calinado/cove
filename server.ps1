@@ -263,7 +263,7 @@ function Handle($ctx) {
       $ra = Join-Path $Data 'retroarch-cove.cfg'
       # rewritten each start so every copy gets the current lines: sound on, not muted, through the driver that follows Windows' default speakers
       [void](New-Item -ItemType Directory -Force -Path $Data); [IO.File]::WriteAllText($ra, "input_menu_toggle_gamepad_combo = `"4`"`r`naudio_enable = `"true`"`r`naudio_mute_enable = `"false`"`r`naudio_driver = `"xaudio`"`r`naudio_device = `"`"`r`n")
-      Json $res @{ v = 12; version = [string]$ver.version; repo = [string]$ver.repo; sep = [string][IO.Path]::DirectorySeparatorChar; app = $App; appdata = $env:APPDATA; local = $env:LOCALAPPDATA
+      Json $res @{ v = 13; version = [string]$ver.version; repo = [string]$ver.repo; sep = [string][IO.Path]::DirectorySeparatorChar; app = $App; appdata = $env:APPDATA; local = $env:LOCALAPPDATA
         docs = [Environment]::GetFolderPath('MyDocuments'); desktop = [Environment]::GetFolderPath('Desktop') }
     }
     '/api/ping' { Sweep; $d = @($done); $done.Clear(); Json $res @{ done = $d; running = $running.Count; ids = @($running | ForEach-Object { $_.id }) } }
@@ -324,7 +324,7 @@ function Handle($ctx) {
     '/api/launch' {
       if ($j.uri) {
         $a = @{ FilePath = [string]$j.uri }
-        if ($j.uri -notmatch '^\w{2,}:') { $a.WorkingDirectory = Split-Path ([string]$j.uri) }   # a plain program path, as GOG gives
+        if ($j.uri -notmatch '^[a-z][\w.+-]+:') { $a.WorkingDirectory = Split-Path ([string]$j.uri) }   # a plain program path, as GOG gives
         Start-Process @a
         [void]$running.Add(@{ id = $j.id; p = $null; dir = [string]$j.dir; t = Get-Date })
         Hide-Cove ([string]$j.after)
@@ -364,7 +364,9 @@ function Handle($ctx) {
         if (-not $g.exe -or $g.dependsOn) { continue }   # dependsOn marks add-ons
         [void]$out.Add(@{ store = 'gog'; id = [string]$g.gameID; name = $g.gameName; uri = $g.exe; dir = [string]$g.path })
       }
-      Json $res @{ games = @($out) }
+      $sid = ''
+      try { $lu = [IO.File]::ReadAllText((Join-Path $sp 'config\loginusers.vdf')); $m = [regex]::Match($lu, '"(\d{17})"\s*\{[^}]*"MostRecent"\s+"1"'); if ($m.Success) { $sid = $m.Groups[1].Value } } catch {}   # the signed-in Steam account, for listing games not installed
+      Json $res @{ games = @($out); steamid = $sid }
     }
     '/api/discord' {
       Discord-Set ([string]$j.clientId) $j.activity
@@ -393,7 +395,7 @@ function Handle($ctx) {
     }
     '/api/fetch' {   # the page cannot call these scraper sites itself (browsers block it), so the helper does; fixed list only
       $u = [Uri][string]$j.url
-      if ($u.Scheme -ne 'https' -or @('www.steamgriddb.com', 'api.igdb.com', 'id.twitch.tv', 'store.steampowered.com') -notcontains $u.Host) { throw 'That address is not allowed' }
+      if ($u.Scheme -ne 'https' -or @('www.steamgriddb.com', 'api.igdb.com', 'id.twitch.tv', 'store.steampowered.com', 'api.steampowered.com') -notcontains $u.Host) { throw 'That address is not allowed' }
       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
       $wc = New-Object System.Net.WebClient
       $wc.Encoding = $Utf8

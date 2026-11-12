@@ -402,6 +402,7 @@ code{font-family:var(--mono);font-size:12px;word-break:break-all;color:var(--dim
 #quick button:hover,#quick button:focus{background:rgba(var(--tint),.1)}
 input[type=text],select{border-color:transparent}
 .modal{border-radius:22px}.modal .foot{border-top:0}
+span.dot.big{width:56px;height:56px;border-radius:50%;flex:none;display:inline-grid;place-items:center;font-weight:900;font-size:22px;color:#fff;margin-right:8px}
 .card{border:0;box-shadow:none;border-radius:14px;background:rgba(var(--tint),.04)}
 #news button{background:none;border:0;box-shadow:none;backdrop-filter:none}#news button:hover,#news button:focus{background:rgba(var(--tint),.08)}
 .v-list #hero .cover{width:auto;max-width:100%;height:min(46vh,420px);align-self:center}
@@ -508,7 +509,7 @@ const KINDS=[
  {id:'custom',name:'Custom (write the arguments yourself)',rx:/^$/,args:'"{rom}"',sys:[]},
 ];
 KINDS.find(k=>k.id==='retroarch').sys=Object.keys(KINDS.find(k=>k.id==='retroarch').cores);
-const VER=12;
+const VER=13;
 const RAK=KINDS.find(k=>k.id==='retroarch');
 // other cores you can switch a system to; the first is what Cove picks
 const ALT={gb:['gambatte','sameboy','mgba'],gbc:['gambatte','sameboy','mgba'],gba:['mgba','vbam'],nes:['mesen','nestopia','fceumm'],snes:['snes9x','bsnes'],n64:['mupen64plus_next','parallel_n64'],nds:['melondsds','desmume'],
@@ -587,11 +588,12 @@ function setUser(id){
   S.user=id;save();userUI();render();
 }
 const tally=u=>{let f=0,s=0;for(const k in S.games){const o=u.id===S.user?S.games[k]:S.games[k].p?.[u.id]||{};if(o.fav)f++;s+=o.time||0}return (f?f+(f===1?' favourite':' favourites')+' · ':'')+(played(s)||'no play time yet')};
-function userUI(){const u=me(), b=$('#me');b.style.background=u.col;b.textContent=(u.name.trim()[0]||'?').toUpperCase()}
+const avatar=u=>u.pic?`background:center/cover url('/file?t=${T}&p=${encodeURIComponent(u.pic)}')`:`background:${u.col}`, initial=u=>u.pic?'':esc((u.name.trim()[0]||'?').toUpperCase());
+function userUI(){const u=me(), b=$('#me');b.setAttribute('style',avatar(u));b.innerHTML=initial(u)}
 function users(){
   const b=$('#me').getBoundingClientRect();
   $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${b.left}px;top:${b.bottom+10}px;transform-origin:top left"><h2>Players</h2><div class="body list">${
-    S.users.map(u=>`<button class="item ${u.id===S.user?'on':''}" data-act="u" data-arg="${u.id}"><span class="dot" style="background:${esc(u.col)}">${esc((u.name.trim()[0]||'?').toUpperCase())}</span><b>${esc(u.name)}</b><small>${tally(u)}</small></button>`).join('')}
+    S.users.map(u=>`<button class="item ${u.id===S.user?'on':''}" data-act="u" data-arg="${u.id}"><span class="dot" style="${avatar(u)}">${initial(u)}</span><b>${esc(u.name)}</b><small>${tally(u)}</small></button>`).join('')}
     <button class="item" data-act="add"><svg class="ic" viewBox="0 0 24 24">${ICON.add}</svg><b>Add a player</b></button><button class="item" data-act="edit"><svg class="ic" viewBox="0 0 24 24">${ICON.user}</svg><b>Change ${esc(me().name)}</b></button></div></div></div>`;
   ($('#layer .on')||focusables()[0])?.focus(); onChange=()=>{}; blip('tab');
   onAct=(a,arg)=>{
@@ -603,12 +605,15 @@ function users(){
 function userEdit(u){
   const hex=/^#/.test(u.col)?u.col:'#19d3c5';
   modal('Player',`<div class="row"><label>Name</label><input class="w" type="text" data-set="name" value="${esc(u.name)}"></div>
-    <div class="row"><label>Colour</label><input type="color" data-set="col" value="${hex}"></div>
+    <div class="row"><label>Picture</label><span class="dot big" style="${avatar(u)}">${initial(u)}</span><button class="btn" data-act="pic">Choose image</button>${u.pic?'<button class="btn" data-act="nopic">Remove</button>':''}</div>
+    <div class="row"><label>Colour</label><input type="color" data-set="col" value="${hex}"><small>Shown when there is no picture</small></div>
     <small>Favourites, play time and the Recent list are kept separately for each player. Games, artwork and settings are shared.</small>`,
     `${S.users.length>1?'<button class="btn bad" data-act="del">Remove player</button>':''}<button class="btn pri" data-act="x">Done</button>`);
   $('#layer input').focus(); $('#layer input').select();
   onChange=(k,v)=>{u[k]=v.trim()||u[k];save();userUI()};
-  onAct=a=>{
+  onAct=async a=>{
+    if(a==='pic'){const p=await pick('image');if(p){u.pic=p;save();userUI()}return userEdit(u)}
+    if(a==='nopic'){delete u.pic;save();userUI();return userEdit(u)}
     if(a==='del'){if(NOW)return toast('Close the game first');setUser(S.users.find(x=>x!==u).id);S.users=S.users.filter(x=>x!==u);for(const k in S.games){const p=S.games[k].p;if(p){delete p[u.id];if(!Object.keys(p).length)delete S.games[k].p}}save()}
     closeModal();
   };
@@ -657,10 +662,22 @@ async function scan(){
     }
   }
   if(!INFO.android&&S.stores!==false)try{   // games installed through Steam, Epic and GOG, started through their own launcher
-    for(const x of (await api('stores',{})).games){
+    const st=await api('stores',{});
+    for(const x of st.games){
       const id='store:'+x.store+':'+x.id, o=S.games[id]||{}, g={id,sys:x.store,store:x.store,path:x.uri,home:x.dir,base:x.name.replace(/[™®©]/g,'').trim(),title:o.title||x.name.replace(/[™®©]/g,'').trim(),img:x.store==='steam'?`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.id}/library_600x900_2x.jpg`:''};
       if(x.store==='steam'&&!S.wide[artKey(g)])S.wide[artKey(g)]=`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.id}/library_hero.jpg`;
       (o.hide?HIDDEN:GAMES).push(g);
+    }
+    const key=S.scrape.keys.steamweb, sid=st.steamid;
+    if(key&&sid){   // with a Steam key, games you own but have not installed are listed too; starting one opens Steam's install window
+      const have=new Set(GAMES.concat(HIDDEN).filter(g=>g.store==='steam').map(g=>g.id));
+      const r=await viaHelper(`https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${encodeURIComponent(key)}&steamid=${sid}&include_appinfo=1&include_played_free_games=1`);
+      for(const x of r.response?.games||[]){
+        const id='store:steam:'+x.appid, o=S.games[id]||{}; if(have.has(id))continue;
+        const g={id,sys:'steam',store:'steam',owned:true,path:'steam://install/'+x.appid,home:'',base:x.name,title:o.title||x.name,img:`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.appid}/library_600x900_2x.jpg`};
+        if(!S.wide[artKey(g)])S.wide[artKey(g)]=`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.appid}/library_hero.jpg`;
+        (o.hide?HIDDEN:GAMES).push(g);
+      }
     }
   }catch{}
   const first=!S.seen; S.seen=S.seen||{};   // when each game first showed up, so new arrivals can be pointed out (0 = was already here)
@@ -798,6 +815,7 @@ function resolve(g){
 }
 async function launch(g){
   if(g.sys==='unsorted'){toast('Pick which system this one is for');return details(g)}
+  if(g.owned){api('open',{path:g.path});return toast('Opening Steam to install '+g.title)}
   const r=resolve(g);
   if(!r&&!INFO.android&&RAK.cores[g.sys])return offerRA(g);
   if(!r){toast('No emulator set up for '+sysOf(g.sys).name+' yet. Opening Settings.');return settings('emus')}
@@ -1570,6 +1588,7 @@ async function settings(t='lib'){
     <h3>Artwork</h3><small>Cove finds a cover, a wide background, a description and the year for each game in the background. Found for <b>${GAMES.filter(g=>S.meta[artKey(g)]).length}</b> of ${GAMES.length} games${artQ.length?', '+artQ.length+' still in the queue':''}. Fix a wrong match from the game's Options.</small>
     <h3>Other launchers</h3>
     <div class="row"><input type="checkbox" data-set="stores" ${S.stores===false?'':'checked'}><b>Steam, Epic and GOG games</b><small>Installed games show up on their own tabs and start through their launcher. For anything else (Battle.net, EA, Ubisoft, itch), put its desktop shortcuts in one of your game folders and they appear under PC.</small></div>
+    ${S.stores===false?'':`<div class="row"><label>Steam key</label><input class="w" type="password" data-set="steamweb" value="${esc(S.scrape.keys.steamweb||'')}" placeholder="optional: also list games you own but have not installed"><button class="btn" data-act="keysite" data-arg="https://steamcommunity.com/dev/apikey">Get a key</button></div><small>Steam only keeps a list of installed games on your PC. A free Steam Web API key lets Cove list the rest of your library. For the domain it asks for, anything works, for example localhost.</small>`}
     <div class="row"><input type="checkbox" data-set="src" data-arg="libretro" ${S.scrape.off.libretro?'':'checked'}><b>Box art scans</b><small>Real box scans for cartridge and disc systems.</small></div>
     <div class="row"><label>Pictures from</label><select data-set="only">${opt('','Best available',S.scrape.only||'')}${Object.keys(SRC).filter(id=>SRC[id].ready()).map(id=>opt(id,'Only '+SRC[id].name,S.scrape.only||'')).join('')}</select><small>Choose one, then "Scrape everything again". Matches you fixed by hand are kept.</small></div>
     <div class="row"><button class="btn pri" data-act="scrape">Scrape missing now</button><button class="btn" data-act="rescrape">Scrape everything again</button></div>
@@ -1679,6 +1698,7 @@ async function settings(t='lib'){
     if(k==='def'){S.defaults[arg]=v;save();return}
     if(k==='only'){S.scrape.only=v;save();return}
     if(k==='core'){(S.cores=S.cores||{})[arg]=v;save();return coreMarks()}
+    if(k==='steamweb'){S.scrape.keys.steamweb=v.trim();save();return scan().then(()=>{render(true);again();toast(GAMES.filter(g=>g.owned).length+' more Steam games listed')})}
     if(k==='stores'){S.stores=v;save();return scan().then(()=>{render(true);again()})}
     if(k==='src'){v?delete S.scrape.off[arg]:S.scrape.off[arg]=1;save();return again()}
     if(k==='key'){S.scrape.keys[arg]=String(v).trim();igdbTok=null;save();GAMES.forEach(findArt);return again()}   // a new key sends the games back for HD art
