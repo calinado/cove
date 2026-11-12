@@ -1,5 +1,5 @@
 {
-  "version": "1.1.7",
+  "version": "1.1.8",
   "repo": "calinado/cove",
-  "notes": "Steam: sturdier library and account detection, and a status line under Settings > Library > Other launchers showing what Cove found. The Windows file dialog now opens in front of Cove."
+  "notes": "If Cove ever gets stuck in the background, opening it again now replaces the stuck copy. Updates give up on a stalled download instead of freezing. Includes 1.1.7: sturdier Steam detection with a status line, and the Windows file dialog opens in front."
 }

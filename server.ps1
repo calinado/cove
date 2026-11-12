@@ -23,7 +23,17 @@ for ($i = 0; $i -lt $tries -and -not $started; $i++) {
     if ($i + 1 -lt $tries) { Start-Sleep -Milliseconds 400; $listener = New-Object System.Net.HttpListener; $listener.Prefixes.Add($Url) }
   }
 }
-if (-not $started) { Open-UI; exit }   # already running: just show the window
+if (-not $started -and -not $NoBrowser) {   # a copy is already running; if it has stopped answering, replace it
+  $alive = $false
+  try { $q = [Net.WebRequest]::Create($Url + 'cove.ico'); $q.Timeout = 5000; $q.GetResponse().Close(); $alive = $true } catch [Net.WebException] { if ($_.Exception.Response) { $alive = $true } } catch {}
+  if (-not $alive) {
+    try { Stop-Process -Id ([int][IO.File]::ReadAllText((Join-Path $Data 'helper.pid'))) -Force -ErrorAction Stop; Start-Sleep -Milliseconds 800 } catch {}
+    $listener = New-Object System.Net.HttpListener; $listener.Prefixes.Add($Url)
+    try { $listener.Start(); $started = $true } catch {}
+  }
+}
+if (-not $started) { Open-UI; exit }   # already running and answering: just show the window
+try { [void](New-Item -ItemType Directory -Force -Path $Data); [IO.File]::WriteAllText((Join-Path $Data 'helper.pid'), [string]$PID) } catch {}
 Open-UI
 
 # version.json says which version this is and which GitHub repo updates come from
@@ -382,7 +392,8 @@ function Handle($ctx) {
       $tmp = Join-Path ([IO.Path]::GetTempPath()) ('Cove-update-' + $Token.Substring(0, 8))
       [void](New-Item -ItemType Directory -Force -Path $tmp)
       $wc = New-Object System.Net.WebClient
-      foreach ($f in $AppFiles) { $wc.DownloadFile($base + $f, (Join-Path $tmp $f)) }
+      $ProgressPreference = 'SilentlyContinue'   # the progress bar alone makes downloads crawl in a hidden window
+      foreach ($f in $AppFiles) { Invoke-WebRequest -Uri ($base + $f) -OutFile (Join-Path $tmp $f) -UseBasicParsing -TimeoutSec 60 }   # a stalled download gives up instead of freezing Cove
       $new = [IO.File]::ReadAllText((Join-Path $tmp 'version.json'), $Utf8) | ConvertFrom-Json
       if ($new.repo -ne $v.repo) { throw 'The update points to a different address, so it was not installed' }
       $page = [IO.File]::ReadAllText((Join-Path $tmp 'index.html'), $Utf8)
