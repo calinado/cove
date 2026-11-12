@@ -1,5 +1,5 @@
 {
-  "version": "1.1.14",
+  "version": "1.1.15",
   "repo": "calinado/cove",
-  "notes": "Rearranging: drag a cover beside another to move it (no edit mode needed); the covers part and a bar shows where it lands. Drop on the middle of a cover for a folder. Pinned games come first."
+  "notes": "Discord: Settings shows whether it is connected and why not, and the Application ID can be changed or cleared again."
 }
