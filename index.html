@@ -168,7 +168,7 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .pvbg{aspect-ratio:3.1;border-radius:var(--r);background:center/cover;margin-top:24px}
 .has>.ph{display:none}
 .run{position:absolute;z-index:2;left:8px;bottom:8px;font:700 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;background:var(--acc);color:var(--on);padding:3px 9px;border-radius:99px}
-.fav{position:absolute;z-index:1;top:5px;right:8px;color:var(--acc);font-size:17px;text-shadow:0 0 8px #000}
+.fav{position:absolute;z-index:1;top:7px;right:7px;width:18px;height:18px;fill:var(--acc);stroke:none;filter:drop-shadow(0 1px 3px rgba(0,0,0,.7))}
 .new{position:absolute;z-index:3;right:-5px;top:-5px;width:15px;height:15px;border-radius:50%;background:var(--acc);border:3px solid var(--bg)}   /* never played yet */
 .v-list .new{display:none}
 .tile.playing .art{outline:3px solid var(--acc);outline-offset:-3px}
@@ -186,7 +186,13 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 @keyframes wig{from{rotate:-1.1deg}to{rotate:1.1deg}}
 .tile img{-webkit-user-drag:none}
 .dragging{user-select:none;cursor:grabbing}
-.tile.drop .art{outline:3px dashed var(--acc);outline-offset:4px}
+.tile.drop .art{outline:3px dashed var(--acc);outline-offset:4px;scale:.94;transition:scale .15s}
+.tile{transition:translate .18s ease}.tile.sl{translate:-20px 0}.tile.sr{translate:20px 0}
+.v-list .tile.sl{translate:0 -8px}.v-list .tile.sr{translate:0 8px}
+.tile.lifted{opacity:.3!important;animation:none}
+#insbar{position:absolute;top:8px;width:4px;height:var(--h);border-radius:4px;background:var(--acc);box-shadow:0 0 16px var(--acc);pointer-events:none;z-index:3;animation:fade .15s}
+#insbar.l{left:-24px}#insbar.r{right:-24px}
+.v-list #insbar{width:auto;height:4px;left:8px;right:8px}.v-list #insbar.l{top:-10px}.v-list #insbar.r{top:auto;bottom:-10px}
 #ghost{position:fixed;z-index:50;pointer-events:none;translate:-50% -50%;width:110px!important;height:auto!important;aspect-ratio:var(--ar,1);border-radius:16px;overflow:hidden;opacity:.92;box-shadow:0 16px 40px rgba(0,0,0,.6)}
 #ghost img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 #hero h1,.modal h2{font-family:var(--head,var(--font))}
@@ -412,7 +418,7 @@ span.dot.big{width:56px;height:56px;border-radius:50%;flex:none;display:inline-g
 </div>
 <footer>
   <div id="quick"></div><span id="count"></span><span id="ver"></span>
-  <div id="hints"><span><b class="gl"><span class="gx">A</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span class="gn">B</span></b>Start</span><span><b class="gl"><span class="gx">Y</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M12 5l8 14H4z"/></svg></span><span class="gn">X</span></b>Options</span><span><b class="gl"><span class="gx">X</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg></span><span class="gn">Y</span></b>Favourite</span><span><b class="gl w"><span class="gx">LB RB</span><span class="gp">L1 R1</span><span class="gn">L R</span></b>Systems</span><span><b class="gl w"><span class="gx">LT</span><span class="gp">L2</span><span class="gn">ZL</span></b>Layout</span><span><b class="gl w"><span class="gx">RT</span><span class="gp">R2</span><span class="gn">ZR</span></b>Theme</span><span><b class="gl w"><span class="gx">START</span><span class="gp">OPTIONS</span><span class="gn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></b>Settings</span></div>
+  <div id="hints"><span><b class="gl"><span class="gx">A</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span class="gn">B</span></b>Start</span><span><b class="gl"><span class="gx">Y</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M12 5l8 14H4z"/></svg></span><span class="gn">X</span></b>Options</span><span><b class="gl"><span class="gx">X</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg></span><span class="gn">Y</span></b>Pin</span><span><b class="gl w"><span class="gx">LB RB</span><span class="gp">L1 R1</span><span class="gn">L R</span></b>Systems</span><span><b class="gl w"><span class="gx">LT</span><span class="gp">L2</span><span class="gn">ZL</span></b>Layout</span><span><b class="gl w"><span class="gx">RT</span><span class="gp">R2</span><span class="gn">ZR</span></b>Theme</span><span><b class="gl w"><span class="gx">START</span><span class="gp">OPTIONS</span><span class="gn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></b>Settings</span></div>
 </footer>
 <div id="toast" class="glass"></div>
 <button id="editdone" class="btn pri xl" hidden>Done arranging</button>
@@ -576,7 +582,7 @@ function setUser(id){
   }
   S.user=id;save();userUI();render();
 }
-const tally=u=>{let f=0,s=0;for(const k in S.games){const o=u.id===S.user?S.games[k]:S.games[k].p?.[u.id]||{};if(o.fav)f++;s+=o.time||0}return (f?f+(f===1?' favourite':' favourites')+' · ':'')+(played(s)||'no play time yet')};
+const tally=u=>{let f=0,s=0;for(const k in S.games){const o=u.id===S.user?S.games[k]:S.games[k].p?.[u.id]||{};if(o.fav)f++;s+=o.time||0}return (f?f+' pinned'+' · ':'')+(played(s)||'no play time yet')};
 const avatar=u=>u.pic?`background:center/cover url('/file?t=${T}&p=${encodeURIComponent(u.pic)}')`:`background:${u.col}`, initial=u=>u.pic?'':esc((u.name.trim()[0]||'?').toUpperCase());
 function userUI(){const u=me(), b=$('#me');b.setAttribute('style',avatar(u));b.innerHTML=initial(u)}
 function users(){
@@ -596,7 +602,7 @@ function userEdit(u){
   modal('Player',`<div class="row"><label>Name</label><input class="w" type="text" data-set="name" value="${esc(u.name)}"></div>
     <div class="row"><label>Picture</label><span class="dot big" style="${avatar(u)}">${initial(u)}</span><button class="btn" data-act="pic">Choose image</button>${u.pic?'<button class="btn" data-act="nopic">Remove</button>':''}</div>
     <div class="row"><label>Colour</label><input type="color" data-set="col" value="${hex}"><small>Shown when there is no picture</small></div>
-    <small>Favourites, play time and the Recent list are kept separately for each player. Games, artwork and settings are shared.</small>`,
+    <small>Pinned games, play time and the Recent list are kept separately for each player. Games, artwork and settings are shared.</small>`,
     `${S.users.length>1?'<button class="btn bad" data-act="del">Remove player</button>':''}<button class="btn pri" data-act="x">Done</button>`);
   $('#layer input').focus(); $('#layer input').select();
   onChange=(k,v)=>{u[k]=v.trim()||u[k];save();userUI()};
@@ -926,13 +932,14 @@ function visible(){
   l=q?l.filter(g=>g.title.toLowerCase().includes(q)):l;
   const so=S.ui.sort||'console', y=g=>+S.meta[artKey(g)]?.y||0, o=g=>gs(g.id);
   if(tab!=='recent'&&so!=='console')l=[...l].sort({az:(a,b)=>a.title.localeCompare(b.title),za:(a,b)=>b.title.localeCompare(a.title),new:(a,b)=>y(b)-y(a),old:(a,b)=>(y(a)||9999)-(y(b)||9999),recent:(a,b)=>(o(b).last||0)-(o(a).last||0),most:(a,b)=>(o(b).time||0)-(o(a).time||0),custom:(a,b)=>ord(a)-ord(b)}[so]);
+  if(tab!=='fav'&&tab!=='recent')l=l.filter(g=>gs(g.id).fav).concat(l.filter(g=>!gs(g.id).fav));   // pinned games lead the list
   const run=NOW?l.findIndex(g=>g.id===NOW.id):-1;
   if(run>0)l.unshift(l.splice(run,1)[0]);   // the running game is always first
   return l;
 }
 function render(keep){
   const used=systems().concat(UNSORTED).filter(s=>GAMES.some(g=>g.sys===s.id));
-  const tabs=[['all','All'],['fav','Favourites'],['recent','Recent']].concat(used.map(s=>[s.id,s.label||s.name]));
+  const tabs=[['all','All'],['fav','Pinned'],['recent','Recent']].concat(used.map(s=>[s.id,s.label||s.name]));
   if(!tabs.some(t=>t[0]===tab))tab='all';
   $('#dock').innerHTML=tabs.map(t=>`<button class="${t[0]===tab?'on':''}" data-tab="${esc(t[0])}" title="${esc(t[1])}" tabindex="-1">${mark(t[0],t[1])}</button>`).join('');
   $('#dock .on')?.scrollIntoView({inline:'center',block:'nearest'});
@@ -945,10 +952,10 @@ function render(keep){
   let last='';
   $('#grid').classList.toggle('still',!!keep);
   $('#grid').innerHTML=pre+list.map((g,i)=>{
-    const s=sysOf(g.sys), o=gs(g.id), head=heads&&g.sys!==last?`<div class="sec">${esc(s.name)}</div>`:''; last=g.sys;
+    const s=sysOf(g.sys), o=gs(g.id), k=o.fav&&tab!=='fav'&&tab!=='recent'?'\u0001':g.sys, head=heads&&k!==last?`<div class="sec">${k==='\u0001'?'Pinned':esc(s.name)}</div>`:''; last=k;
     findArt(g);
     return `${head}<button class="tile ${NOW&&NOW.id===g.id?'playing':''}" data-id="${esc(g.id)}" title="${esc(g.title)}" style="--i:${Math.min(i,28)}">
-      <span class="art" ${cover(g)}${o.fav?'<span class="fav">&#9733;</span>':''}${NOW&&NOW.id===g.id?'<span class="run">Running</span>':''}</span>${o.last?'':'<span class="new"></span>'}
+      <span class="art" ${cover(g)}${o.fav?`<svg class="fav" viewBox="0 0 24 24">${FLOOK.star}</svg>`:''}${NOW&&NOW.id===g.id?'<span class="run">Running</span>':''}</span>${o.last?'':'<span class="new"></span>'}
       <span class="name">${esc(g.title)}</span><span class="meta">${esc(s.label||s.name)}${played(o.time)?' &middot; '+played(o.time):''}</span></button>`}).join('');
   const chip=(g,note)=>{const u=artUrl(g);return `<button class="glass" data-n="${esc(g.id)}" tabindex="-1" title="${esc(g.title)}"><i style="${u?`background-image:url('${esc(u)}')`:`background:linear-gradient(140deg,hsl(${hue(g.title)} 70% 46%),hsl(${(hue(g.title)+60)%360} 65% 22%))`}"></i><b>${esc(g.title)}</b><small>${note}</small></button>`};
   const rec=GAMES.filter(g=>gs(g.id).last).sort((a,b)=>gs(b.id).last-gs(a.id).last).slice(0,4), fresh=GAMES.filter(g=>S.seen[g.id]>Date.now()-14*864e5&&!gs(g.id).last).sort((a,b)=>S.seen[b.id]-S.seen[a.id]).slice(0,4);
@@ -1136,29 +1143,51 @@ function edit(on){
 }
 $('#editdone').onclick=()=>edit(false);
 const shift=(a,x,y)=>{const from=a.indexOf(x);a.splice(from,1);const to=a.indexOf(y);a.splice(from<=to?to+1:to,0,x)};   // x lands on the far side of y, the way it looks on screen
-const under=e=>{
-  let t=document.elementFromPoint(e.clientX,e.clientY)?.closest('.tile');
-  if(!t&&EDIT){let best=160;for(const x of tiles()){const r=x.getBoundingClientRect(),d=Math.hypot(e.clientX-r.left-r.width/2,e.clientY-r.top-r.height/2);if(x!==drag.t&&d<best){best=d;t=x}}}   // in the gap between two covers, the nearer one counts
-  return t&&t!==drag.t?t:null;
-};
-$('#grid').addEventListener('pointerdown',e=>{const t=e.target.closest('.tile');if(t&&!e.button&&(game(t)||EDIT&&t.dataset.f))drag={t,x:e.clientX,y:e.clientY}});
+// where a drop would land: on a cover's middle = into it (folder), near its edges or in a gap = beside it
+function spot(e){
+  const v=S.ui.view==='list', p=v?e.clientY:e.clientX, mine=game(drag.t);
+  let t=document.elementFromPoint(e.clientX,e.clientY)?.closest('.tile'), mode;
+  if(t===drag.t)return null;
+  if(!t){let best=220;for(const x of tiles()){if(x===drag.t)continue;const r=x.getBoundingClientRect(),d=Math.hypot(e.clientX-r.left-r.width/2,e.clientY-r.top-r.height/2);if(d<best){best=d;t=x}}if(!t)return null}
+  const r=t.getBoundingClientRect(), f=(p-(v?r.top:r.left))/(v?r.height:r.width);
+  if(!game(t))return mine?{t,mode:'into'}:t.dataset.f?{t,mode:f<.5?'before':'after'}:null;   // games go into folders; folders only swap with folders
+  if(!mine)return null;
+  mode=f<.3?'before':f>.7?'after':document.elementFromPoint(e.clientX,e.clientY)?.closest('.tile')===t?'into':f<.5?'before':'after';
+  return{t,mode};
+}
+// shows the drop: covers part to open a gap with a bright bar in it, or the target gets a dashed outline for a folder
+function showSpot(sp){
+  document.querySelectorAll('.tile.sl,.tile.sr,.tile.drop').forEach(x=>x.classList.remove('sl','sr','drop'));
+  $('#insbar')?.remove(); if(!sp)return;
+  if(sp.mode==='into')return sp.t.classList.add('drop');
+  const all=tiles().filter(x=>x!==drag.t), i=all.indexOf(sp.t), a=sp.mode==='before'?all[i-1]:sp.t, b=sp.mode==='before'?sp.t:all[i+1];
+  a?.classList.add('sl'); b?.classList.add('sr');
+  const host=b||a, bar=document.createElement('i'); bar.id='insbar'; bar.className=b?'l':'r'; bar.style.setProperty('--h',host.querySelector('.art').offsetHeight+'px'); host.append(bar);
+}
+function moveTo(g,o,after){   // puts game g just before or after game o, switching to "My order" if needed
+  if(S.ui.sort!=='custom'){const now=visible().map(x=>x.id);S.order=now.concat(GAMES.map(x=>x.id).filter(i=>!now.includes(i)));S.ui.sort='custom';toast('Sorted by My order now')}
+  S.order=(S.order||[]).filter(i=>GAMES.some(x=>x.id===i)).concat(GAMES.map(x=>x.id).filter(i=>!(S.order||[]).includes(i)));
+  S.order.splice(S.order.indexOf(g.id),1);S.order.splice(S.order.indexOf(o.id)+(after?1:0),0,g.id);
+  if(!!gs(g.id).fav!==!!gs(o.id).fav)gs(g.id).fav=gs(o.id).fav||undefined;   // dropped among the pinned games: it becomes pinned, and the other way round
+  save();blip('ok');render(true);
+}
+$('#grid').addEventListener('pointerdown',e=>{const t=e.target.closest('.tile');if(t&&!e.button&&(game(t)||t.dataset.f))drag={t,x:e.clientX,y:e.clientY}});
 addEventListener('pointermove',e=>{
   if(!drag)return;
   if(!ghost){
     if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<14)return;
-    ghost=drag.t.querySelector('.art').cloneNode(true); ghost.id='ghost'; document.body.append(ghost); document.body.classList.add('dragging');
+    ghost=drag.t.querySelector('.art').cloneNode(true); ghost.id='ghost'; document.body.append(ghost); document.body.classList.add('dragging'); drag.t.classList.add('lifted');
   }
   ghost.style.left=e.clientX+'px'; ghost.style.top=e.clientY+'px';
-  document.querySelector('.tile.drop')?.classList.remove('drop'); under(e)?.classList.add('drop');
+  const sp=spot(e); if(sp?.t!==drag.sp?.t||sp?.mode!==drag.sp?.mode){drag.sp=sp;showSpot(sp)}
 });
 for(const ev of ['pointerup','pointercancel'])addEventListener(ev,e=>{
-  if(!drag)return; const d=drag, t=ghost&&ev==='pointerup'&&under(e); drag=null;
+  if(!drag)return; const d=drag, sp=ghost&&ev==='pointerup'?d.sp:null; showSpot(null); d.t.classList.remove('lifted'); drag=null;
   if(!ghost)return; ghost.remove(); ghost=null; document.body.classList.remove('dragging'); dragged=true; setTimeout(()=>dragged=false,60);   // the release is not a click on the game
-  if(!t)return render(true);
-  const g=game(d.t), o=game(t);
-  if(!g){if(fById(t.dataset.f)){shift(S.folders,fById(d.t.dataset.f),fById(t.dataset.f));save();blip('ok')}return render(true)}   // a folder dragged onto a folder swaps their places
-  if(o&&EDIT){S.order=(S.order||[]).filter(i=>game({dataset:{id:i}})).concat(GAMES.map(x=>x.id).filter(i=>!(S.order||[]).includes(i)));const r=t.getBoundingClientRect(), after=S.ui.view==='list'?e.clientY>r.top+r.height/2:e.clientX>r.left+r.width/2;   // which side of the cover it was let go on
-    S.order.splice(S.order.indexOf(g.id),1);S.order.splice(S.order.indexOf(o.id)+(after?1:0),0,g.id);save();blip('ok');return render(true)}
+  if(!sp)return render(true);
+  const t=sp.t, g=game(d.t), o=game(t);
+  if(!g){shift(S.folders,fById(d.t.dataset.f),fById(t.dataset.f));if(sp.mode==='before'){const F=S.folders,a=F.indexOf(fById(d.t.dataset.f)),b=F.indexOf(fById(t.dataset.f));if(a===b+1)F.splice(b,0,F.splice(a,1)[0])}save();blip('ok');return render(true)}
+  if(o&&sp.mode!=='into')return moveTo(g,o,sp.mode==='after');
   if(o){const made=!fById(gs(o.id).dir), f=made?newFolder('Untitled folder'):fById(gs(o.id).dir); gs(o.id).dir=gs(g.id).dir=f.id; save(); blip('ok'); render(true); return toast(made?'Folder made. Right-click it to name it':'Added to '+f.name)}
   if(t.dataset.f){gs(g.id).dir=t.dataset.f;toast('Added to '+fById(t.dataset.f).name)}else{delete gs(g.id).dir;toast('Taken out of the folder')}
   save(); blip('ok'); render(true);
@@ -1412,7 +1441,7 @@ function details(g){
     <div class="row"><label>Display name</label><input class="w" type="text" data-set="title" value="${esc(g.title)}"></div>
     <div class="row"><label>Folder</label><select data-set="dir">${opt('','None',o.dir||'')}${(S.folders||[]).map(f=>opt(f.id,f.name,o.dir)).join('')}</select><input class="w" type="text" data-set="newdir" placeholder="or type a new folder name"></div>
     <code>${esc(target)}</code>`,
-    `${g.store?'':'<button class="btn bad" data-act="del">Delete</button>'}<button class="btn" data-act="hide">Hide</button>${g.store?'':'<button class="btn" data-act="show">Show file</button>'}${r&&r.exe&&!INFO.android?'<button class="btn" data-act="emu">Open emulator</button>':''}<button class="btn" data-act="art">Set artwork</button><button class="btn" data-act="match">Fix match</button>${r&&MODDIR[S.emus.find(e=>e.exe===r.exe)?.kind]?'<button class="btn" data-act="mods">Mods</button>':''}<button class="btn" data-act="lnk">Desktop shortcut</button><button class="btn" data-act="fav">${o.fav?'Unfavourite':'Favourite'}</button><button class="btn pri" data-act="play">Launch</button>`);
+    `${g.store?'':'<button class="btn bad" data-act="del">Delete</button>'}<button class="btn" data-act="hide">Hide</button>${g.store?'':'<button class="btn" data-act="show">Show file</button>'}${r&&r.exe&&!INFO.android?'<button class="btn" data-act="emu">Open emulator</button>':''}<button class="btn" data-act="art">Set artwork</button><button class="btn" data-act="match">Fix match</button>${r&&MODDIR[S.emus.find(e=>e.exe===r.exe)?.kind]?'<button class="btn" data-act="mods">Mods</button>':''}<button class="btn" data-act="lnk">Desktop shortcut</button><button class="btn" data-act="fav">${o.fav?'Unpin':'Pin to the front'}</button><button class="btn pri" data-act="play">Launch</button>`);
   const hide=async()=>{o.hide=true;save();await scan();closeModal();toast('Hidden. Bring it back from Settings > Library')};
   onChange=(k,v)=>{
     if(k==='sys'&&v==='unsorted')return;

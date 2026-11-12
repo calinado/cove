@@ -1,5 +1,5 @@
 {
-  "version": "1.1.13",
+  "version": "1.1.14",
   "repo": "calinado/cove",
-  "notes": "The Wheel layout is gone; anyone using it moves to Shelf."
+  "notes": "Rearranging: drag a cover beside another to move it (no edit mode needed); the covers part and a bar shows where it lands. Drop on the middle of a cover for a folder. Pinned games come first."
 }
