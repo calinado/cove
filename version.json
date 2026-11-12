@@ -1,5 +1,5 @@
 {
-  "version": "1.1.12",
+  "version": "1.1.13",
   "repo": "calinado/cove",
-  "notes": "Steam play time and last played now show in Cove, read from Steam on your PC (and from your Steam key for games not installed)."
+  "notes": "The Wheel layout is gone; anyone using it moves to Shelf."
 }

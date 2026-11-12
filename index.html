@@ -173,7 +173,7 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .v-list .new{display:none}
 .tile.playing .art{outline:3px solid var(--acc);outline-offset:-3px}
 .tile.playing{scale:1.16;margin:0 18px;z-index:1}
-.v-list .tile.playing,.v-wheel .tile.playing{scale:1;margin:0}
+.v-list .tile.playing{scale:1;margin:0}
 .fold .art{background:linear-gradient(145deg,rgba(var(--tint),.16),rgba(var(--tint),.05));box-shadow:inset 0 0 0 1px rgba(var(--tint),.16);display:grid;place-items:center}
 .mini{position:absolute;inset:9%;display:grid;grid-template:1fr 1fr/1fr 1fr;gap:6%}
 .mini i{border-radius:20%;background:center/cover rgba(var(--tint),.1);box-shadow:0 3px 10px rgba(0,0,0,.35)}
@@ -229,7 +229,7 @@ details.adv>summary:focus{outline:2px solid var(--acc);outline-offset:2px}
 .v-list #hero .info{padding:0 8px}
 .v-list #grid{display:flex;flex-direction:column;gap:8px}
 .v-list .tile{flex-direction:row;align-items:center;gap:16px;padding:8px 24px 8px 8px;border-radius:calc(var(--r)*.7)}
-.v-list .tile:hover,.v-wheel .tile:hover{transform:translateX(4px)}
+.v-list .tile:hover{transform:translateX(4px)}
 .v-list .tile:focus{transform:translateX(8px)}
 .v-list .tile:focus::after{inset:-5px;border-radius:calc(var(--r)*.7 + 5px)}
 .v-list .art{width:52px;border-radius:12px}
@@ -237,19 +237,6 @@ details.adv>summary:focus{outline:2px solid var(--acc);outline-offset:2px}
 .v-list .tile .name{flex:1;font-size:15px}
 .v-list .sec{margin:16px 8px 0}
 
-/* layout: Wheel (titles on a curved wheel, big cover beside). --d is each title's distance from the selected one. */
-.v-wheel .stage{flex-direction:row-reverse;gap:24px}
-.v-wheel main{flex:0 0 clamp(300px,34vw,540px);overflow-x:hidden;scrollbar-width:none;padding:38vh 24px 38vh 120px;mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent)}
-.v-wheel #grid{display:flex;flex-direction:column;gap:10px}
-.v-wheel .tile{flex-direction:row;align-items:center;padding:12px 24px;border-radius:999px;transform-origin:left center;animation:none;
-  transform:translateX(calc(var(--d,0)*var(--d,0)*-4px)) scale(calc(1 - var(--d,0)*.035));opacity:calc(1 - var(--d,0)*.11);transition:transform .35s var(--spring),opacity .3s}
-.v-wheel .tile .art,.v-wheel .tile .meta,.v-wheel .sec,.v-wheel .new{display:none}
-.v-wheel .tile .name{font-size:18px;font-weight:800;padding:0}
-.v-wheel .tile:focus{transform:translateX(16px) scale(1.12);opacity:1;background:var(--acc);color:var(--on);border-color:var(--acc)}
-.v-wheel .tile:focus::after{display:none}
-.v-wheel #hero{flex:1;flex-direction:column;justify-content:center;align-items:flex-start;gap:24px;padding:32px;margin:16px 0}
-.v-wheel #hero .cover{width:min(44vh,440px)}
-.v-wheel #hero h1{white-space:normal}
 
 /* bottom bar */
 footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:rise .5s .1s both}
@@ -389,7 +376,7 @@ code{font-family:var(--mono);font-size:12px;word-break:break-all;color:var(--dim
 /* clean pass: squared-off corners instead of pills, and boxes only where they hold something */
 :root{--rb:10px}
 #dock,#q,#clock,#now{background:none;border:0;box-shadow:none;backdrop-filter:none}
-#dock button,#q,#now,#toast,.btn,.run,#news button,#hints .gl.w,.v-wheel .tile,input[type=text],select{border-radius:var(--rb)}
+#dock button,#q,#now,#toast,.btn,.run,#news button,#hints .gl.w,input[type=text],select{border-radius:var(--rb)}
 .chip{border-radius:6px}
 #q{background:rgba(var(--tint),.07)}#q:focus{background:rgba(var(--tint),.12)}
 .btn{background:rgba(var(--tint),.07);border:1px solid transparent;box-shadow:none}
@@ -869,7 +856,7 @@ addEventListener('pagehide',()=>navigator.sendBeacon('/api/quit?t='+T));
 
 /* ---------- main view ---------- */
 const STYLES=[['frost','Frosted','Glass panels over soft light'],['art','Full art','The selected game fills the screen'],['flat','Flat','Solid colour, no glow']];
-const LAYOUTS=[['shelf','Shelf','One row of large covers'],['home','Home','Big card over two rows of icons'],['grid','Grid','Everything, grouped by system'],['list','List','Cover on the left, rows on the right'],['wheel','Wheel','Titles on a curved wheel, big cover beside']];
+const LAYOUTS=[['shelf','Shelf','One row of large covers'],['home','Home','Big card over two rows of icons'],['grid','Grid','Everything, grouped by system'],['list','List','Cover on the left, rows on the right']];
 const THEMES=[['frost','Frost','#CCFF00','#0b0d08'],['aurora','Aurora','#b9a2ff','#090818'],['joy','Joy','#ff4554','#0f0f13'],['midnight','Midnight','#ffd166','#050a1c'],['mint','Mint','#5eead4','#03110f'],['sunset','Sunset','#ffb347','#160910'],['mono','Mono','#ffffff','#111'],['neon','Arcade neon','#ff2bd6','#05010d'],['crt','CRT retro','#7cff6b','#060b06'],['dark','Console dark','#4da3ff','#0c0d10'],['basicb','Basic black','#19d3c5','#2d2d2d'],
   ['daylight','Daylight','#2563eb','#dde6f6'],['channel','Channel','#00a3e0','#eef4f8'],['pocket','Pocket','#f26b1d','#f5ede2'],['sakura','Sakura','#e2457f','#fbeaf1'],['paper','Paper light','#d9480f','#f4f1ea'],['basicw','Basic white','#0ab9e6','#ebebeb']];
 const LIGHT=['daylight','channel','pocket','sakura','paper','basicw'];
@@ -907,7 +894,6 @@ const mark=(id,label)=>ART['systems/'+id]?`<img class="lg" alt="${esc(label)}" s
 const LAYPIC={shelf:'<rect x="1" y="6" width="7" height="10" rx="1.5" opacity=".5"/><rect x="10" y="3" width="12" height="16" rx="2"/><rect x="24" y="6" width="7" height="10" rx="1.5" opacity=".5"/>',
   home:'<rect x="1" y="1" width="30" height="8" rx="2"/><rect x="1" y="11" width="6" height="4.5" rx="1"/><rect x="9" y="11" width="6" height="4.5" rx="1"/><rect x="17" y="11" width="6" height="4.5" rx="1"/><rect x="25" y="11" width="6" height="4.5" rx="1"/><rect x="1" y="16.5" width="6" height="4.5" rx="1"/><rect x="9" y="16.5" width="6" height="4.5" rx="1"/><rect x="17" y="16.5" width="6" height="4.5" rx="1"/><rect x="25" y="16.5" width="6" height="4.5" rx="1"/>',
   grid:'<rect x="1" y="1" width="8.5" height="9" rx="1.5"/><rect x="11.75" y="1" width="8.5" height="9" rx="1.5"/><rect x="22.5" y="1" width="8.5" height="9" rx="1.5"/><rect x="1" y="12" width="8.5" height="9" rx="1.5"/><rect x="11.75" y="12" width="8.5" height="9" rx="1.5"/><rect x="22.5" y="12" width="8.5" height="9" rx="1.5"/>',
-  wheel:'<rect x="7" y="1" width="9" height="3.5" rx="1.5" opacity=".5"/><rect x="3" y="6" width="11" height="3.5" rx="1.5" opacity=".75"/><rect x="1" y="11" width="13" height="4" rx="2"/><rect x="3" y="16.5" width="11" height="3.5" rx="1.5" opacity=".75"/><rect x="18" y="3" width="13" height="16" rx="2"/>',
   list:'<rect x="1" y="1" width="11" height="20" rx="2"/><rect x="14" y="1" width="17" height="5" rx="1.5"/><rect x="14" y="8.5" width="17" height="5" rx="1.5"/><rect x="14" y="16" width="17" height="5" rx="1.5"/>'};
 const ago=t=>{if(!t)return 'Never played';const d=Math.floor((Date.now()-t)/864e5);return 'Last played '+(d<1?'today':d<2?'yesterday':d+' days ago')};
 const played=x=>{const m=Math.round((x||0)/60);return m<1?'':m<60?m+' min':(m/60).toFixed(1)+' h'};
@@ -972,7 +958,6 @@ function render(keep){
   const t=focusId&&tiles().find(x=>x.dataset.id===focusId);
   (t||$('.tile'))?.focus({preventScroll:!!keep});
   if(!list.length)hero(null);
-  wheel();
 }
 const game=el=>GAMES.find(g=>g.id===el?.dataset?.id);
 const tiles=()=>[...document.querySelectorAll('.tile')];
@@ -1172,7 +1157,7 @@ for(const ev of ['pointerup','pointercancel'])addEventListener(ev,e=>{
   if(!t)return render(true);
   const g=game(d.t), o=game(t);
   if(!g){if(fById(t.dataset.f)){shift(S.folders,fById(d.t.dataset.f),fById(t.dataset.f));save();blip('ok')}return render(true)}   // a folder dragged onto a folder swaps their places
-  if(o&&EDIT){S.order=(S.order||[]).filter(i=>game({dataset:{id:i}})).concat(GAMES.map(x=>x.id).filter(i=>!(S.order||[]).includes(i)));const r=t.getBoundingClientRect(), after=/list|wheel/.test(S.ui.view)?e.clientY>r.top+r.height/2:e.clientX>r.left+r.width/2;   // which side of the cover it was let go on
+  if(o&&EDIT){S.order=(S.order||[]).filter(i=>game({dataset:{id:i}})).concat(GAMES.map(x=>x.id).filter(i=>!(S.order||[]).includes(i)));const r=t.getBoundingClientRect(), after=S.ui.view==='list'?e.clientY>r.top+r.height/2:e.clientX>r.left+r.width/2;   // which side of the cover it was let go on
     S.order.splice(S.order.indexOf(g.id),1);S.order.splice(S.order.indexOf(o.id)+(after?1:0),0,g.id);save();blip('ok');return render(true)}
   if(o){const made=!fById(gs(o.id).dir), f=made?newFolder('Untitled folder'):fById(gs(o.id).dir); gs(o.id).dir=gs(g.id).dir=f.id; save(); blip('ok'); render(true); return toast(made?'Folder made. Right-click it to name it':'Added to '+f.name)}
   if(t.dataset.f){gs(g.id).dir=t.dataset.f;toast('Added to '+fById(t.dataset.f).name)}else{delete gs(g.id).dir;toast('Taken out of the folder')}
@@ -1183,10 +1168,8 @@ document.addEventListener('contextmenu',e=>{
   $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${Math.min(e.clientX,innerWidth-340)}px;top:${Math.min(e.clientY,innerHeight-140)}px;transform-origin:top left"><div class="body list"><button class="item" data-act="new"><svg class="ic" style="color:var(--acc)" viewBox="0 0 24 24">${FLOOK.folder}</svg><b>Create new folder</b></button><button class="item" data-act="edit"><svg class="ic" style="color:var(--acc)" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/></svg><b>${EDIT?'Done arranging':'Edit home screen'}</b></button></div></div></div>`;
   focusables()[0].focus(); onChange=()=>{}; onAct=a=>{if(a==='edit'){$('#layer').innerHTML='';return edit(!EDIT)}const f=newFolder('Untitled folder');save();folderEdit(f)};
 });
-// Wheel layout: tell each title how far it is from the selected one, so the CSS can bend the list
-function wheel(){if(S.ui.view!=='wheel')return;const t=tiles(),i=t.indexOf(document.activeElement);t.forEach((x,n)=>x.style.setProperty('--d',i<0?0:Math.min(9,Math.abs(n-i))))}
 let heroT;
-$('#grid').addEventListener('focusin',e=>{wheel();clearTimeout(heroT);heroT=setTimeout(()=>hero(game(e.target)),70)});   // settle before redrawing, so fast scrolling stays light
+$('#grid').addEventListener('focusin',e=>{clearTimeout(heroT);heroT=setTimeout(()=>hero(game(e.target)),70)});   // settle before redrawing, so fast scrolling stays light
 $('#grid').addEventListener('mousemove',e=>{const t=e.target.closest('.tile');if(t&&t!==document.activeElement&&!$('#layer').children.length){t.focus({preventScroll:true});blip('move')}});
 $('#dock').addEventListener('click',e=>{const b=e.target.closest('button');if(b){tab=b.dataset.tab;INF=null;render();blip('tab')}});
 $('#quick').addEventListener('click',async e=>{
@@ -1328,6 +1311,7 @@ let woke=false;
 for(const ev of ['pointerdown','keydown'])addEventListener(ev,()=>{if(!S?.ui.sound)return;try{audio()}catch{};if(!woke){woke=true;blip('boot')}},true);
 let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),3800)}
 function look(){
+  if(S.ui.view==='wheel')S.ui.view='shelf';   // the Wheel layout was removed
   const u=S.ui, d=document.documentElement;
   d.dataset.theme=u.theme; d.style.setProperty('--tile',u.size+'px'); d.style.setProperty('--r',{soft:'26px',round:'40px',sharp:'8px'}[u.corners]||'26px');
   CV.forEach(v=>d.style.removeProperty(v));
