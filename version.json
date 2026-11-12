@@ -1,5 +1,5 @@
 {
-  "version": "1.1.5",
+  "version": "1.1.6",
   "repo": "calinado/cove",
-  "notes": "Discord works for everyone with one switch: no Application ID or key needed."
+  "notes": "Steam, Epic and GOG games no longer show \"Game file is missing\" on the preview card."
 }

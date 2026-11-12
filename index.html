@@ -1100,13 +1100,13 @@ async function preview(g){
   if(g.sys==='unsorted'){toast('Pick which system this one is for');return details(g)}
   const o=gs(g.id), s=sysOf(g.sys), r=resolve(g), fits=S.emus.filter(e=>emuSys(e).includes(g.sys)), emu=r&&S.emus.find(e=>e.exe===r.exe);
   const side=['.sav','.srm','.dsv'].map(x=>g.path.replace(/\.[^.\\/]+$/,x)), data=emu?await dataDir(emu):'';
-  let ok=[]; try{ok=(await api('exists',{paths:[g.folder||g.path,r?r.exe:'',data].concat(side)})).r}catch{}
+  let ok=[]; try{ok=(await api('exists',{paths:[g.store?g.home:g.folder||g.path,r?r.exe:'',data].concat(side)})).r}catch{}
   const sav=side.find((p,i)=>ok[3+i]), line=(cls,t,sub)=>`<div class="chk"><i class="${cls}"></i><span>${t}${sub?`<small class="dim">${esc(sub)}</small>`:''}</span></div>`;
   modal('',`${S.wide[artKey(g)]?`<div class="pvbg" style="background-image:url('${esc(S.wide[artKey(g)])}')"></div>`:''}<div class="pv"><div class="cover" ${cover(g)}</div><div style="min-width:0;flex:1">
       <span class="chip" style="--h:${hue(g.sys)}">${esc(s.name)}</span>${S.meta[artKey(g)]?.y?` <span class="chip yr">${S.meta[artKey(g)].y}</span>`:''}<h1>${esc(g.title)}</h1>
       ${S.meta[artKey(g)]?.d?`<p class="dim" style="margin:-8px 0 12px">${esc(S.meta[artKey(g)].d)}</p>`:''}
       ${NOW&&NOW.id===g.id?line('warn','Already running','Starting it again opens a second copy'):''}
-      ${line(ok[0]?'':'bad',ok[0]?'Game file found':'Game file is missing',g.folder||g.path)}
+      ${g.owned?line('warn','Not installed','Starting it opens Steam to install it'):g.store?line(ok[0]?'':'bad',ok[0]?'Installed, opens in '+esc(s.name):'Install folder not found',g.home):line(ok[0]?'':'bad',ok[0]?'Game file found':'Game file is missing',g.folder||g.path)}
       ${plain(g)?'':r?line(ok[1]?'':'bad',ok[1]?'Opens in '+esc(r.name):esc(r.name)+' could not be found',r.exe):line('bad','No emulator set up for '+esc(s.name),'Add one in Settings')}
       ${plain(g)?'':sav?line('','Save file found',file(sav)):data&&ok[2]?line('','Save data found',data):line('warn','No save data yet','A new save is created the first time you play')}
       ${line(o.last?'':'warn',o.last?esc(ago(o.last)+(played(o.time)?' · played '+played(o.time):'')):'Never played')}
