@@ -536,8 +536,8 @@ async function coreMarks(){   // fills in which cores are downloaded on the Emul
   const have=(await api('exists',{paths:b.map(x=>coreDll(ra,coreFor(x.dataset.arg)))})).r;
   b.forEach((x,i)=>{x.textContent=have[i]?'Remove':'Get';x.dataset.have=have[i]?1:'';x.previousElementSibling.textContent=have[i]?'Downloaded':'Not downloaded'});
 }
-const DISCORD_APP='';                                    // Cove's own Discord Application ID; when set, Discord is one button for everyone
-const did=()=>S.discord.id||DISCORD_APP;                                              // bump with server.ps1's info.v when the helper changes
+const DISCORD_APP='1569984473385148432';                                    // Cove's own Discord Application ID; when set, Discord is one button for everyone
+const did=()=>/^\d{17,20}$/.test(S.discord.id||'')?S.discord.id:DISCORD_APP;   // a pasted key, token or secret is not an ID: fall back to Cove's own                                              // bump with server.ps1's info.v when the helper changes
 const SW=['.nsp','.xci','.nsz','.xcz','.nup'];            // Switch-family files: told apart by "Switch 2"/"NX2" in the path
 const NOISY=['.zip','.7z','.bin','.exe','.bat','.lnk','.url','.img','.m3u','.dol','.nca','.nro','.ccd','.mds','.md','.wad'];  // only count inside a folder named after a system
 const UNSORTED={id:'unsorted',name:'Unsorted',label:'Unsorted',auto:[],exts:[],lr:''};

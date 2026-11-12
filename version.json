@@ -1,5 +1,5 @@
 {
-  "version": "1.1.4",
+  "version": "1.1.5",
   "repo": "calinado/cove",
-  "notes": "Epic games launch now. Optional Steam key lists the Steam games you own but have not installed. Players can have a profile picture."
+  "notes": "Discord works for everyone with one switch: no Application ID or key needed."
 }
