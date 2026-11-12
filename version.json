@@ -1,5 +1,5 @@
 {
-  "version": "1.1.15",
+  "version": "1.1.16",
   "repo": "calinado/cove",
-  "notes": "Discord: Settings shows whether it is connected and why not, and the Application ID can be changed or cleared again."
+  "notes": "Taskbar: Cove gets a Start menu entry and its shortcuts carry its own taskbar identity, so pinning keeps the Cove icon."
 }

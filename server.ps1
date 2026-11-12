@@ -50,7 +50,17 @@ using System; using System.Text; using System.Runtime.InteropServices;
 [StructLayout(LayoutKind.Explicit, Size = 24)] public struct CovePV { [FieldOffset(0)] public ushort vt; [FieldOffset(8)] public IntPtr p; }
 [ComImport, Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 public interface ICoveProps { int GetCount(out uint c); int GetAt(uint i, out CovePK k); int GetValue(ref CovePK k, out CovePV v); int SetValue(ref CovePK k, ref CovePV v); int Commit(); }
+[ComImport, Guid("00021401-0000-0000-C000-000000000046")] public class CoveShellLink {}
 public static class CoveWin {
+  // Stamps a shortcut with Cove's taskbar ID, so the shortcut, a pin made from it and Cove's window are all one taskbar button
+  public static void LinkId(string lnk, string id) {
+    object o = new CoveShellLink();
+    System.Runtime.InteropServices.ComTypes.IPersistFile pf = (System.Runtime.InteropServices.ComTypes.IPersistFile)o; pf.Load(lnk, 2);
+    ICoveProps ps = (ICoveProps)o;
+    CovePK k = new CovePK(); k.f = new Guid("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3"); k.p = 5;
+    CovePV v = new CovePV(); v.vt = 31; v.p = Marshal.StringToCoTaskMemUni(id);
+    ps.SetValue(ref k, ref v); Marshal.FreeCoTaskMem(v.p); ps.Commit(); pf.Save(lnk, true); Marshal.ReleaseComObject(o);
+  }
   [DllImport("shell32.dll")] static extern int SHGetPropertyStoreForWindow(IntPtr h, ref Guid iid, [MarshalAs(UnmanagedType.Interface)] out ICoveProps ps);
   // Gives Cove's window its own taskbar identity, so pinning it pins Cove (its name, icon and how to start it) and not Edge
   public static void Tag(IntPtr h, string id, string cmd, string icon, string name) {
@@ -188,6 +198,20 @@ function Pick($kind) {
   } finally { $owner.Close() }
   return ''
 }
+function Cove-Link($path) {
+  $sh = New-Object -ComObject WScript.Shell; $lnk = $sh.CreateShortcut($path)
+  $lnk.TargetPath = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+  $lnk.Arguments = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + (Join-Path $App 'server.ps1') + '"'
+  $lnk.WorkingDirectory = $App; $lnk.IconLocation = (Join-Path $App 'cove.ico'); $lnk.WindowStyle = 7; $lnk.Save()
+  if ($HasWin) { try { [CoveWin]::LinkId($path, 'CALINADO.Cove') } catch {} }
+}
+function Tag-Cove {   # gives Cove's window its own taskbar identity; repeated because Edge can put its own back
+  if (-not $HasWin) { return }
+  try {
+    $h = [CoveWin]::Find()
+    if ($h -ne [IntPtr]::Zero) { [CoveWin]::Tag($h, 'CALINADO.Cove', ('"' + $env:SystemRoot + '\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + (Join-Path $App 'server.ps1') + '"'), ((Join-Path $App 'cove.ico') + ',0'), 'Cove') }
+  } catch {}
+}
 function Sweep {
   $exited = $false
   foreach ($r in @($running)) {
@@ -288,10 +312,9 @@ function Handle($ctx) {
   switch ($path) {
     '/api/info' {
       $ver = Get-Ver
-      if ($HasWin) { try {   # pinning Cove's window to the taskbar should pin Cove, not Edge
-        $h = [CoveWin]::Find()
-        if ($h -ne [IntPtr]::Zero) { [CoveWin]::Tag($h, 'CALINADO.Cove', ('"' + $env:SystemRoot + '\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + (Join-Path $App 'server.ps1') + '"'), ((Join-Path $App 'cove.ico') + ',0'), 'Cove') }
-      } catch {} }
+      Tag-Cove
+      $sm = Join-Path ([Environment]::GetFolderPath('Programs')) 'Cove.lnk'   # a Start menu entry: Windows ties the taskbar button to it
+      if (-not (Test-Path -LiteralPath $sm)) { try { Cove-Link $sm } catch {} }
       # RetroArch reads this on top of its own settings when Cove starts a game: Start + Select on the controller opens its menu
       $ra = Join-Path $Data 'retroarch-cove.cfg'
       # rewritten each start so every copy gets the current lines: sound on, not muted, through the driver that follows Windows' default speakers
@@ -299,7 +322,7 @@ function Handle($ctx) {
       Json $res @{ v = 13; version = [string]$ver.version; repo = [string]$ver.repo; sep = [string][IO.Path]::DirectorySeparatorChar; app = $App; appdata = $env:APPDATA; local = $env:LOCALAPPDATA
         docs = [Environment]::GetFolderPath('MyDocuments'); desktop = [Environment]::GetFolderPath('Desktop') }
     }
-    '/api/ping' { Sweep; $d = @($done); $done.Clear(); Json $res @{ done = $d; running = $running.Count; ids = @($running | ForEach-Object { $_.id }) } }
+    '/api/ping' { Sweep; Tag-Cove; $d = @($done); $done.Clear(); Json $res @{ done = $d; running = $running.Count; ids = @($running | ForEach-Object { $_.id }) } }
     '/api/quit' { $script:quitAt = (Get-Date).AddSeconds(8); Json $res @{ ok = $true } }
     '/api/exists' { Json $res @{ r = @($j.paths | ForEach-Object { [bool]($_ -and (Test-Path -LiteralPath $_)) }) } }
     '/api/mkdir' { foreach ($p in $j.paths) { [void](New-Item -ItemType Directory -Force -Path $p) }; Json $res @{ ok = $true } }
@@ -521,17 +544,12 @@ function Handle($ctx) {
     }
     '/api/open' { Start-Process 'explorer.exe' ('"' + $j.path + '"'); Json $res @{ ok = $true } }
     '/api/shortcut' {
-      $sh = New-Object -ComObject WScript.Shell
       $name = ($j.name -replace '[\\/:*?"<>|]', '_')
-      $lnk = $sh.CreateShortcut((Join-Path ([Environment]::GetFolderPath('Desktop')) "$name.lnk"))
+      $path = Join-Path ([Environment]::GetFolderPath('Desktop')) "$name.lnk"
       if ($j.exe) {   # straight to a game: emulator + arguments
-        $lnk.TargetPath = $j.exe; $lnk.Arguments = [string]$j.args; $lnk.WorkingDirectory = [string]$j.cwd
-      } else {        # the launcher itself
-        $lnk.TargetPath = 'powershell.exe'
-        $lnk.Arguments = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + (Join-Path $App 'server.ps1') + '"'
-        $lnk.WorkingDirectory = $App; $lnk.IconLocation = (Join-Path $App 'cove.ico'); $lnk.WindowStyle = 7
-      }
-      $lnk.Save()
+        $sh = New-Object -ComObject WScript.Shell; $lnk = $sh.CreateShortcut($path)
+        $lnk.TargetPath = $j.exe; $lnk.Arguments = [string]$j.args; $lnk.WorkingDirectory = [string]$j.cwd; $lnk.Save()
+      } else { Cove-Link $path }   # the launcher itself
       Json $res @{ ok = $true }
     }
     '/api/pack' {   # zip the app (no games, no personal paths) plus the look/custom-system preset
