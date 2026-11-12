@@ -386,6 +386,26 @@ code{font-family:var(--mono);font-size:12px;word-break:break-all;color:var(--dim
 #layer :is(button,select,input):focus{outline:2px solid var(--acc);outline-offset:2px}
 #toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%) translateY(10px);z-index:70;opacity:0;transition:opacity .2s,transform .3s var(--spring);pointer-events:none;border-radius:999px;padding:10px 20px;font-weight:600}
 #toast.on{opacity:1;transform:translateX(-50%)}
+/* clean pass: squared-off corners instead of pills, and boxes only where they hold something */
+:root{--rb:10px}
+#dock,#q,#clock,#now{background:none;border:0;box-shadow:none;backdrop-filter:none}
+#dock button,#q,#now,#toast,.btn,.run,#news button,#hints .gl.w,.v-wheel .tile,input[type=text],select{border-radius:var(--rb)}
+.chip{border-radius:6px}
+#q{background:rgba(var(--tint),.07)}#q:focus{background:rgba(var(--tint),.12)}
+.btn{background:rgba(var(--tint),.07);border:1px solid transparent;box-shadow:none}
+.btn:hover,.btn:focus-visible{background:rgba(var(--tint),.14);border-color:transparent;transform:none}
+.btn:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.btn.pri,.tabs .btn.on{box-shadow:none}.btn.pri:hover{background:var(--acc)}
+.tabs .btn:not(.on){background:none}
+.btn.bad{background:none}
+#quick button{background:none;border:0;box-shadow:none;border-radius:var(--rb)}
+#quick button:hover,#quick button:focus{background:rgba(var(--tint),.1)}
+input[type=text],select{border-color:transparent}
+.modal{border-radius:22px}.modal .foot{border-top:0}
+.card{border:0;box-shadow:none;border-radius:14px;background:rgba(var(--tint),.04)}
+#news button{background:none;border:0;box-shadow:none;backdrop-filter:none}#news button:hover,#news button:focus{background:rgba(var(--tint),.08)}
+.v-list #hero .cover{width:auto;max-width:100%;height:min(46vh,420px);align-self:center}
+.v-list .run{display:none}
 </style>
 
 </head>

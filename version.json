@@ -1,5 +1,5 @@
 {
-  "version": "1.1.1",
+  "version": "1.1.2",
   "repo": "calinado/cove",
-  "notes": "Steam, Epic and GOG games in your library. Custom themes with your own colours and Google Fonts. Surprise me now includes games in folders."
+  "notes": "Cleaner look: squared-off corners instead of pills, and the boxes around the top bar, search, clock, bottom buttons and secondary buttons are gone."
 }
