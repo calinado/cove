@@ -1,5 +1,5 @@
 {
-  "version": "1.1.2",
+  "version": "1.1.3",
   "repo": "calinado/cove",
-  "notes": "Cleaner look: squared-off corners instead of pills, and the boxes around the top bar, search, clock, bottom buttons and secondary buttons are gone."
+  "notes": "Fix: Steam artwork now shows, and scraped or hand-picked art for Steam, Epic and GOG games is used."
 }

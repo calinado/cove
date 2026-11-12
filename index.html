@@ -658,7 +658,7 @@ async function scan(){
   }
   if(!INFO.android&&S.stores!==false)try{   // games installed through Steam, Epic and GOG, started through their own launcher
     for(const x of (await api('stores',{})).games){
-      const id='store:'+x.store+':'+x.id, o=S.games[id]||{}, g={id,sys:x.store,store:x.store,path:x.uri,home:x.dir,base:x.name,title:o.title||x.name,img:x.store==='steam'?`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.id}/library_600x900_2x.jpg`:''};
+      const id='store:'+x.store+':'+x.id, o=S.games[id]||{}, g={id,sys:x.store,store:x.store,path:x.uri,home:x.dir,base:x.name.replace(/[™®©]/g,'').trim(),title:o.title||x.name.replace(/[™®©]/g,'').trim(),img:x.store==='steam'?`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.id}/library_600x900_2x.jpg`:''};
       if(x.store==='steam'&&!S.wide[artKey(g)])S.wide[artKey(g)]=`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.id}/library_hero.jpg`;
       (o.hide?HIDDEN:GAMES).push(g);
     }
@@ -672,10 +672,11 @@ async function scan(){
 const artKey=g=>g.sys+'|'+g.title.toLowerCase();
 const LRFAIL=new Set();
 function artUrl(g){
-  const custom=gs(g.id).art||ART[g.sys+'/'+g.base]||ESDE[g.sys+'/'+g.base]||g.img;
+  const custom=gs(g.id).art||ART[g.sys+'/'+g.base]||ESDE[g.sys+'/'+g.base];
   if(custom)return '/file?t='+T+'&p='+encodeURIComponent(custom);
   const k=artKey(g), lr=!S.scrape.off.libretro&&sysOf(g.sys).lr, b=lr&&lrBase(g), box=b&&!LRFAIL.has(k);
   if(S.art[k]&&!(box&&b!==g.base&&/wiki[mp]edia/.test(S.art[k])))return S.art[k];   // a hack's borrowed box beats the Wikipedia picture found earlier
+  if(g.img)return g.img;   // a store's own art (Steam); anything scraped or picked by hand comes first
   return box&&S.art[k]!==0?`https://thumbnails.libretro.com/${encodeURIComponent(lr)}/Named_Boxarts/${encodeURIComponent(b.replace(/[&*/:`<>?\\|"]/g,'_'))}.png`:'';
 }
 // cover lookup by name on Wikipedia (no key needed); the answer is remembered, including "nothing found"
