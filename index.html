@@ -662,14 +662,14 @@ async function scan(){
     }
   }
   if(!INFO.android&&S.stores!==false)try{   // games installed through Steam, Epic and GOG, started through their own launcher
-    const st=await api('stores',{}); STEAM={libs:st.libs||[],sid:st.steamid,n:st.games.filter(x=>x.store==='steam').length,owned:''};
+    const st=await api('stores',{}); STEAM={libs:st.libs||[],sid:S.steamid||st.steamid,accts:st.accounts||[],n:st.games.filter(x=>x.store==='steam').length,owned:''};
     for(const x of st.games){
       if(!x.name)continue; x.name=String(x.name);   // one odd entry must not stop the rest from loading
       const id='store:'+x.store+':'+x.id, o=S.games[id]||{}, g={id,sys:x.store,store:x.store,path:x.uri,home:x.dir,base:x.name.replace(/[™®©]/g,'').trim(),title:o.title||x.name.replace(/[™®©]/g,'').trim(),img:x.store==='steam'?`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.id}/library_600x900_2x.jpg`:''};
       if(x.store==='steam'&&!S.wide[artKey(g)])S.wide[artKey(g)]=`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.id}/library_hero.jpg`;
       (o.hide?HIDDEN:GAMES).push(g);
     }
-    const key=S.scrape.keys.steamweb, sid=st.steamid;
+    const key=S.scrape.keys.steamweb, sid=STEAM.sid;   // the account picked in Settings, else the one signed in most recently
     if(key&&sid){   // with a Steam key, games you own but have not installed are listed too; starting one opens Steam's install window
       const have=new Set(GAMES.concat(HIDDEN).filter(g=>g.store==='steam').map(g=>g.id));
       STEAM.owned='Steam did not answer. Check the key';
@@ -1592,6 +1592,7 @@ async function settings(t='lib'){
     <h3>Other launchers</h3>
     <div class="row"><input type="checkbox" data-set="stores" ${S.stores===false?'':'checked'}><b>Steam, Epic and GOG games</b><small>Installed games show up on their own tabs and start through their launcher. For anything else (Battle.net, EA, Ubisoft, itch), put its desktop shortcuts in one of your game folders and they appear under PC.</small></div>
     ${S.stores===false?'':`<div class="row"><label>Steam key</label><input class="w" type="password" data-set="steamweb" value="${esc(S.scrape.keys.steamweb||'')}" placeholder="optional: also list games you own but have not installed"><button class="btn" data-act="keysite" data-arg="https://steamcommunity.com/dev/apikey">Get a key</button></div><small>Steam only keeps a list of installed games on your PC. A free Steam Web API key lets Cove list the rest of your library. For the domain it asks for, anything works, for example localhost.</small>
+    ${STEAM&&STEAM.accts.length>1?`<div class="row"><label>Steam account</label><select data-set="steamid">${STEAM.accts.map(a=>opt(a.id,a.name||a.id,STEAM.sid)).join('')}</select><small>More than one account has signed in to Steam on this PC. Pick yours.</small></div>`:''}
     ${STEAM?`<small class="dim" style="display:block;margin-top:6px">Found ${STEAM.n} installed Steam game${STEAM.n===1?'':'s'} in ${STEAM.libs.length?STEAM.libs.map(esc).join(', '):'no Steam library (Steam was not found)'}. ${S.scrape.keys.steamweb?(STEAM.sid?esc(STEAM.owned||''):'Could not tell which Steam account is signed in.'):''}</small>`:''}`}
     <div class="row"><input type="checkbox" data-set="src" data-arg="libretro" ${S.scrape.off.libretro?'':'checked'}><b>Box art scans</b><small>Real box scans for cartridge and disc systems.</small></div>
     <div class="row"><label>Pictures from</label><select data-set="only">${opt('','Best available',S.scrape.only||'')}${Object.keys(SRC).filter(id=>SRC[id].ready()).map(id=>opt(id,'Only '+SRC[id].name,S.scrape.only||'')).join('')}</select><small>Choose one, then "Scrape everything again". Matches you fixed by hand are kept.</small></div>
@@ -1702,6 +1703,7 @@ async function settings(t='lib'){
     if(k==='def'){S.defaults[arg]=v;save();return}
     if(k==='only'){S.scrape.only=v;save();return}
     if(k==='core'){(S.cores=S.cores||{})[arg]=v;save();return coreMarks()}
+    if(k==='steamid'){S.steamid=v;save();return scan().then(()=>{render(true);again()})}
     if(k==='steamweb'){S.scrape.keys.steamweb=v.trim();save();return scan().then(()=>{render(true);again();toast(GAMES.filter(g=>g.owned).length+' more Steam games listed')})}
     if(k==='stores'){S.stores=v;save();return scan().then(()=>{render(true);again()})}
     if(k==='src'){v?delete S.scrape.off[arg]:S.scrape.off[arg]=1;save();return again()}

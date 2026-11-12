@@ -378,7 +378,7 @@ function Handle($ctx) {
         $libs = @([IO.Path]::GetFullPath($sp)); $vdf = Join-Path $sp 'steamapps\libraryfolders.vdf'
         if (Test-Path -LiteralPath $vdf) { $libs += @([regex]::Matches([IO.File]::ReadAllText($vdf), '"path"\s+"([^"]+)"') | ForEach-Object { [IO.Path]::GetFullPath(($_.Groups[1].Value -replace '\\\\', '\')) } | Where-Object { $libs -notcontains $_ }) }
         foreach ($l in $libs) {
-          $ms = @(Get-ChildItem -LiteralPath (Join-Path $l 'steamapps') -Filter 'appmanifest_*.acf' -ErrorAction SilentlyContinue)
+          $ms = @(); try { $ms = @(Get-ChildItem -LiteralPath (Join-Path $l 'steamapps') -Filter 'appmanifest_*.acf' -ErrorAction Stop) } catch { $log += 'Library ' + $l + ': skipped, ' + $_.Exception.Message; continue }   # a library on a drive that is unplugged right now
           $log += 'Library ' + $l + ': ' + $ms.Count + ' manifests'
           foreach ($m in $ms) {
             try {   # one unreadable manifest must not stop the rest
@@ -404,7 +404,8 @@ function Handle($ctx) {
       $sid = ''
       try { $lu = [IO.File]::ReadAllText((Join-Path $sp 'config\loginusers.vdf')); $m = [regex]::Match($lu, '(?i)"(\d{17})"\s*\{[^}]*"MostRecent"\s+"1"'); if (-not $m.Success) { $m = [regex]::Match($lu, '"(\d{17})"') }; if ($m.Success) { $sid = $m.Groups[1].Value } } catch {}   # the signed-in Steam account, for listing games not installed
       try { [IO.File]::WriteAllLines((Join-Path $Data 'stores-scan.txt'), [string[]](@('Steam: ' + $sp, 'vdf: ' + $vdf + ' found=' + (Test-Path -LiteralPath ([string]$vdf))) + $log + @('Account: ' + $sid, 'Games:') + @($out | ForEach-Object { '  [' + $_.store + '] ' + $_.id + ' ' + $_.name }))) } catch {}   # what the last scan found, for troubleshooting
-      Json $res @{ games = @($out); steamid = $sid; libs = @($libs | ForEach-Object { [string]$_ }) }
+      $accts = @(); try { foreach ($u in [regex]::Matches($lu, '"(\d{17})"\s*\{([^}]*)\}')) { $accts += @{ id = $u.Groups[1].Value; name = [regex]::Match($u.Groups[2].Value, '(?i)"PersonaName"\s+"([^"]*)"').Groups[1].Value } } } catch {}
+      Json $res @{ games = @($out); steamid = $sid; accounts = @($accts); libs = @($libs | ForEach-Object { [string]$_ }) }
     }
     '/api/discord' {
       Discord-Set ([string]$j.clientId) $j.activity
