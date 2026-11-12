@@ -1,5 +1,5 @@
 {
-  "version": "1.1.8",
+  "version": "1.1.9",
   "repo": "calinado/cove",
-  "notes": "If Cove ever gets stuck in the background, opening it again now replaces the stuck copy. Updates give up on a stalled download instead of freezing. Includes 1.1.7: sturdier Steam detection with a status line, and the Windows file dialog opens in front."
+  "notes": "Steam: one unreadable game no longer stops the rest of your library from loading. Cove writes what it found to data\\stores-scan.txt."
 }

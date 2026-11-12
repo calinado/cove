@@ -350,21 +350,25 @@ function Handle($ctx) {
       Json $res @{ ok = $true }
     }
     '/api/stores' {   # installed games from Steam, Epic and GOG: name, how to start it, and its install folder
-      $out = New-Object System.Collections.ArrayList; $seen = @{}
+      $out = New-Object System.Collections.ArrayList; $seen = @{}; $log = @()
       try {
         $sp = (Get-ItemProperty 'HKCU:\Software\Valve\Steam' -ErrorAction Stop).SteamPath
         $libs = @([IO.Path]::GetFullPath($sp)); $vdf = Join-Path $sp 'steamapps\libraryfolders.vdf'
         if (Test-Path -LiteralPath $vdf) { $libs += @([regex]::Matches([IO.File]::ReadAllText($vdf), '"path"\s+"([^"]+)"') | ForEach-Object { [IO.Path]::GetFullPath(($_.Groups[1].Value -replace '\\\\', '\')) } | Where-Object { $libs -notcontains $_ }) }
         foreach ($l in $libs) {
-          foreach ($m in @(Get-ChildItem -LiteralPath (Join-Path $l 'steamapps') -Filter 'appmanifest_*.acf' -ErrorAction SilentlyContinue)) {
-            $t = [IO.File]::ReadAllText($m.FullName); $f = @{}
-            foreach ($k in 'appid', 'name', 'installdir') { $f[$k] = [regex]::Match($t, '"' + $k + '"\s+"([^"]*)"').Groups[1].Value }
-            if (-not $f.appid -or $seen['s' + $f.appid] -or $f.name -match 'Redistributable|Proton|Steam Linux Runtime|Steamworks|SteamVR') { continue }
-            $seen['s' + $f.appid] = 1
-            [void]$out.Add(@{ store = 'steam'; id = $f.appid; name = $f.name; uri = 'steam://rungameid/' + $f.appid; dir = [IO.Path]::GetFullPath((Join-Path $l ('steamapps\common\' + $f.installdir))) })
+          $ms = @(Get-ChildItem -LiteralPath (Join-Path $l 'steamapps') -Filter 'appmanifest_*.acf' -ErrorAction SilentlyContinue)
+          $log += 'Library ' + $l + ': ' + $ms.Count + ' manifests'
+          foreach ($m in $ms) {
+            try {   # one unreadable manifest must not stop the rest
+              $t = [IO.File]::ReadAllText($m.FullName); $f = @{}
+              foreach ($k in 'appid', 'name', 'installdir') { $f[$k] = [regex]::Match($t, '"' + $k + '"\s+"([^"]*)"').Groups[1].Value }
+              if (-not $f.appid -or $seen['s' + $f.appid] -or $f.name -match 'Redistributable|Proton|Steam Linux Runtime|Steamworks|SteamVR') { continue }
+              $seen['s' + $f.appid] = 1
+              [void]$out.Add(@{ store = 'steam'; id = $f.appid; name = $f.name; uri = 'steam://rungameid/' + $f.appid; dir = (Join-Path $l ('steamapps\common\' + $f.installdir)) })
+            } catch { $log += '  could not read ' + $m.Name + ': ' + $_.Exception.Message }
           }
         }
-      } catch {}
+      } catch { $log += 'Steam scan stopped: ' + $_.Exception.Message }
       foreach ($m in @(Get-ChildItem -LiteralPath (Join-Path $env:ProgramData 'Epic\EpicGamesLauncher\Data\Manifests') -Filter '*.item' -ErrorAction SilentlyContinue)) {
         try { $e = [IO.File]::ReadAllText($m.FullName) | ConvertFrom-Json } catch { continue }
         if ($e.AppCategories -and -not ($e.AppCategories -contains 'games')) { continue }   # skips Unreal Engine and other tools
@@ -377,6 +381,7 @@ function Handle($ctx) {
       }
       $sid = ''
       try { $lu = [IO.File]::ReadAllText((Join-Path $sp 'config\loginusers.vdf')); $m = [regex]::Match($lu, '(?i)"(\d{17})"\s*\{[^}]*"MostRecent"\s+"1"'); if (-not $m.Success) { $m = [regex]::Match($lu, '"(\d{17})"') }; if ($m.Success) { $sid = $m.Groups[1].Value } } catch {}   # the signed-in Steam account, for listing games not installed
+      try { [IO.File]::WriteAllLines((Join-Path $Data 'stores-scan.txt'), [string[]](@('Steam: ' + $sp, 'vdf: ' + $vdf + ' found=' + (Test-Path -LiteralPath ([string]$vdf))) + $log + @('Account: ' + $sid, 'Games:') + @($out | ForEach-Object { '  [' + $_.store + '] ' + $_.id + ' ' + $_.name }))) } catch {}   # what the last scan found, for troubleshooting
       Json $res @{ games = @($out); steamid = $sid; libs = @($libs | ForEach-Object { [string]$_ }) }
     }
     '/api/discord' {
