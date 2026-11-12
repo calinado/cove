@@ -143,8 +143,9 @@ function Walk($dir, [int]$depth, $exts, $out, [int]$rootLen) {
 function Pick($kind) {
   if ($env:COVE_PICK) { return $env:COVE_PICK }   # test hook
   Add-Type -AssemblyName System.Windows.Forms
-  $owner = New-Object System.Windows.Forms.Form -Property @{ TopMost = $true; ShowInTaskbar = $false; Opacity = 0 }
+  $owner = New-Object System.Windows.Forms.Form -Property @{ TopMost = $true; ShowInTaskbar = $false; Opacity = 0; StartPosition = 'CenterScreen' }
   $owner.Show()
+  if ($HasWin) { [CoveWin]::Front($owner.Handle) }   # the helper runs hidden, so Windows would otherwise open the dialog behind Cove
   try {
     if ($kind -eq 'folder') {
       $d = New-Object System.Windows.Forms.FolderBrowserDialog
@@ -342,8 +343,8 @@ function Handle($ctx) {
       $out = New-Object System.Collections.ArrayList; $seen = @{}
       try {
         $sp = (Get-ItemProperty 'HKCU:\Software\Valve\Steam' -ErrorAction Stop).SteamPath
-        $libs = @($sp); $vdf = Join-Path $sp 'steamapps\libraryfolders.vdf'
-        if (Test-Path -LiteralPath $vdf) { $libs += @([regex]::Matches([IO.File]::ReadAllText($vdf), '"path"\s+"([^"]+)"') | ForEach-Object { $_.Groups[1].Value -replace '\\\\', '\' }) }
+        $libs = @([IO.Path]::GetFullPath($sp)); $vdf = Join-Path $sp 'steamapps\libraryfolders.vdf'
+        if (Test-Path -LiteralPath $vdf) { $libs += @([regex]::Matches([IO.File]::ReadAllText($vdf), '"path"\s+"([^"]+)"') | ForEach-Object { [IO.Path]::GetFullPath(($_.Groups[1].Value -replace '\\\\', '\')) } | Where-Object { $libs -notcontains $_ }) }
         foreach ($l in $libs) {
           foreach ($m in @(Get-ChildItem -LiteralPath (Join-Path $l 'steamapps') -Filter 'appmanifest_*.acf' -ErrorAction SilentlyContinue)) {
             $t = [IO.File]::ReadAllText($m.FullName); $f = @{}
@@ -365,8 +366,8 @@ function Handle($ctx) {
         [void]$out.Add(@{ store = 'gog'; id = [string]$g.gameID; name = $g.gameName; uri = $g.exe; dir = [string]$g.path })
       }
       $sid = ''
-      try { $lu = [IO.File]::ReadAllText((Join-Path $sp 'config\loginusers.vdf')); $m = [regex]::Match($lu, '"(\d{17})"\s*\{[^}]*"MostRecent"\s+"1"'); if ($m.Success) { $sid = $m.Groups[1].Value } } catch {}   # the signed-in Steam account, for listing games not installed
-      Json $res @{ games = @($out); steamid = $sid }
+      try { $lu = [IO.File]::ReadAllText((Join-Path $sp 'config\loginusers.vdf')); $m = [regex]::Match($lu, '(?i)"(\d{17})"\s*\{[^}]*"MostRecent"\s+"1"'); if (-not $m.Success) { $m = [regex]::Match($lu, '"(\d{17})"') }; if ($m.Success) { $sid = $m.Groups[1].Value } } catch {}   # the signed-in Steam account, for listing games not installed
+      Json $res @{ games = @($out); steamid = $sid; libs = @($libs | ForEach-Object { [string]$_ }) }
     }
     '/api/discord' {
       Discord-Set ([string]$j.clientId) $j.activity
