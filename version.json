@@ -1,5 +1,5 @@
 {
-  "version": "1.1.9",
+  "version": "1.1.10",
   "repo": "calinado/cove",
-  "notes": "Steam: one unreadable game no longer stops the rest of your library from loading. Cove writes what it found to data\\stores-scan.txt."
+  "notes": "Pinning Cove to the taskbar now pins Cove with its own icon, not Microsoft Edge. Includes 1.1.9: Steam scan fixes and a scan report."
 }

@@ -46,7 +46,25 @@ function Get-Ver { try { return [IO.File]::ReadAllText($VerPath, $Utf8) | Conver
 try {
   Add-Type -TypeDefinition @'
 using System; using System.Text; using System.Runtime.InteropServices;
+[StructLayout(LayoutKind.Sequential, Pack = 4)] public struct CovePK { public Guid f; public uint p; }
+[StructLayout(LayoutKind.Explicit, Size = 24)] public struct CovePV { [FieldOffset(0)] public ushort vt; [FieldOffset(8)] public IntPtr p; }
+[ComImport, Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface ICoveProps { int GetCount(out uint c); int GetAt(uint i, out CovePK k); int GetValue(ref CovePK k, out CovePV v); int SetValue(ref CovePK k, ref CovePV v); int Commit(); }
 public static class CoveWin {
+  [DllImport("shell32.dll")] static extern int SHGetPropertyStoreForWindow(IntPtr h, ref Guid iid, [MarshalAs(UnmanagedType.Interface)] out ICoveProps ps);
+  // Gives Cove's window its own taskbar identity, so pinning it pins Cove (its name, icon and how to start it) and not Edge
+  public static void Tag(IntPtr h, string id, string cmd, string icon, string name) {
+    Guid iid = new Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99"); ICoveProps ps;
+    if (SHGetPropertyStoreForWindow(h, ref iid, out ps) != 0) return;
+    Guid fmt = new Guid("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3");
+    string[] vals = { cmd, icon, name, id }; uint[] pids = { 2, 3, 4, 5 };   // relaunch command, icon, display name, then the ID itself
+    for (int i = 0; i < 4; i++) {
+      CovePK k = new CovePK(); k.f = fmt; k.p = pids[i];
+      CovePV v = new CovePV(); v.vt = 31; v.p = Marshal.StringToCoTaskMemUni(vals[i]);
+      ps.SetValue(ref k, ref v); Marshal.FreeCoTaskMem(v.p);
+    }
+    ps.Commit(); Marshal.ReleaseComObject(ps);
+  }
   delegate bool EnumProc(IntPtr h, IntPtr l);
   [DllImport("user32.dll")] static extern bool EnumWindows(EnumProc f, IntPtr l);
   [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetWindowText(IntPtr h, StringBuilder s, int n);
@@ -270,6 +288,10 @@ function Handle($ctx) {
   switch ($path) {
     '/api/info' {
       $ver = Get-Ver
+      if ($HasWin) { try {   # pinning Cove's window to the taskbar should pin Cove, not Edge
+        $h = [CoveWin]::Find()
+        if ($h -ne [IntPtr]::Zero) { [CoveWin]::Tag($h, 'CALINADO.Cove', ('"' + $env:SystemRoot + '\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + (Join-Path $App 'server.ps1') + '"'), ((Join-Path $App 'cove.ico') + ',0'), 'Cove') }
+      } catch {} }
       # RetroArch reads this on top of its own settings when Cove starts a game: Start + Select on the controller opens its menu
       $ra = Join-Path $Data 'retroarch-cove.cfg'
       # rewritten each start so every copy gets the current lines: sound on, not muted, through the driver that follows Windows' default speakers
