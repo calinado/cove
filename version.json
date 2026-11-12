@@ -1,5 +1,5 @@
 {
-  "version": "1.0.22",
+  "version": "1.1.0",
   "repo": "calinado/cove",
-  "notes": "Drop a cover between two others to reorder. Home layout no longer jumps on folders. List rows no longer clip on hover. Choose one picture source; hand-fixed matches survive a rescrape. Controller icons are drawn, not typed."
+  "notes": "Players with their own favourites and play time. A strip of last played and newly added games. Controller indicator by the clock. Sound packs and a redrawn theme picker with two new plain themes. Options button works on folders. RetroArch: sound fix, and an Open its settings button under Settings > Emulators."
 }

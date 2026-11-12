@@ -17,7 +17,7 @@
 [data-theme=mint]{--acc:#5eead4;--bg:#03110f;--o1:#0d9488;--o2:#22c55e;--o3:#a7f3d0}
 [data-theme=sunset]{--acc:#ffb347;--bg:#160910;--o1:#b8434a;--o2:#4b238f;--o3:#8a4a2c}
 [data-theme=mono]{--acc:#fff;--bg:#070707;--o1:#5a5a5a;--o2:#2a2a2a;--o3:#9a9a9a}
-[data-theme=daylight],[data-theme=channel],[data-theme=pocket],[data-theme=sakura],[data-theme=paper]{--on:#fff;--fg:#141a2b;--dim:rgba(20,26,43,.62);--ga:.72;--gb:.42;--edge:.9;--shine:1;--shade:rgba(40,60,110,.18);--field:rgba(255,255,255,.7)}
+[data-theme=daylight],[data-theme=channel],[data-theme=pocket],[data-theme=sakura],[data-theme=paper],[data-theme=basicw]{--on:#fff;--fg:#141a2b;--dim:rgba(20,26,43,.62);--ga:.72;--gb:.42;--edge:.9;--shine:1;--shade:rgba(40,60,110,.18);--field:rgba(255,255,255,.7)}
 [data-theme=daylight]{--acc:#2563eb;--bg:#dde6f6;--o1:#8ec5ff;--o2:#c4b5fd;--o3:#ffe08a}
 [data-theme=channel]{--acc:#00a3e0;--bg:#eef4f8;--o1:#b8e6ff;--o2:#fff;--o3:#cdeffd;--font:"Nunito","Segoe UI",system-ui,sans-serif}
 [data-theme=pocket]{--acc:#f26b1d;--bg:#f5ede2;--o1:#ffd2a6;--o2:#fff0b8;--o3:#ffc4c4;--font:"Nunito","Segoe UI",system-ui,sans-serif}
@@ -36,7 +36,10 @@
 [data-theme=crt] #hero h1{text-transform:uppercase}
 [data-theme=crt] #hero p,[data-theme=crt] .cta,[data-theme=crt] #hints,[data-theme=crt] .chip,[data-theme=crt] #count,[data-theme=crt] #clock{font-size:16px}
 [data-theme=dark]{--acc:#4da3ff;--on:#04121f;--bg:#0c0d10;--ga:.05;--gb:.05;--edge:.1;--shine:0;--shade:rgba(0,0,0,.35)}
-[data-theme=dark] #orbs{display:none}
+[data-theme=dark] #orbs,[data-theme^=basic] #orbs{display:none}
+[data-theme=basicb]{--acc:#19d3c5;--on:#04121f;--bg:#2d2d2d;--ga:.06;--gb:.06;--edge:.12;--shine:0;--shade:rgba(0,0,0,.35)}
+[data-theme=basicw]{--acc:#0ab9e6;--bg:#ebebeb;--ga:.9;--gb:.9;--edge:1;--shine:0;--shade:rgba(0,0,0,.12)}
+[data-theme^=basic] #bg{opacity:.12}
 [data-theme=dark] #bg{opacity:.16}
 [data-theme=dark] body{--r:14px}
 [data-theme=paper]{--acc:#d9480f;--bg:#f4f1ea;--ga:.96;--gb:.96;--edge:1;--shade:rgba(60,50,30,.14)}
@@ -69,9 +72,29 @@ header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align
 #now b{overflow:hidden;text-overflow:ellipsis}
 #now i{width:9px;height:9px;border-radius:50%;background:var(--acc);box-shadow:0 0 10px var(--acc);flex:none;animation:beat 1.4s ease-in-out infinite}
 #now span{font-family:var(--mono);color:var(--dim)}
-#brand{font-weight:900;font-size:17px;letter-spacing:.14em;display:flex;gap:10px;align-items:center;border-radius:999px;padding:11px 20px;justify-self:start}
-#brand{padding:7px 20px 7px 8px}
-#brand img{width:32px;height:32px;border-radius:10px;box-shadow:0 2px 10px var(--shade)}
+
+.left{display:flex;gap:14px;align-items:center;justify-self:start}
+#me{width:40px;height:40px;border-radius:50%;border:2px solid rgba(var(--tint),.5);cursor:pointer;font-weight:900;font-size:16px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);transition:transform .2s var(--spring)}
+#me:hover{transform:scale(1.1)}
+.item .dot{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:11px;font-weight:900;color:#fff}
+#clock{display:flex;gap:10px;align-items:center}
+#stat{display:flex;gap:6px;align-items:center}
+#stat:empty{display:none}
+#stat .bat{width:22px;height:11px;border:1.5px solid currentColor;border-radius:3px;padding:1px;box-sizing:border-box;margin-left:4px}
+#stat .bat i{display:block;height:100%;background:currentColor;border-radius:1px}
+/* the strip under the top bar: what you played last, and what just arrived */
+#news{display:flex;gap:8px;align-items:center;padding:6px 24px 0;overflow-x:auto;scrollbar-width:none;animation:rise .5s both}
+#news:empty{display:none}
+#news span{font:600 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);white-space:nowrap;margin:0 4px 0 10px}
+#news span:first-child{margin-left:0}
+#news button{display:flex;gap:9px;align-items:center;padding:5px 14px 5px 5px;border-radius:999px;cursor:pointer;flex:none;color:var(--fg);transition:transform .2s var(--spring),border-color .2s}
+#news button:hover,#news button:focus{border-color:var(--acc);outline:none;transform:scale(1.04)}
+#news i{width:32px;height:32px;border-radius:50%;background:#333 center/cover;flex:none}
+#news b{font-size:12px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#news small{font-size:11px;color:var(--dim);white-space:nowrap}
+#brand{justify-self:start;border:0;background:none;padding:4px;cursor:pointer;color:var(--fg);opacity:.8;transition:opacity .2s,transform .2s var(--spring)}
+#brand:hover{opacity:1;transform:scale(1.1)}
+#brand svg{width:34px;height:34px;display:block}
 @keyframes beat{50%{transform:scale(1.07)}}
 #dock{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:6px;border-radius:999px;min-width:0;max-width:100%;justify-self:center}
 #dock button{display:flex;align-items:center;gap:7px;white-space:nowrap;cursor:pointer;font-weight:700;font-size:13px;border:0;background:none;border-radius:999px;padding:9px 16px;color:var(--dim);transition:background .2s,color .2s,transform .2s var(--spring)}
@@ -86,7 +109,7 @@ header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align
 @keyframes menuin{from{opacity:0;transform:scale(.95) translateY(8px)}}
 .menu h2{margin:0;font:600 12px var(--mono);padding:16px 24px 0;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
 .menu .body{padding:12px 16px 16px}
-.menu .sws{display:grid;grid-template-columns:repeat(4,74px);gap:8px}
+
 .menu .list{margin:0;gap:4px}
 /* the card you see before a game starts */
 .pv{display:flex;gap:24px;align-items:flex-start;padding-top:24px}
@@ -339,11 +362,24 @@ code{font-family:var(--mono);font-size:12px;word-break:break-all;color:var(--dim
 #dd .item{width:100%}
 #dd .item:focus{outline:2px solid var(--acc);outline-offset:2px}
 .item i{width:14px;height:11px;border-radius:3px;background:var(--acc);flex:none}
-.sw{width:74px;height:64px;border-radius:16px;border:2px solid rgba(var(--tint),.22);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:9px 4px 6px;background:var(--b);transition:transform .2s var(--spring)}
-.sw i{width:34px;height:12px;border-radius:99px;background:var(--a)}
-.sw span{font-size:10px;font-weight:700;color:#fff;background:rgba(0,0,0,.62);border-radius:99px;padding:2px 7px;white-space:nowrap}
-.sw:hover{transform:scale(1.08)}
-.sw.on{border-color:var(--a);box-shadow:0 0 0 2px var(--a)}
+.sws{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px 8px;margin:6px 0 4px}
+.modal .sws{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}
+.menu h4,.modal h4{margin:10px 0 0;font-size:11px;font-weight:600;color:var(--dim)}
+.menu h4:first-child{margin-top:0}
+.sw{border:0;background:none;padding:0;cursor:pointer;display:flex;flex-direction:column;gap:5px;align-items:center;color:var(--dim);min-width:0}
+/* a tiny home screen in the theme's own colours: a title line and three covers, the first one selected */
+.sw i{display:block;width:100%;aspect-ratio:16/10;border-radius:8px;box-shadow:inset 0 0 0 1px rgba(var(--tint),.22);transition:transform .2s var(--spring);
+  background:linear-gradient(var(--a),var(--a)) 16% 24%/30% 8% no-repeat,linear-gradient(var(--a),var(--a)) 12% 72%/24% 38% no-repeat,linear-gradient(rgba(128,128,128,.5),rgba(128,128,128,.5)) 50% 72%/24% 38% no-repeat,linear-gradient(rgba(128,128,128,.5),rgba(128,128,128,.5)) 88% 72%/24% 38% no-repeat,var(--b)}
+.sw span{font-size:10px;font-weight:600;line-height:1.15;text-align:center}
+.sw:hover i{transform:scale(1.06)}
+.sw.on{color:var(--fg)}
+.sw.on i{outline:2px solid var(--acc);outline-offset:2px}
+#layer .sw:focus{outline:none}
+#layer .sw:focus i{outline:2px solid var(--acc);outline-offset:2px;transform:scale(1.08)}
+.seg{display:flex;gap:4px;padding:4px;border-radius:14px;background:rgba(var(--tint),.07)}
+.seg button{flex:1;border:0;background:none;color:var(--dim);font-weight:700;font-size:12px;padding:9px 6px;border-radius:10px;cursor:pointer}
+.seg button:hover{color:var(--fg)}
+.seg button.on{background:var(--acc);color:var(--on)}
 #layer :is(button,select,input):focus{outline:2px solid var(--acc);outline-offset:2px}
 #toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%) translateY(10px);z-index:70;opacity:0;transition:opacity .2s,transform .3s var(--spring);pointer-events:none;border-radius:999px;padding:10px 20px;font-weight:600}
 #toast.on{opacity:1;transform:translateX(-50%)}
@@ -354,10 +390,11 @@ code{font-family:var(--mono);font-size:12px;word-break:break-all;color:var(--dim
 <div id="orbs"><i></i><i></i><i></i></div><div id="bg"></div><div id="bgart"></div><div id="wash"></div>
 <div id="splash"><div><img src="/cove.ico" alt="">COVE</div></div>
 <header>
-  <div id="brand" class="glass"><img src="/cove.ico" alt="">COVE</div>
+  <div class="left"><button id="me" title="Players" tabindex="-1"></button><button id="brand" title="Home" tabindex="-1"><svg viewBox="0 0 24 24"><path d="M17.2 6.6a7.4 7.4 0 1 0 0 10.8" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/><circle cx="18.2" cy="12" r="2.1" fill="currentColor"/></svg></button></div>
   <div id="dock" class="glass"></div>
-  <div class="right"><div id="now" class="glass" hidden></div><input id="q" class="glass" type="text" placeholder="Search  ( / )"><span id="clock" class="glass"></span></div>
+  <div class="right"><div id="now" class="glass" hidden></div><input id="q" class="glass" type="text" placeholder="Search  ( / )"><span id="clock" class="glass"><span id="stat"></span><span id="time"></span></span></div>
 </header>
+<div id="news"></div>
 <div class="stage">
   <section id="hero" class="glass none"></section>
   <main><div id="grid"></div><div id="empty" hidden></div></main>
@@ -512,6 +549,46 @@ const ext=p=>(/\.[^.\\/]+$/.exec(p)||[''])[0].toLowerCase();
 const stem=p=>file(p).replace(/\.[^.]+$/,'');
 const pretty=n=>n.replace(/\s*[\[(][^\])]*[\])]/g,'').replace(/\s+(switch ?2|nx2)\b.*$/i,'').replace(/[_\u2122\u00ae]/g,' ').replace(/\s+/g,' ').trim()||n;
 const uid=()=>Math.random().toString(36).slice(2,9);
+// players: each one has their own favourites, play time and last-played dates
+const PER=['fav','last','time'], me=()=>S.users.find(u=>u.id===S.user)||S.users[0];
+// ponytail: the current player's numbers live on the game itself and the others wait in game.p; switching swaps them. Fine for one PC, change to per-player lookups if players ever sync between machines.
+function setUser(id){
+  if(NOW)return toast('Close the game first');
+  for(const k in S.games){const o=S.games[k], p=o.p||(o.p={}), mine={};
+    PER.forEach(f=>{if(o[f]!==undefined){mine[f]=o[f];delete o[f]}});
+    Object.assign(o,p[id]); delete p[id];
+    if(Object.keys(mine).length)p[S.user]=mine;
+    if(!Object.keys(p).length)delete o.p;
+  }
+  S.user=id;save();userUI();render();
+}
+const tally=u=>{let f=0,s=0;for(const k in S.games){const o=u.id===S.user?S.games[k]:S.games[k].p?.[u.id]||{};if(o.fav)f++;s+=o.time||0}return (f?f+(f===1?' favourite':' favourites')+' · ':'')+(played(s)||'no play time yet')};
+function userUI(){const u=me(), b=$('#me');b.style.background=u.col;b.textContent=(u.name.trim()[0]||'?').toUpperCase()}
+function users(){
+  const b=$('#me').getBoundingClientRect();
+  $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${b.left}px;top:${b.bottom+10}px;transform-origin:top left"><h2>Players</h2><div class="body list">${
+    S.users.map(u=>`<button class="item ${u.id===S.user?'on':''}" data-act="u" data-arg="${u.id}"><span class="dot" style="background:${esc(u.col)}">${esc((u.name.trim()[0]||'?').toUpperCase())}</span><b>${esc(u.name)}</b><small>${tally(u)}</small></button>`).join('')}
+    <button class="item" data-act="add"><svg class="ic" viewBox="0 0 24 24">${ICON.add}</svg><b>Add a player</b></button><button class="item" data-act="edit"><svg class="ic" viewBox="0 0 24 24">${ICON.user}</svg><b>Change ${esc(me().name)}</b></button></div></div></div>`;
+  ($('#layer .on')||focusables()[0])?.focus(); onChange=()=>{}; blip('tab');
+  onAct=(a,arg)=>{
+    if(a==='u'){$('#layer').innerHTML='';if(arg!==S.user)setUser(arg);else render(true);return blip('ok')}
+    if(a==='add'){if(NOW)return toast('Close the game first');const u={id:uid(),name:'Player '+(S.users.length+1),col:`hsl(${Math.floor(Math.random()*360)} 70% 50%)`};S.users.push(u);$('#layer').innerHTML='';setUser(u.id)}
+    userEdit(me());
+  };
+}
+function userEdit(u){
+  const hex=/^#/.test(u.col)?u.col:'#19d3c5';
+  modal('Player',`<div class="row"><label>Name</label><input class="w" type="text" data-set="name" value="${esc(u.name)}"></div>
+    <div class="row"><label>Colour</label><input type="color" data-set="col" value="${hex}"></div>
+    <small>Favourites, play time and the Recent list are kept separately for each player. Games, artwork and settings are shared.</small>`,
+    `${S.users.length>1?'<button class="btn bad" data-act="del">Remove player</button>':''}<button class="btn pri" data-act="x">Done</button>`);
+  $('#layer input').focus(); $('#layer input').select();
+  onChange=(k,v)=>{u[k]=v.trim()||u[k];save();userUI()};
+  onAct=a=>{
+    if(a==='del'){if(NOW)return toast('Close the game first');setUser(S.users.find(x=>x!==u).id);S.users=S.users.filter(x=>x!==u);for(const k in S.games){const p=S.games[k].p;if(p){delete p[u.id];if(!Object.keys(p).length)delete S.games[k].p}}save()}
+    closeModal();
+  };
+}
 const gs=id=>S.games[id]||(S.games[id]={});
 const romRoots=()=>[J(S.library,'ROMs')].concat(S.roots);
 const fill=(t,v)=>t.replace(/\{(\w+)\}|%(\w+)%/g,(m,a,b)=>v[a||b]??m);
@@ -555,6 +632,8 @@ async function scan(){
       (o.hide?HIDDEN:GAMES).push({id,sys,path:full,folder:gdir,base,title:o.title||pretty(base)});
     }
   }
+  const first=!S.seen; S.seen=S.seen||{};   // when each game first showed up, so new arrivals can be pointed out (0 = was already here)
+  for(const g of GAMES)if(!(g.id in S.seen))S.seen[g.id]=first?0:Date.now();
   for(const id in S.games)if(!Object.keys(S.games[id]).length)delete S.games[id];
   const order=['unsorted'].concat(systems().map(s=>s.id).reverse()).reverse();   // Unsorted goes last
   GAMES.sort((a,b)=>order.indexOf(a.sys)-order.indexOf(b.sys)||a.title.localeCompare(b.title));
@@ -721,7 +800,7 @@ setInterval(syncPresence,30000);
 // one place that asks the helper what finished and what is still running
 async function poll(quiet){
   const r=await api('ping');
-  r.done.forEach(d=>{gs(d.id).time=(gs(d.id).time||0)+d.s}); if(r.done.length)save();
+  r.done.forEach(d=>{if(d.id)gs(d.id).time=(gs(d.id).time||0)+d.s}); if(r.done.length)save();
   // the game counts as closed once the helper no longer lists it (older helper: once nothing is running)
   if(NOW&&Date.now()-NOW.t>6000&&(r.ids?!r.ids.includes(NOW.id):!r.running)){NOW=null;nowUI();if(!quiet)render(true);syncPresence()}
   return r;
@@ -734,11 +813,14 @@ addEventListener('pagehide',()=>navigator.sendBeacon('/api/quit?t='+T));
 /* ---------- main view ---------- */
 const STYLES=[['frost','Frosted','Glass panels over soft light'],['art','Full art','The selected game fills the screen'],['flat','Flat','Solid colour, no glow']];
 const LAYOUTS=[['shelf','Shelf','One row of large covers'],['home','Home','Big card over two rows of icons'],['grid','Grid','Everything, grouped by system'],['list','List','Cover on the left, rows on the right'],['wheel','Wheel','Titles on a curved wheel, big cover beside']];
-const THEMES=[['frost','Frost','#CCFF00','#0b0d08'],['aurora','Aurora','#b9a2ff','#090818'],['joy','Joy','#ff4554','#0f0f13'],['midnight','Midnight','#ffd166','#050a1c'],['mint','Mint','#5eead4','#03110f'],['sunset','Sunset','#ffb347','#160910'],['mono','Mono','#ffffff','#111'],['neon','Arcade neon','#ff2bd6','#05010d'],['crt','CRT retro','#7cff6b','#060b06'],['dark','Console dark','#4da3ff','#0c0d10'],
-  ['daylight','Daylight','#2563eb','#dde6f6'],['channel','Channel','#00a3e0','#eef4f8'],['pocket','Pocket','#f26b1d','#f5ede2'],['sakura','Sakura','#e2457f','#fbeaf1'],['paper','Paper light','#d9480f','#f4f1ea']];
+const THEMES=[['frost','Frost','#CCFF00','#0b0d08'],['aurora','Aurora','#b9a2ff','#090818'],['joy','Joy','#ff4554','#0f0f13'],['midnight','Midnight','#ffd166','#050a1c'],['mint','Mint','#5eead4','#03110f'],['sunset','Sunset','#ffb347','#160910'],['mono','Mono','#ffffff','#111'],['neon','Arcade neon','#ff2bd6','#05010d'],['crt','CRT retro','#7cff6b','#060b06'],['dark','Console dark','#4da3ff','#0c0d10'],['basicb','Basic black','#19d3c5','#2d2d2d'],
+  ['daylight','Daylight','#2563eb','#dde6f6'],['channel','Channel','#00a3e0','#eef4f8'],['pocket','Pocket','#f26b1d','#f5ede2'],['sakura','Sakura','#e2457f','#fbeaf1'],['paper','Paper light','#d9480f','#f4f1ea'],['basicw','Basic white','#0ab9e6','#ebebeb']];
+const LIGHT=['daylight','channel','pocket','sakura','paper','basicw'];
+const sws=(cur,act)=>[['Dark',x=>!LIGHT.includes(x[0])],['Light',x=>LIGHT.includes(x[0])]].map(([h,f])=>`<h4>${h}</h4><div class="sws">${THEMES.filter(f).map(x=>`<button class="sw ${x[0]===cur?'on':''}" data-act="${act}" data-arg="${x[0]}" style="--a:${x[2]};--b:${x[3]}"><i></i><span>${x[1]}</span></button>`).join('')}</div>`).join('');
+const seg=(list,cur,act)=>`<div class="seg">${list.map(x=>`<button class="${x[0]===cur?'on':''}" data-act="${act}" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>`;
 const ICON={settings:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',layout:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
-  theme:'<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17z" fill="currentColor"/>',add:'<path d="M12 5v14M5 12h14"/>',sort:'<path d="M7 5v14M4 16l3 3 3-3M14 7h6M14 12h4M14 17h2"/>',random:'<rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r=".8" fill="currentColor"/><circle cx="15" cy="15" r=".8" fill="currentColor"/><circle cx="12" cy="12" r=".8" fill="currentColor"/>'};
-$('#quick').innerHTML=[['settings','Settings'],['layout','Change layout'],['sort','Sort games'],['theme','Change theme'],['random','Surprise me'],['add','Add games']].map(q=>`<button class="glass" data-q="${q[0]}" title="${q[1]}" tabindex="-1"><svg viewBox="0 0 24 24">${ICON[q[0]]}</svg></button>`).join('');
+  theme:'<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17z" fill="currentColor"/>',add:'<path d="M12 5v14M5 12h14"/>',user:'<circle cx="12" cy="8" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/>',pad:'<path d="M7.5 8h9a4.5 4.5 0 0 1 4.5 4.5V15a2.4 2.4 0 0 1-4.5 1.2L15.6 15H8.4l-.9 1.2A2.4 2.4 0 0 1 3 15v-2.5A4.5 4.5 0 0 1 7.5 8z"/><path d="M8 10.6v2.4M6.8 11.8h2.4"/>',sort:'<path d="M7 5v14M4 16l3 3 3-3M14 7h6M14 12h4M14 17h2"/>',random:'<rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r=".8" fill="currentColor"/><circle cx="15" cy="15" r=".8" fill="currentColor"/><circle cx="12" cy="12" r=".8" fill="currentColor"/>'};
+$('#quick').innerHTML=[['settings','Settings'],['layout','Change layout'],['sort','Sort games'],['theme','Change theme'],['random','Surprise me'],['add','Add games'],['user','Players']].map(q=>`<button class="glass" data-q="${q[0]}" title="${q[1]}" tabindex="-1"><svg viewBox="0 0 24 24">${ICON[q[0]]}</svg></button>`).join('');
 const KIND={handheld:['gb','gbc','gba','nds','n3ds','psp','gamegear'],hybrid:['switch','switch2'],cart:['nes','snes','n64','genesis','mastersystem'],arcade:['arcade'],pc:['pc'],all:['all'],fav:['fav'],recent:['recent'],unsorted:['unsorted']};
 const GLYPH={handheld:'<rect x="6" y="3" width="12" height="18" rx="2.5"/><rect x="8.5" y="5.5" width="7" height="6" rx="1"/><circle cx="12" cy="16" r="1.3"/>',hybrid:'<rect x="2.5" y="7" width="19" height="10" rx="3"/><path d="M7.5 7v10M16.5 7v10"/>',
   disc:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.2"/>',cart:'<path d="M5 5h14v14h-3v-3H8v3H5z"/><path d="M9 9h6"/>',arcade:'<circle cx="12" cy="6" r="2.5"/><path d="M12 8.5V15M6 15h12v4H6z"/>',pc:'<rect x="3.5" y="5" width="17" height="11" rx="1.5"/><path d="M9 20h6M12 16v4"/>',
@@ -812,6 +894,9 @@ function render(keep){
     return `${head}<button class="tile ${NOW&&NOW.id===g.id?'playing':''}" data-id="${esc(g.id)}" title="${esc(g.title)}" style="--i:${Math.min(i,28)}">
       <span class="art" ${cover(g)}${o.fav?'<span class="fav">&#9733;</span>':''}${NOW&&NOW.id===g.id?'<span class="run">Running</span>':''}</span>${o.last?'':'<span class="new"></span>'}
       <span class="name">${esc(g.title)}</span><span class="meta">${esc(s.label||s.name)}${played(o.time)?' &middot; '+played(o.time):''}</span></button>`}).join('');
+  const chip=(g,note)=>{const u=artUrl(g);return `<button class="glass" data-n="${esc(g.id)}" tabindex="-1" title="${esc(g.title)}"><i style="${u?`background-image:url('${esc(u)}')`:`background:linear-gradient(140deg,hsl(${hue(g.title)} 70% 46%),hsl(${(hue(g.title)+60)%360} 65% 22%))`}"></i><b>${esc(g.title)}</b><small>${note}</small></button>`};
+  const rec=GAMES.filter(g=>gs(g.id).last).sort((a,b)=>gs(b.id).last-gs(a.id).last).slice(0,4), fresh=GAMES.filter(g=>S.seen[g.id]>Date.now()-14*864e5&&!gs(g.id).last).sort((a,b)=>S.seen[b.id]-S.seen[a.id]).slice(0,4);
+  $('#news').innerHTML=tab==='all'&&!INF&&!q0&&S.ui.news!==false?(rec.length?'<span>Jump back in</span>'+rec.map(g=>chip(g,ago(gs(g.id).last).replace('Last played ',''))).join(''):'')+(fresh.length?'<span>New</span>'+fresh.map(g=>chip(g,sysOf(g.sys).label||sysOf(g.sys).name)).join(''):''):'';
   const em=$('#empty'); em.hidden=list.length>0||!!pre;
   if(!list.length)em.innerHTML=GAMES.length?'Nothing here yet.':'No games yet.<br>Point Cove at the folder where your games are and they show up here. Nothing gets moved.<br><br><button class="btn pri xl" data-act="addgames">Add a games folder</button>';
   const t=focusId&&tiles().find(x=>x.dataset.id===focusId);
@@ -877,10 +962,15 @@ function move(dx,dy){
     const n=dx?q[q.indexOf(cur)+dx]:dy<0?(LASTT&&LASTT.isConnected?LASTT:t[0]):null;
     if(n){t.includes(n)?goto(n):(n.focus(),blip('move'))} return;
   }
+  const nw=[...document.querySelectorAll('#news button')];
+  if(nw.includes(cur)){   // the strip above the games: left/right along it, down back to the games
+    const n=dx?nw[nw.indexOf(cur)+dx]:dy>0?(LASTT&&LASTT.isConnected?LASTT:t[0]):null;
+    if(n){t.includes(n)?goto(n):(n.focus(),n.scrollIntoView({inline:'nearest',block:'nearest'}),blip('move'))} return;
+  }
   if(!t.length){if(dy>0){q[0].focus();blip('move')}return}
   if(!t.includes(cur))return goto(t[0]);
   const n=nearest(t,cur,dx,dy,!!dx)||(dx?t[t.indexOf(cur)+dx]:null);   // end of a row carries on in reading order
-  if(n)goto(n); else if(dy>0){LASTT=cur;q[0].focus();blip('move')}
+  if(n)goto(n); else if(dy>0){LASTT=cur;q[0].focus();blip('move')} else if(dy<0&&nw[0]){LASTT=cur;nw[0].focus();blip('move')}
 }
 let LASTT;
 function cycle(d){const b=[...$('#dock').children],i=b.findIndex(x=>x.classList.contains('on'));tab=b[(i+d+b.length)%b.length].dataset.tab;render();blip('tab')}
@@ -888,14 +978,13 @@ function fav(g){if(!g)return;const o=gs(g.id);o.fav=!o.fav;save();render(true);h
 function menu(kind){
   const isT=kind==='theme', isS=kind==='sort', key=isT?'theme':isS?'sort':'view', cur=S.ui[key]||(isS?'console':'');
   const b=$(`#quick [data-q=${kind}]`).getBoundingClientRect();
-  $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${b.left}px;bottom:${innerHeight-b.top+12}px"><h2>${isT?'Theme':isS?'Sort':'Layout'}</h2><div class="body ${isT?'sws':'list'}">${
-    isT?THEMES.map(x=>`<button class="sw ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}" style="--a:${x[2]};--b:${x[3]}"><i></i><span>${x[1]}</span></button>`).join('')
-       :isS?SORTS.map(x=>`<button class="item ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}"><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')
-       :LAYOUTS.map(x=>`<button class="item ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}"><svg class="lp" viewBox="0 0 32 22">${LAYPIC[x[0]]}</svg><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')}</div>${
-    isT?`<h2>Style</h2><div class="body list">${STYLES.map(x=>`<button class="item ${x[0]===(S.ui.style||'frost')?'on':''}" data-act="sty" data-arg="${x[0]}"><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')}</div>`:''}</div></div>`;
+  $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${b.left}px;bottom:${innerHeight-b.top+12}px">${isT?`<h2>Theme</h2><div class="body">${sws(cur,'set')}</div><h2>Style</h2><div class="body">${seg(STYLES,S.ui.style||'frost','sty')}</div><h2>Sounds</h2><div class="body">${seg(PACKS,S.ui.pack||'soft','pack')}</div>`
+    :`<h2>${isS?'Sort':'Layout'}</h2><div class="body list">${
+    isS?SORTS.map(x=>`<button class="item ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}"><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')
+       :LAYOUTS.map(x=>`<button class="item ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}"><svg class="lp" viewBox="0 0 32 22">${LAYPIC[x[0]]}</svg><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')}</div>`}</div></div>`;
   ($('#layer .on')||focusables()[0])?.focus();
   onChange=()=>{};
-  onAct=(a,arg)=>{S.ui[a==='sty'?'style':key]=arg;look();save();closeModal();blip('ok')};
+  onAct=(a,arg)=>{S.ui[{sty:'style',pack:'pack'}[a]||key]=arg;look();save();closeModal();blip('ok')};
   blip('tab');
 }
 function surprise(){
@@ -969,7 +1058,8 @@ function launchFx(g,r){
   document.body.append(d);setTimeout(()=>d.classList.add('out'),2300);setTimeout(()=>d.remove(),2800);
 }
 $('#grid').addEventListener('click',e=>{if(dragged||EDIT)return;const t=e.target.closest('.tile'),g=game(t);if(g)start(g);else if(t){INF=t.dataset.f||null;render();blip(INF?'open':'back')}});
-$('#grid').addEventListener('contextmenu',e=>{const t=e.target.closest('.tile'),g=game(t);if(!t)return;e.preventDefault();g?details(g):fById(t.dataset.f)&&folderEdit(fById(t.dataset.f))});
+const opts=t=>{const g=game(t),f=fById(t?.dataset?.f);g?details(g):f&&folderEdit(f)};   // Options for whatever tile this is: a game or a folder
+$('#grid').addEventListener('contextmenu',e=>{const t=e.target.closest('.tile');if(!t)return;e.preventDefault();opts(t)});
 // folders: drop a game on another game to start one, drop it on a folder to add it, right-click (long-press on a touch screen) the background to make one, right-click a folder to change it
 const newFolder=name=>{const f={id:uid(),name,look:'folder'};(S.folders=S.folders||[]).push(f);return f};
 function folderEdit(f){
@@ -1031,7 +1121,7 @@ $('#grid').addEventListener('mousemove',e=>{const t=e.target.closest('.tile');if
 $('#dock').addEventListener('click',e=>{const b=e.target.closest('button');if(b){tab=b.dataset.tab;INF=null;render();blip('tab')}});
 $('#quick').addEventListener('click',async e=>{
   const q=e.target.closest('button')?.dataset.q;
-  if(q==='settings')settings(); if(q==='layout'||q==='theme'||q==='sort')menu(q); if(q==='random')surprise();
+  if(q==='settings')settings(); if(q==='layout'||q==='theme'||q==='sort')menu(q); if(q==='random')surprise(); if(q==='user')users();
   if(q==='add'){const p=await pick('folder');if(p){addRoot(p);await scan();render();toast(GAMES.length+' games in your library')}}
 });
 for(const el of [$('main'),$('#dock')])el.addEventListener('wheel',e=>{
@@ -1041,6 +1131,9 @@ for(const el of [$('main'),$('#dock')])el.addEventListener('wheel',e=>{
 },{passive:false});
 $('#now').addEventListener('click',()=>{const g=NOW&&GAMES.find(x=>x.id===NOW.id);if(g)running(g)});
 $('#q').addEventListener('input',()=>render());
+$('#me').addEventListener('click',users);
+$('#news').addEventListener('click',e=>{const g=GAMES.find(x=>x.id===e.target.closest('button')?.dataset.n);if(g)start(g)});
+$('#brand').addEventListener('click',()=>{INF=null;$('#q').value='';tab='all';render();blip('back')});
 document.addEventListener('keydown',e=>{
   if($('#dd')&&e.key==='Escape')return $('#dd').click();
   if($('#layer').children.length){if(e.key==='Escape')closeModal();const a={ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r'}[e.key],el=document.activeElement;if(a&&!(el.tagName==='SELECT'||(el.tagName==='INPUT'&&el.type!=='checkbox'))){e.preventDefault();navKey(a)}return}
@@ -1052,7 +1145,7 @@ document.addEventListener('keydown',e=>{
   if(m){e.preventDefault();move(...m)}
   else if(k==='/'){e.preventDefault();$('#q').focus()}
   else if(k==='q')cycle(-1); else if(k==='e')cycle(1);
-  else if(k==='f')fav(g); else if((k==='o'||k==='delete')&&g)details(g); else if(k==='s')settings();
+  else if(k==='f')fav(g); else if(k==='o'||k==='delete')opts(document.activeElement); else if(k==='s')settings();
   else if(k==='l')menu('layout'); else if(k==='t')menu('theme'); else if(k==='r')surprise();
 });
 // controller: works everywhere, including settings and the folder browser
@@ -1098,7 +1191,7 @@ window.navKey=k=>{
     if(k==='a'){const e=document.activeElement;e.tagName==='SELECT'?dropdown(e):e.click?.()} if(k==='bk')closeModal(); if(k==='lb')mtab(-1); if(k==='rb')mtab(1);
   }else{
     const m={l:[-1,0],r:[1,0],u:[0,-1],d:[0,1]}[k]; if(m)move(...m);
-    if(k==='a'){if(g)start(g);else document.activeElement.closest?.('#quick button,.fold')?.click()} if(k==='x'&&g)fav(g); if(k==='bk'&&EDIT)edit(false); else if(k==='bk'&&INF){INF=null;render();blip('back')} if(k==='y'&&g)details(g);
+    if(k==='a'){if(g)start(g);else document.activeElement.closest?.('#quick button,#news button,.fold')?.click()} if(k==='x'&&g)fav(g); if(k==='bk'&&EDIT)edit(false); else if(k==='bk'&&INF){INF=null;render();blip('back')} if(k==='y')opts(document.activeElement);
     if(k==='lb')cycle(-1); if(k==='rb')cycle(1); if(k==='start')settings(); if(k==='sel'||k==='lt')menu('layout'); if(k==='rt')menu('theme');
   }
 };
@@ -1137,9 +1230,12 @@ function audio(){
   if(actx.state==='suspended')actx.resume();
   bus.gain.value=(S.ui.vol??70)/100;
 }
+// [name, wave, pitch, length, loudness]. Soft is the original set.
+const PACKS=[['soft','Soft','sine',1,1,1],['click','Click','triangle',2,.35,1.3],['chip','Chip','square',1,.5,.35],['glass','Glass','sine',2,1.6,.8],['deep','Deep','triangle',.5,1.2,1.4]];
 function note(f,at=0,gain=.1,dur=.22){
+  const pk=PACKS.find(x=>x[0]===S.ui.pack)||PACKS[0]; f*=pk[3]; dur*=pk[4]; gain*=pk[5];
   const osc=actx.createOscillator(), g=actx.createGain(), t=actx.currentTime+at+.01;
-  osc.frequency.value=f;   // a plain sine
+  osc.type=pk[2]; osc.frequency.value=f;
   g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(gain,t+.03); g.gain.setTargetAtTime(0,t+.03,dur/4);   // eased in and eased out, so nothing starts or stops abruptly
   osc.connect(g).connect(bus); osc.start(t); osc.stop(t+dur*2+.1);
 }
@@ -1176,7 +1272,15 @@ function look(){
 }
 // button hints appear only once a controller is connected, labelled the way that controller is
 setInterval(()=>{const p=[...navigator.getGamepads()].find(p=>p&&p.connected);document.body.classList.toggle('pad',!!p);document.body.dataset.pad=!p?'':/054c|playstation|dualsense|dualshock|wireless controller/i.test(p.id)?'ps':/057e|nintendo|pro controller|joy-con/i.test(p.id)?'nin':'xbox'},1000);
-const tick=()=>$('#clock').textContent=new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}); tick(); setInterval(tick,5000);
+// by the clock: how many controllers Cove can see, and on a handheld its battery
+let BAT=null;
+function stat(){
+  const n=window.CoveNative?0:[...navigator.getGamepads()].filter(p=>p&&p.connected).length;
+  $('#stat').innerHTML=(n?`<svg class="ic" viewBox="0 0 24 24">${ICON.pad}</svg>${n>1?n:''}`:'')+(BAT?`<span class="bat" title="${Math.round(BAT.level*100)}%"><i style="width:${Math.round(BAT.level*100)}%"></i></span>${Math.round(BAT.level*100)}%`:'');
+}
+const tick=()=>{$('#time').textContent=new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});stat()}; tick(); setInterval(tick,5000);
+for(const ev of ['gamepadconnected','gamepaddisconnected'])addEventListener(ev,stat);
+if(window.CoveNative)navigator.getBattery?.().then(b=>{BAT=b;b.onlevelchange=stat;stat()}).catch(()=>{});   // handhelds only: a desktop has nothing useful to show
 
 /* ---------- modals ---------- */
 let onAct=()=>{}, onChange=()=>{}, escHook=null;
@@ -1428,7 +1532,7 @@ async function settings(t='lib'){
     body=`<div class="row"><button class="btn pri" data-act="scanemu">Scan a folder for emulators</button><button class="btn" data-act="addemu">Add an .exe by hand</button></div>
     <small>Each entry is a saved launch profile. Duplicate one to keep a second set of arguments for the same emulator, then pick it per game or as a system default. Leave Arguments empty to use the built-in ones shown in grey.</small>
     ${S.emus.map(e=>{const k=kindOf(e);return `<div class="card">
-      <div class="row"><input class="w" type="text" data-set="name" data-arg="${e.id}" value="${esc(e.name)}"><button class="btn" data-act="dup" data-arg="${e.id}">Duplicate</button><button class="btn" data-act="delemu" data-arg="${e.id}">Remove</button></div>
+      <div class="row"><input class="w" type="text" data-set="name" data-arg="${e.id}" value="${esc(e.name)}">${INFO.android?'':`<button class="btn" data-act="openemu" data-arg="${e.id}">Open its settings</button>`}<button class="btn" data-act="dup" data-arg="${e.id}">Duplicate</button><button class="btn" data-act="delemu" data-arg="${e.id}">Remove</button></div>
       <code>${esc(e.exe)}</code>
       ${adv('e'+e.id,'Launch options',`<div class="row"><label>Works like</label><select data-set="kind" data-arg="${e.id}">${KINDS.map(x=>opt(x.id,x.name,e.kind)).join('')}</select></div>
       <div class="row"><label>Arguments</label><input class="w" type="text" data-set="args" data-arg="${e.id}" value="${esc(e.args)}" placeholder="${esc(k.args)}"></div>
@@ -1464,9 +1568,10 @@ async function settings(t='lib'){
       <p class="dim">The overlay is drawn by Discord itself, per program, so it is switched on in Discord rather than here. With a game running: Discord Settings &rsaquo; Registered Games &rsaquo; "Add it" and pick the emulator, then turn its overlay on there and under Game Overlay.</p></div>
     <small>Some emulators post their own Discord status too. If you see two cards, turn the emulator's one off in its settings.</small>`}
   if(t==='look'){const u=S.ui;body=`
-    <h3>Theme</h3><div class="row">${THEMES.map(x=>`<button class="sw ${x[0]===u.theme?'on':''}" data-act="theme" data-arg="${x[0]}" style="--a:${x[2]};--b:${x[3]}"><i></i><span>${x[1]}</span></button>`).join('')}</div>
-    <h3>Style</h3><div class="row">${STYLES.map(x=>`<button class="btn ${x[0]===(u.style||'frost')?'pri':''}" data-act="style" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>
+    <h3>Theme</h3>${sws(u.theme,'theme')}
+    <h3>Style</h3>${seg(STYLES,u.style||'frost','style')}
     <small>${STYLES.map(x=>x[1]+': '+x[2].toLowerCase()).join('. ')}.</small>
+    <h3>Sounds</h3>${seg(PACKS,u.pack||'soft','pack')}
     <h3>Layout</h3><div class="row">${LAYOUTS.map(x=>`<button class="btn ${x[0]===u.view?'pri':''}" data-act="view" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>
     <small>Home: a big card for the selected game over two rows of icons. Grid: everything, grouped by system. Shelf: one row of large covers. List: cover on the left, rows on the right.</small>
     <h3>Details</h3>
@@ -1478,6 +1583,7 @@ async function settings(t='lib'){
     <div class="row"><label>Accent colour</label><input type="color" data-set="accent" value="${esc(u.accent||'#ccff00')}"><button class="btn" data-act="noaccent">Use theme colour</button></div>
     <div class="row"><label>Wallpaper</label><code>${esc(u.wall||'follows the selected game')}</code><button class="btn" data-act="wall">Choose image</button><button class="btn" data-act="nowall">Clear</button></div>
     <div class="row"><label>Preview card</label><input type="checkbox" data-set="confirm" ${u.confirm!==false?'checked':''}><small>Show the game, emulator and save check before starting</small></div>
+    <div class="row"><label>Recent strip</label><input type="checkbox" data-set="news" ${u.news!==false?'checked':''}><small>Last played and newly added games above the home screen</small></div>
     <div class="row"><label>Sounds</label><input type="checkbox" data-set="sound" ${u.sound?'checked':''}><input type="range" min="0" max="100" data-set="vol" value="${u.vol??70}"><button class="btn" data-act="sfx">Play them</button></div>
     <div class="row"><label>Artwork</label><button class="btn" data-act="reart">Look for missing covers again</button></div>`}
   if(t==='share')body=`
@@ -1497,7 +1603,7 @@ async function settings(t='lib'){
   const E=id=>S.emus.find(e=>e.id===id), again=()=>settings(t);
   if(t==='emus')coreMarks();
   onChange=(k,v,arg)=>{
-    if(t==='look'){S.ui[k]=k==='size'||k==='vol'?+v:v;look();save();if(k==='vol'||k==='sound')blip('ok');return}
+    if(t==='look'){S.ui[k]=k==='size'||k==='vol'?+v:v;look();save();if(k==='vol'||k==='sound')blip('ok');if(k==='news')render(true);return}
     if(t==='discord'){S.discord[k]=typeof v==='string'?v.trim():v;save();return}
     if(k==='def'){S.defaults[arg]=v;save();return}
     if(k==='only'){S.scrape.only=v;save();return}
@@ -1538,6 +1644,7 @@ async function settings(t='lib'){
     if(a==='scanemu'){const p=INFO.android?'apps':await pick('folder');if(p){toast('Found '+await findEmus(p)+' new emulator(s)');again()}return}
     if(a==='addemu'){const p=await pick('exe');if(!p)return;const k=KINDS.find(k=>k.rx.test(file(p).toLowerCase()))||KINDS[KINDS.length-1];
       S.emus.push({id:uid(),kind:k.id,name:k.id==='custom'||k.id==='yuzu'?file(dir(p)):k.name.split(' /')[0],exe:p});save();return again()}
+    if(a==='openemu'){const e=E(arg);toast('Opening '+e.name+' on its own, with no game');return api('launch',{id:'',exe:e.exe,args:'',cwd:dir(e.exe),after:'stay'})}
     if(a==='dup'){const e=E(arg);S.emus.splice(S.emus.indexOf(e)+1,0,{...e,id:uid(),name:e.name+' (copy)'});save();return again()}
     if(a==='delemu'){S.emus=S.emus.filter(e=>e.id!==arg);for(const s in S.defaults)if(S.defaults[s]===arg)delete S.defaults[s];save();return again()}
     if(a==='setdata'){const p=await pick('folder');if(p){E(arg).data=p;save();again()}return}
@@ -1561,7 +1668,7 @@ async function settings(t='lib'){
       d.on=true;save();blip('ok');toast('Connected. Check your Discord profile');return again()}
     if(a==='sfx'){['move','tab','ok','back','open','launch'].forEach((k,i)=>setTimeout(()=>blip(k),i*650));return}
     if(a==='noaccent'){S.ui.accent='';look();save();return again()}
-    if(a==='theme'||a==='view'||a==='style'){S.ui[a]=arg;look();save();blip('tab');return again()}
+    if(a==='theme'||a==='view'||a==='style'||a==='pack'){S.ui[a]=arg;look();save();blip('tab');return again()}
     if(a==='reart'){for(const k in S.art)if(!S.art[k]){delete S.art[k];delete S.meta[k]}LRFAIL.clear();save();closeModal();return toast('Looking for covers')}
     if(a==='wall'){const p=await pick('image');if(p){S.ui.wall=p;look();save();again()}return}
     if(a==='nowall'){S.ui.wall='';look();save();return again()}
@@ -1636,6 +1743,8 @@ async function checkUpdate(manual){
   if(S.artV!==2){S.artV=2;for(const k in S.art)if(!S.art[k])delete S.art[k]}   // retry covers recorded as missing by older versions
   if(S.ui.v2!==2){S.ui.v2=2;S.ui.view='shelf'}   // one-time switch to the current default layout
   if(!LAYOUTS.some(l=>l[0]===S.ui.view))S.ui.view='shelf';
+  if(!S.users?.length){S.users=[{id:'p1',name:'Player 1',col:'#19d3c5'}];S.user='p1'}
+  userUI();
   setTimeout(()=>$('#splash').classList.add('gone'),900);
   look();
   if((INFO.v||1)<VER)setTimeout(()=>toast('Update ready: close Cove, wait 10 seconds, then reopen it'),1500);

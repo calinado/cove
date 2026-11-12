@@ -253,7 +253,8 @@ function Handle($ctx) {
       $ver = Get-Ver
       # RetroArch reads this on top of its own settings when Cove starts a game: Start + Select on the controller opens its menu
       $ra = Join-Path $Data 'retroarch-cove.cfg'
-      if (-not (Test-Path -LiteralPath $ra)) { [void](New-Item -ItemType Directory -Force -Path $Data); [IO.File]::WriteAllText($ra, 'input_menu_toggle_gamepad_combo = "4"' + "`r`n") }
+      # rewritten each start so every copy gets the current lines: sound on, not muted, through the driver that follows Windows' default speakers
+      [void](New-Item -ItemType Directory -Force -Path $Data); [IO.File]::WriteAllText($ra, "input_menu_toggle_gamepad_combo = `"4`"`r`naudio_enable = `"true`"`r`naudio_mute_enable = `"false`"`r`naudio_driver = `"xaudio`"`r`naudio_device = `"`"`r`n")
       Json $res @{ v = 10; version = [string]$ver.version; repo = [string]$ver.repo; sep = [string][IO.Path]::DirectorySeparatorChar; app = $App; appdata = $env:APPDATA; local = $env:LOCALAPPDATA
         docs = [Environment]::GetFolderPath('MyDocuments'); desktop = [Environment]::GetFolderPath('Desktop') }
     }
