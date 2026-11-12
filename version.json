@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.1.1",
   "repo": "calinado/cove",
-  "notes": "Players with their own favourites and play time. A strip of last played and newly added games. Controller indicator by the clock. Sound packs and a redrawn theme picker with two new plain themes. Options button works on folders. RetroArch: sound fix, and an Open its settings button under Settings > Emulators."
+  "notes": "Steam, Epic and GOG games in your library. Custom themes with your own colours and Google Fonts. Surprise me now includes games in folders."
 }

@@ -189,6 +189,8 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .tile.drop .art{outline:3px dashed var(--acc);outline-offset:4px}
 #ghost{position:fixed;z-index:50;pointer-events:none;translate:-50% -50%;width:110px!important;height:auto!important;aspect-ratio:var(--ar,1);border-radius:16px;overflow:hidden;opacity:.92;box-shadow:0 16px 40px rgba(0,0,0,.6)}
 #ghost img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#hero h1,.modal h2{font-family:var(--head,var(--font))}
+.no-glow #orbs{display:none}
 .btn.bad{color:#ff6b6b;border-color:rgba(255,90,90,.45)}
 .foot.stack{flex-direction:column}.foot.stack .btn{width:100%}
 body:not(.pad) #hints,body:not(.pad) .cta .gl{display:none}
@@ -347,6 +349,7 @@ footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:
 .tabs{display:flex;gap:6px;padding:10px 28px 4px;flex-wrap:wrap}
 .row{display:flex;gap:10px;align-items:center;margin:9px 0;flex-wrap:wrap}
 .row label{min-width:120px;color:var(--dim);font-size:13px}
+.row label.sm{min-width:0;display:inline-flex;align-items:center;gap:6px;margin-right:8px;font-size:12px}
 .card{border:1px solid rgba(var(--tint),.16);border-radius:20px;padding:14px 16px;margin:12px 0;background:rgba(var(--tint),.06);box-shadow:inset 0 1px 0 rgba(var(--tint),.18)}
 input[type=text],select{background:var(--field);border:1px solid rgba(var(--tint),.18);border-radius:12px;padding:8px 12px;min-width:0;outline:none}
 select option{background:#16181d;color:#fff}
@@ -447,6 +450,7 @@ const SYS=[
  ['gamegear','Game Gear','GG',['.gg'],[],'Sega - Game Gear'],
  ['arcade','Arcade (MAME)','Arcade',[],['.zip','.7z'],'MAME'],
  ['pc','PC games & shortcuts','PC',['.lnk','.url'],['.exe','.bat'],''],
+ ['steam','Steam','Steam',[],[],''],['epic','Epic Games','Epic',[],[],''],['gog','GOG','GOG',[],[],''],
 ].map(a=>({id:a[0],name:a[1],label:a[2],auto:a[3],exts:a[3].concat(a[4]),lr:a[5]}));
 const ZIPPED=['gb','gbc','gba','nes','snes','n64','nds','genesis','mastersystem','gamegear'];  // these also accept .zip/.7z
 SYS.forEach(s=>{if(ZIPPED.includes(s.id))s.exts.push('.zip','.7z')});
@@ -484,7 +488,7 @@ const KINDS=[
  {id:'custom',name:'Custom (write the arguments yourself)',rx:/^$/,args:'"{rom}"',sys:[]},
 ];
 KINDS.find(k=>k.id==='retroarch').sys=Object.keys(KINDS.find(k=>k.id==='retroarch').cores);
-const VER=10;
+const VER=12;
 const RAK=KINDS.find(k=>k.id==='retroarch');
 // other cores you can switch a system to; the first is what Cove picks
 const ALT={gb:['gambatte','sameboy','mgba'],gbc:['gambatte','sameboy','mgba'],gba:['mgba','vbam'],nes:['mesen','nestopia','fceumm'],snes:['snes9x','bsnes'],n64:['mupen64plus_next','parallel_n64'],nds:['melondsds','desmume'],
@@ -632,6 +636,13 @@ async function scan(){
       (o.hide?HIDDEN:GAMES).push({id,sys,path:full,folder:gdir,base,title:o.title||pretty(base)});
     }
   }
+  if(!INFO.android&&S.stores!==false)try{   // games installed through Steam, Epic and GOG, started through their own launcher
+    for(const x of (await api('stores',{})).games){
+      const id='store:'+x.store+':'+x.id, o=S.games[id]||{}, g={id,sys:x.store,store:x.store,path:x.uri,home:x.dir,base:x.name,title:o.title||x.name,img:x.store==='steam'?`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.id}/library_600x900_2x.jpg`:''};
+      if(x.store==='steam'&&!S.wide[artKey(g)])S.wide[artKey(g)]=`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.id}/library_hero.jpg`;
+      (o.hide?HIDDEN:GAMES).push(g);
+    }
+  }catch{}
   const first=!S.seen; S.seen=S.seen||{};   // when each game first showed up, so new arrivals can be pointed out (0 = was already here)
   for(const g of GAMES)if(!(g.id in S.seen))S.seen[g.id]=first?0:Date.now();
   for(const id in S.games)if(!Object.keys(S.games[id]).length)delete S.games[id];
@@ -641,7 +652,7 @@ async function scan(){
 const artKey=g=>g.sys+'|'+g.title.toLowerCase();
 const LRFAIL=new Set();
 function artUrl(g){
-  const custom=gs(g.id).art||ART[g.sys+'/'+g.base]||ESDE[g.sys+'/'+g.base];
+  const custom=gs(g.id).art||ART[g.sys+'/'+g.base]||ESDE[g.sys+'/'+g.base]||g.img;
   if(custom)return '/file?t='+T+'&p='+encodeURIComponent(custom);
   const k=artKey(g), lr=!S.scrape.off.libretro&&sysOf(g.sys).lr, b=lr&&lrBase(g), box=b&&!LRFAIL.has(k);
   if(S.art[k]&&!(box&&b!==g.base&&/wiki[mp]edia/.test(S.art[k])))return S.art[k];   // a hack's borrowed box beats the Wikipedia picture found earlier
@@ -700,7 +711,7 @@ const SRC={
 };
 const only=()=>{const o=S.scrape.only;return o&&SRC[o]&&SRC[o].ready()?o:''};   // the one source pictures should come from, if chosen
 const sources=()=>S.scrape.order.filter(id=>SRC[id]&&!S.scrape.off[id]&&SRC[id].ready());
-const needsArt=g=>{const k=artKey(g),lr=!S.scrape.off.libretro&&sysOf(g.sys).lr;return !gs(g.id).art&&!ART[g.sys+'/'+g.base]&&!ESDE[g.sys+'/'+g.base]&&!S.art[k]&&(!!only()||!lr||LRFAIL.has(k)||!lrBase(g))};
+const needsArt=g=>{const k=artKey(g),lr=!S.scrape.off.libretro&&sysOf(g.sys).lr;return !g.img&&!gs(g.id).art&&!ART[g.sys+'/'+g.base]&&!ESDE[g.sys+'/'+g.base]&&!S.art[k]&&(!!only()||!lr||LRFAIL.has(k)||!lrBase(g))};
 function applyMatch(g,hit){
   const k=artKey(g);
   S.meta[k]=hit?{t:hit.title,d:hit.about,y:hit.year||yr(hit.kind+' '+hit.about),...(hit.force?{m:1}:{})}:0;   // m marks a match picked by hand
@@ -743,6 +754,7 @@ async function pumpArt(){
 // a cover that has not arrived after a few seconds counts as missing, so the next source gets a turn
 setInterval(()=>document.querySelectorAll('.art img').forEach(i=>{if(i.complete)return;i.dataset.w=(+i.dataset.w||0)+1;if(i.dataset.w>2&&/libretro/.test(i.src))artFail(i)}),2000);
 function artFail(img){const g=GAMES.find(x=>x.id===img.dataset.id);img.parentNode?.style.setProperty('--img','none');img.remove();if(g&&!/^\/file/.test(img.getAttribute('src'))){LRFAIL.add(artKey(g));findArt(g)}}
+const plain=g=>g.sys==='pc'||!!g.store;   // started directly, with no emulator or save file to check
 const hue=s=>[...s].reduce((h,c)=>(h*31+c.charCodeAt(0))%360,7);
 
 /* ---------- launching ---------- */
@@ -755,6 +767,7 @@ function resolve(g){
     for(const x in (k.extras||{}))extras[x]=typeof k.extras[x]==='string'?k.extras[x].replace('{core}',(k.cores||{})[g.sys]||''):k.extras[x];
     return{exe:pick.exe,args:[k.action,k.data,Object.keys(extras).join(' ')].filter(Boolean).join(' '),cwd:'',name:pick.name,intent:{comp:pick.exe,action:k.action||'',category:k.category||'',data:k.data||'',clear:!!k.clear,extras,rom:g.path}};
   }
+  if(g.store)return{uri:g.path,home:g.home,exe:'',args:'',cwd:'',name:sysOf(g.sys).name};
   if(g.sys==='pc')return{exe:g.path,args:'',cwd:dir(g.path),name:'Windows'};
   const o=gs(g.id), fits=S.emus.filter(e=>emuSys(e).includes(g.sys));
   const e=fits.find(e=>e.id===o.emu)||fits.find(e=>e.id===S.defaults[g.sys])||fits[0];
@@ -772,7 +785,7 @@ async function launch(g){
       toast('Getting the '+r.need.core+' core');await api('core',{kind:'core',name:r.need.core,dir:dir(r.need.ra.exe)});
     }
     blip('launch');launchFx(g,r);await new Promise(d=>setTimeout(d,2100));   // let the disc or cartridge play before Cove gets out of the way
-    await api('launch',r.intent?{id:g.id,...r.intent}:{id:g.id,exe:r.exe,args:r.args,cwd:r.cwd,after:S.ui.after||'taskbar'});
+    await api('launch',r.intent?{id:g.id,...r.intent}:r.uri?{id:g.id,uri:r.uri,dir:r.home,after:S.ui.after||'taskbar'}:{id:g.id,exe:r.exe,args:r.args,cwd:r.cwd,after:S.ui.after||'taskbar'});
     gs(g.id).last=Date.now();save();
     NOW={id:g.id,title:g.title,emu:r.name,t:Date.now()};nowUI();render();syncPresence();   // re-drawn so the running game moves to the front and takes the cursor
   }catch(e){toast('Could not launch: '+e.message)}
@@ -816,12 +829,25 @@ const LAYOUTS=[['shelf','Shelf','One row of large covers'],['home','Home','Big c
 const THEMES=[['frost','Frost','#CCFF00','#0b0d08'],['aurora','Aurora','#b9a2ff','#090818'],['joy','Joy','#ff4554','#0f0f13'],['midnight','Midnight','#ffd166','#050a1c'],['mint','Mint','#5eead4','#03110f'],['sunset','Sunset','#ffb347','#160910'],['mono','Mono','#ffffff','#111'],['neon','Arcade neon','#ff2bd6','#05010d'],['crt','CRT retro','#7cff6b','#060b06'],['dark','Console dark','#4da3ff','#0c0d10'],['basicb','Basic black','#19d3c5','#2d2d2d'],
   ['daylight','Daylight','#2563eb','#dde6f6'],['channel','Channel','#00a3e0','#eef4f8'],['pocket','Pocket','#f26b1d','#f5ede2'],['sakura','Sakura','#e2457f','#fbeaf1'],['paper','Paper light','#d9480f','#f4f1ea'],['basicw','Basic white','#0ab9e6','#ebebeb']];
 const LIGHT=['daylight','channel','pocket','sakura','paper','basicw'];
-const sws=(cur,act)=>[['Dark',x=>!LIGHT.includes(x[0])],['Light',x=>LIGHT.includes(x[0])]].map(([h,f])=>`<h4>${h}</h4><div class="sws">${THEMES.filter(f).map(x=>`<button class="sw ${x[0]===cur?'on':''}" data-act="${act}" data-arg="${x[0]}" style="--a:${x[2]};--b:${x[3]}"><i></i><span>${x[1]}</span></button>`).join('')}</div>`).join('');
+const sws=(cur,act)=>[['Dark',x=>!LIGHT.includes(x[0])],['Light',x=>LIGHT.includes(x[0])],['Custom',x=>x[0].startsWith('c:')]].map(([h,f])=>{const l=THEMES.concat((S.themes||[]).map(t=>['c:'+t.id,t.name,t.acc,t.bg])).filter(x=>!x[0].startsWith('c:')===(h!=='Custom')).filter(f);return l.length?`<h4>${h}</h4><div class="sws">${l.map(x=>`<button class="sw ${x[0]===cur?'on':''}" data-act="${act}" data-arg="${x[0]}" style="--a:${x[2]};--b:${x[3]}"><i></i><span>${x[1]}</span></button>`).join('')}</div>`:''}).join('');
 const seg=(list,cur,act)=>`<div class="seg">${list.map(x=>`<button class="${x[0]===cur?'on':''}" data-act="${act}" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>`;
 const ICON={settings:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',layout:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
   theme:'<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17z" fill="currentColor"/>',add:'<path d="M12 5v14M5 12h14"/>',user:'<circle cx="12" cy="8" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/>',pad:'<path d="M7.5 8h9a4.5 4.5 0 0 1 4.5 4.5V15a2.4 2.4 0 0 1-4.5 1.2L15.6 15H8.4l-.9 1.2A2.4 2.4 0 0 1 3 15v-2.5A4.5 4.5 0 0 1 7.5 8z"/><path d="M8 10.6v2.4M6.8 11.8h2.4"/>',sort:'<path d="M7 5v14M4 16l3 3 3-3M14 7h6M14 12h4M14 17h2"/>',random:'<rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r=".8" fill="currentColor"/><circle cx="15" cy="15" r=".8" fill="currentColor"/><circle cx="12" cy="12" r=".8" fill="currentColor"/>'};
 $('#quick').innerHTML=[['settings','Settings'],['layout','Change layout'],['sort','Sort games'],['theme','Change theme'],['random','Surprise me'],['add','Add games'],['user','Players']].map(q=>`<button class="glass" data-q="${q[0]}" title="${q[1]}" tabindex="-1"><svg viewBox="0 0 24 24">${ICON[q[0]]}</svg></button>`).join('');
-const KIND={handheld:['gb','gbc','gba','nds','n3ds','psp','gamegear'],hybrid:['switch','switch2'],cart:['nes','snes','n64','genesis','mastersystem'],arcade:['arcade'],pc:['pc'],all:['all'],fav:['fav'],recent:['recent'],unsorted:['unsorted']};
+const KIND={handheld:['gb','gbc','gba','nds','n3ds','psp','gamegear'],hybrid:['switch','switch2'],cart:['nes','snes','n64','genesis','mastersystem'],arcade:['arcade'],pc:['pc','steam','epic','gog'],all:['all'],fav:['fav'],recent:['recent'],unsorted:['unsorted']};
+const FONTS={Roboto:'400;700;900',Inter:'400;700;900',Poppins:'400;700;900',Montserrat:'400;700;900',Nunito:'400;700;900','DM Sans':'400;700;900',Outfit:'400;700;900',Sora:'400;700;800',Manrope:'400;700;800','Space Grotesk':'400;700',Lexend:'400;700;900',Rubik:'400;700;900',Fredoka:'400;700','Baloo 2':'400;700;800',
+  'Playfair Display':'400;700;900','Bebas Neue':'400','Archivo Black':'400',Orbitron:'400;700;900',Audiowide:'400',Righteous:'400',Bungee:'400','Press Start 2P':'400',VT323:'400',Silkscreen:'400;700','Pixelify Sans':'400;700','JetBrains Mono':'400;700;800'};
+// any Google Fonts family, loaded the first time a theme uses it
+const loadFont=n=>{if(!n||document.querySelector(`link[data-f="${CSS.escape(n)}"]`))return;const l=document.createElement('link');l.rel='stylesheet';l.dataset.f=n;l.href=`https://fonts.googleapis.com/css2?family=${encodeURIComponent(n).replace(/%20/g,'+')}${FONTS[n]?':wght@'+FONTS[n]:''}&display=swap`;document.head.append(l)};
+const CV=['--acc','--bg','--fg','--dim','--tint','--o1','--o2','--o3','--ga','--gb','--edge','--shine','--shade','--field','--on','--font','--head'];
+const ctheme=()=>(S.themes||[]).find(x=>'c:'+x.id===S.ui.theme);
+const hex6=v=>{v=String(v).trim();return /^#[0-9a-f]{3}$/i.test(v)?'#'+[...v.slice(1)].map(c=>c+c).join(''):/^#[0-9a-f]{6}$/i.test(v)?v:'#808080'};
+const lum=h=>{const c=hex6(h);return [1,3,5].map(i=>parseInt(c.slice(i,i+2),16)).reduce((a,v,i)=>a+v*[.2126,.7152,.0722][i],0)/255};
+function newTheme(){   // starts as a copy of whatever theme is showing
+  const c=getComputedStyle(document.documentElement), v=k=>hex6(c.getPropertyValue(k)), f=c.getPropertyValue('--font').split(',')[0].replace(/["']/g,'').trim();
+  const t={id:uid(),name:'My theme',acc:v('--acc'),bg:v('--bg'),fg:v('--fg'),o1:v('--o1'),o2:v('--o2'),o3:v('--o3'),glass:40,glow:true,font:FONTS[f]?f:'Roboto',head:''};
+  (S.themes=S.themes||[]).push(t); S.ui.theme='c:'+t.id; S.ui.accent=''; look(); save();
+}
 const GLYPH={handheld:'<rect x="6" y="3" width="12" height="18" rx="2.5"/><rect x="8.5" y="5.5" width="7" height="6" rx="1"/><circle cx="12" cy="16" r="1.3"/>',hybrid:'<rect x="2.5" y="7" width="19" height="10" rx="3"/><path d="M7.5 7v10M16.5 7v10"/>',
   disc:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.2"/>',cart:'<path d="M5 5h14v14h-3v-3H8v3H5z"/><path d="M9 9h6"/>',arcade:'<circle cx="12" cy="6" r="2.5"/><path d="M12 8.5V15M6 15h12v4H6z"/>',pc:'<rect x="3.5" y="5" width="17" height="11" rx="1.5"/><path d="M9 20h6M12 16v4"/>',
   all:ICON.layout,fav:'<path d="M12 4l2.4 5 5.5.7-4 3.8 1 5.4-4.9-2.7-4.9 2.7 1-5.4-4-3.8 5.5-.7z"/>',recent:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/>',unsorted:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 16.5v.1"/>'};
@@ -845,7 +871,7 @@ const artOk=i=>{const a=i.parentNode;if(!a)return;a.classList.add('has')};
 // width / height of the front of each console's retail case (North American releases). Keep cases, jewel cases and game-card cases are measured sizes;
 // the cardboard-box systems (SNES, N64, NES, Game Boy, Sega) are the commonly quoted sizes and have not been measured
 const AR={switch:.612,switch2:.612,wiiu:.711,wii:.711,gc:.711,n3ds:.904,nds:.904,gba:1,gbc:1,gb:1,n64:1.4,snes:1.4,nes:.719,
-  ps3:.787,ps2:.711,psx:1,psp:.589,xbox360:.711,xbox:.711,dreamcast:1,saturn:.67,genesis:.72,mastersystem:.714,gamegear:.72,arcade:.75,pc:.667};
+  ps3:.787,ps2:.711,psx:1,psp:.589,xbox360:.711,xbox:.711,dreamcast:1,saturn:.67,genesis:.72,mastersystem:.714,gamegear:.72,arcade:.75,pc:.667,steam:.667,epic:.75,gog:.667};
 // what each console's games came on, in real millimetres: disc diameter, or cartridge [width, height, shell colour, label box in % of the shell (left, top, width, height), corner rounding]
 const MEDIA={wiiu:120,wii:120,gc:80,ps3:120,ps2:120,psx:120,xbox:120,xbox360:120,dreamcast:120,saturn:120,pc:120,
   switch:[21.4,31,'#3a3a40',[9,7,82,74],'7%/5%'],switch2:[21.4,31,'#b3202a',[9,7,82,74],'7%/5%'],
@@ -988,7 +1014,7 @@ function menu(kind){
   blip('tab');
 }
 function surprise(){
-  const l=visible(), t0=tiles(); if(l.length<2)return t0[0]&&goto(t0[0]);
+  const l=!INF&&tab==='all'&&!$('#q').value.trim()?GAMES:visible(), t0=tiles(); if(l.length<2)return t0[0]&&goto(t0[0]);   // on the main screen, games tucked in folders are in the draw too
   const win=l[Math.floor(Math.random()*l.length)], n=36, at=n-5, strip=Array.from({length:n},(_,i)=>i===at?win:l[Math.floor(Math.random()*l.length)]);
   const d=document.createElement('div'); d.id='gacha';
   d.innerHTML=`<div class="reel"><div class="strip">${strip.map(g=>`<div class="cover" ${cover(g).replace('loading="lazy"','')}</div>`).join('')}</div><i></i></div><h2>&nbsp;</h2>`;
@@ -997,7 +1023,7 @@ function surprise(){
   requestAnimationFrame(()=>requestAnimationFrame(()=>{st.style.transform=`translateX(${innerWidth/2-w.offsetLeft-w.offsetWidth/2}px)`}));
   for(let i=1;i<=at;i++)setTimeout(()=>blip('move'),3300*(1-(1-i/at)**2.4));   // ticks slow down with the reel
   setTimeout(()=>{w.classList.add('win');d.querySelector('h2').textContent=win.title;blip('ok')},3400);
-  setTimeout(()=>{d.remove();const t=tiles().find(x=>x.dataset.id===win.id);if(t)goto(t)},4900);
+  setTimeout(()=>{d.remove();const f=gs(win.id).dir;if(!INF&&fById(f)&&!visible().includes(win)){INF=f;render()}const t=tiles().find(x=>x.dataset.id===win.id);if(t)goto(t)},4900);   // a pick from a folder opens that folder
 }
 // the card shown before a game starts: confirms the game, the emulator, and that its saves are where they should be
 const begin=g=>S.ui.confirm===false?launch(g):preview(g);
@@ -1042,8 +1068,8 @@ async function preview(g){
       ${S.meta[artKey(g)]?.d?`<p class="dim" style="margin:-8px 0 12px">${esc(S.meta[artKey(g)].d)}</p>`:''}
       ${NOW&&NOW.id===g.id?line('warn','Already running','Starting it again opens a second copy'):''}
       ${line(ok[0]?'':'bad',ok[0]?'Game file found':'Game file is missing',g.folder||g.path)}
-      ${g.sys==='pc'?'':r?line(ok[1]?'':'bad',ok[1]?'Opens in '+esc(r.name):esc(r.name)+' could not be found',r.exe):line('bad','No emulator set up for '+esc(s.name),'Add one in Settings')}
-      ${g.sys==='pc'?'':sav?line('','Save file found',file(sav)):data&&ok[2]?line('','Save data found',data):line('warn','No save data yet','A new save is created the first time you play')}
+      ${plain(g)?'':r?line(ok[1]?'':'bad',ok[1]?'Opens in '+esc(r.name):esc(r.name)+' could not be found',r.exe):line('bad','No emulator set up for '+esc(s.name),'Add one in Settings')}
+      ${plain(g)?'':sav?line('','Save file found',file(sav)):data&&ok[2]?line('','Save data found',data):line('warn','No save data yet','A new save is created the first time you play')}
       ${line(o.last?'':'warn',o.last?esc(ago(o.last)+(played(o.time)?' · played '+played(o.time):'')):'Never played')}
       ${fits.length>1?`<div class="row"><label>Launch with</label><select data-set="emu">${opt('','System default',o.emu||'')}${fits.map(e=>opt(e.id,e.name,o.emu)).join('')}</select></div>`:''}
     </div></div>`,
@@ -1260,14 +1286,24 @@ let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add
 function look(){
   const u=S.ui, d=document.documentElement;
   d.dataset.theme=u.theme; d.style.setProperty('--tile',u.size+'px'); d.style.setProperty('--r',{soft:'26px',round:'40px',sharp:'8px'}[u.corners]||'26px');
+  CV.forEach(v=>d.style.removeProperty(v));
   u.accent?d.style.setProperty('--acc',u.accent):d.style.removeProperty('--acc');
+  const ct=ctheme(), set=(k,v)=>d.style.setProperty(k,v);
+  if(ct){   // a custom theme: every colour, the glass, the glow and both fonts come from its own settings; a light background makes the whole thing light
+    const light=lum(ct.bg)>.55, rgb=h=>[1,3,5].map(i=>parseInt(hex6(h).slice(i,i+2),16)).join(','), g=(ct.glass??40)/100;
+    d.dataset.theme='custom'; if(!u.accent)set('--acc',ct.acc);
+    set('--bg',ct.bg);set('--fg',ct.fg);set('--tint',rgb(ct.fg));set('--dim',`rgba(${rgb(ct.fg)},.62)`);['o1','o2','o3'].forEach(k=>set('--'+k,ct[k]));
+    set('--ga',light?.35+g*.6:g*.4);set('--gb',light?.2+g*.5:g*.12);
+    if(light){set('--edge','.9');set('--shine','1');set('--shade','rgba(40,60,110,.18)');set('--field','rgba(255,255,255,.7)')}
+    set('--font',`"${ct.font}","Segoe UI",system-ui,sans-serif`);set('--head',`"${ct.head||ct.font}","Segoe UI",system-ui,sans-serif`);loadFont(ct.font);loadFont(ct.head);
+  }
   const m=/^#([0-9a-f]{6}|[0-9a-f]{3})$/i.exec(getComputedStyle(d).getPropertyValue('--acc').trim());
   if(m){
     const h=m[1].length===3?[...m[1]].map(x=>x+x).join(''):m[1];
     const [r,g,b]=[0,2,4].map(i=>{const v=parseInt(h.substr(i,2),16)/255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4}), L=.2126*r+.7152*g+.0722*b;
     d.style.setProperty('--on',(L+.05)/.05>=1.05/(L+.05)?'#0a0a0a':'#fff');
   }
-  document.body.className='v-'+u.view+' m-'+u.motion+' s-'+(u.style||'frost')+(INFO&&INFO.android?' android':'')+(u.fit==='contain'?' fit-whole':u.fit==='cover'?'':' fit-box');
+  document.body.className='v-'+u.view+' m-'+u.motion+' s-'+(u.style||'frost')+(INFO&&INFO.android?' android':'')+(u.fit==='contain'?' fit-whole':u.fit==='cover'?'':' fit-box')+(ct&&ct.glow===false?' no-glow':'');
   if(u.wall)$('#bg').style.backgroundImage=`url("/file?t=${T}&p=${encodeURIComponent(u.wall)}")`;
 }
 // button hints appear only once a controller is connected, labelled the way that controller is
@@ -1342,13 +1378,13 @@ function details(g){
   modal(esc(g.title),`
     <small>played ${mins<60?mins+' min':(mins/60).toFixed(1)+' h'}</small>
     <div class="row"><label>System</label><select data-set="sys">${g.sys==='unsorted'?opt('unsorted','Choose a system...','unsorted'):''}${systems().map(s=>opt(s.id,s.name,g.sys)).join('')}</select></div>
-    ${g.sys==='pc'||g.sys==='unsorted'?'':`<div class="row"><label>Launch with</label><select data-set="emu">${opt('','System default',o.emu||'')}${fits.map(e=>opt(e.id,e.name,o.emu)).join('')}</select></div>
+    ${plain(g)||g.sys==='unsorted'?'':`<div class="row"><label>Launch with</label><select data-set="emu">${opt('','System default',o.emu||'')}${fits.map(e=>opt(e.id,e.name,o.emu)).join('')}</select></div>
     <div class="row"><label>Extra arguments</label><input class="w" type="text" data-set="args" value="${esc(o.args)}" placeholder="added after the emulator's own arguments"></div>
     <div class="row"><label>Runs as</label><code>${r?esc('"'+r.exe+'" '+r.args):'no emulator set up for this system yet'}</code></div>`}
     <div class="row"><label>Display name</label><input class="w" type="text" data-set="title" value="${esc(g.title)}"></div>
     <div class="row"><label>Folder</label><select data-set="dir">${opt('','None',o.dir||'')}${(S.folders||[]).map(f=>opt(f.id,f.name,o.dir)).join('')}</select><input class="w" type="text" data-set="newdir" placeholder="or type a new folder name"></div>
     <code>${esc(target)}</code>`,
-    `<button class="btn bad" data-act="del">Delete</button><button class="btn" data-act="hide">Hide</button><button class="btn" data-act="show">Show file</button>${r&&!INFO.android?'<button class="btn" data-act="emu">Open emulator</button>':''}<button class="btn" data-act="art">Set artwork</button><button class="btn" data-act="match">Fix match</button>${r&&MODDIR[S.emus.find(e=>e.exe===r.exe)?.kind]?'<button class="btn" data-act="mods">Mods</button>':''}<button class="btn" data-act="lnk">Desktop shortcut</button><button class="btn" data-act="fav">${o.fav?'Unfavourite':'Favourite'}</button><button class="btn pri" data-act="play">Launch</button>`);
+    `${g.store?'':'<button class="btn bad" data-act="del">Delete</button>'}<button class="btn" data-act="hide">Hide</button>${g.store?'':'<button class="btn" data-act="show">Show file</button>'}${r&&r.exe&&!INFO.android?'<button class="btn" data-act="emu">Open emulator</button>':''}<button class="btn" data-act="art">Set artwork</button><button class="btn" data-act="match">Fix match</button>${r&&MODDIR[S.emus.find(e=>e.exe===r.exe)?.kind]?'<button class="btn" data-act="mods">Mods</button>':''}<button class="btn" data-act="lnk">Desktop shortcut</button><button class="btn" data-act="fav">${o.fav?'Unfavourite':'Favourite'}</button><button class="btn pri" data-act="play">Launch</button>`);
   const hide=async()=>{o.hide=true;save();await scan();closeModal();toast('Hidden. Bring it back from Settings > Library')};
   onChange=(k,v)=>{
     if(k==='sys'&&v==='unsorted')return;
@@ -1511,6 +1547,8 @@ async function settings(t='lib'){
     <div class="row"><button class="btn pri" data-act="addroot">Add a games folder</button><button class="btn" data-act="rescan">Rescan</button></div>
     ${HIDDEN.length?`<h3>Hidden games</h3>${HIDDEN.map(g=>`<div class="row"><button class="btn" data-act="unhide" data-arg="${esc(g.id)}">Show again</button><small>${esc(g.title)}</small></div>`).join('')}`:''}
     <h3>Artwork</h3><small>Cove finds a cover, a wide background, a description and the year for each game in the background. Found for <b>${GAMES.filter(g=>S.meta[artKey(g)]).length}</b> of ${GAMES.length} games${artQ.length?', '+artQ.length+' still in the queue':''}. Fix a wrong match from the game's Options.</small>
+    <h3>Other launchers</h3>
+    <div class="row"><input type="checkbox" data-set="stores" ${S.stores===false?'':'checked'}><b>Steam, Epic and GOG games</b><small>Installed games show up on their own tabs and start through their launcher. For anything else (Battle.net, EA, Ubisoft, itch), put its desktop shortcuts in one of your game folders and they appear under PC.</small></div>
     <div class="row"><input type="checkbox" data-set="src" data-arg="libretro" ${S.scrape.off.libretro?'':'checked'}><b>Box art scans</b><small>Real box scans for cartridge and disc systems.</small></div>
     <div class="row"><label>Pictures from</label><select data-set="only">${opt('','Best available',S.scrape.only||'')}${Object.keys(SRC).filter(id=>SRC[id].ready()).map(id=>opt(id,'Only '+SRC[id].name,S.scrape.only||'')).join('')}</select><small>Choose one, then "Scrape everything again". Matches you fixed by hand are kept.</small></div>
     <div class="row"><button class="btn pri" data-act="scrape">Scrape missing now</button><button class="btn" data-act="rescrape">Scrape everything again</button></div>
@@ -1569,6 +1607,15 @@ async function settings(t='lib'){
     <small>Some emulators post their own Discord status too. If you see two cards, turn the emulator's one off in its settings.</small>`}
   if(t==='look'){const u=S.ui;body=`
     <h3>Theme</h3>${sws(u.theme,'theme')}
+    <div class="row"><button class="btn" data-act="newtheme">New custom theme</button><small>Starts as a copy of the theme you are on, then change anything below.</small></div>
+    ${(ct=>ct?`<h3>Custom theme</h3>
+    <div class="row"><label>Name</label><input class="w" type="text" data-set="c.name" value="${esc(ct.name)}"></div>
+    <div class="row"><label>Colours</label>${[['acc','Accent'],['bg','Background'],['fg','Text'],['o1','Glow 1'],['o2','Glow 2'],['o3','Glow 3']].map(([k,n])=>`<label class="sm">${n}<input type="color" data-set="c.${k}" value="${hex6(ct[k])}"></label>`).join('')}</div>
+    <small>A light background makes the whole theme light: panels, text and glass follow it.</small>
+    <div class="row"><label>Glass</label><input type="range" min="0" max="100" data-set="c.glass" value="${ct.glass??40}"><label class="sm"><input type="checkbox" data-set="c.glow" ${ct.glow===false?'':'checked'}>Background glow</label></div>
+    <div class="row"><label>Font</label><select data-set="c.font">${[...new Set(Object.keys(FONTS).concat(ct.font))].map(f=>opt(f,f,ct.font)).join('')}</select><input class="w" type="text" data-set="c.fontx" placeholder="or type any Google Fonts name"></div>
+    <div class="row"><label>Title font</label><select data-set="c.head">${opt('','Same as the font',ct.head||'')}${[...new Set(Object.keys(FONTS).concat(ct.head||[]))].map(f=>opt(f,f,ct.head||'')).join('')}</select></div>
+    <div class="row"><button class="btn bad" data-act="deltheme">Delete this theme</button></div>`:'')(ctheme())}
     <h3>Style</h3>${seg(STYLES,u.style||'frost','style')}
     <small>${STYLES.map(x=>x[1]+': '+x[2].toLowerCase()).join('. ')}.</small>
     <h3>Sounds</h3>${seg(PACKS,u.pack||'soft','pack')}
@@ -1603,11 +1650,15 @@ async function settings(t='lib'){
   const E=id=>S.emus.find(e=>e.id===id), again=()=>settings(t);
   if(t==='emus')coreMarks();
   onChange=(k,v,arg)=>{
+    if(k.startsWith('c.')){const ct=ctheme();if(!ct)return;k=k.slice(2);
+      if(k==='fontx'){if(!v.trim())return;k='font';v=v.trim()}
+      ct[k]=k==='glass'?+v:v;look();save();return k==='font'&&!FONTS[v]?again():undefined}
     if(t==='look'){S.ui[k]=k==='size'||k==='vol'?+v:v;look();save();if(k==='vol'||k==='sound')blip('ok');if(k==='news')render(true);return}
     if(t==='discord'){S.discord[k]=typeof v==='string'?v.trim():v;save();return}
     if(k==='def'){S.defaults[arg]=v;save();return}
     if(k==='only'){S.scrape.only=v;save();return}
     if(k==='core'){(S.cores=S.cores||{})[arg]=v;save();return coreMarks()}
+    if(k==='stores'){S.stores=v;save();return scan().then(()=>{render(true);again()})}
     if(k==='src'){v?delete S.scrape.off[arg]:S.scrape.off[arg]=1;save();return again()}
     if(k==='key'){S.scrape.keys[arg]=String(v).trim();igdbTok=null;save();GAMES.forEach(findArt);return again()}   // a new key sends the games back for HD art
     const e=E(arg); if(k==='sys')v=v.trim()?v.trim().split(/[\s,]+/):undefined;
@@ -1667,6 +1718,8 @@ async function settings(t='lib'){
       await api('discord',{clientId:did(),activity:{type:0,details:'In the library',state:'Choosing a game',timestamps:{start:BOOT},assets:{large_image:'cove',large_text:'Cove'}}});
       d.on=true;save();blip('ok');toast('Connected. Check your Discord profile');return again()}
     if(a==='sfx'){['move','tab','ok','back','open','launch'].forEach((k,i)=>setTimeout(()=>blip(k),i*650));return}
+    if(a==='newtheme'){newTheme();blip('ok');return again()}
+    if(a==='deltheme'){S.themes=S.themes.filter(x=>x!==ctheme());S.ui.theme='frost';look();save();return again()}
     if(a==='noaccent'){S.ui.accent='';look();save();return again()}
     if(a==='theme'||a==='view'||a==='style'||a==='pack'){S.ui[a]=arg;look();save();blip('tab');return again()}
     if(a==='reart'){for(const k in S.art)if(!S.art[k]){delete S.art[k];delete S.meta[k]}LRFAIL.clear();save();closeModal();return toast('Looking for covers')}

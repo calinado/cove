@@ -162,6 +162,14 @@ function Pick($kind) {
 function Sweep {
   $exited = $false
   foreach ($r in @($running)) {
+    if (-not $r.p) {   # started through Steam, Epic or GOG: wait for a program from the game's own folder to appear, then follow that
+      $d = ([string]$r.dir).TrimEnd('\') + '\'
+      $hit = $null
+      if ($d.Length -gt 3) { $hit = Get-Process | Where-Object { $_.Path -and $_.Path.StartsWith($d, [StringComparison]::OrdinalIgnoreCase) } | Select-Object -First 1 }
+      if ($hit) { $r.p = $hit; $script:front = $hit; $script:frontUntil = (Get-Date).AddSeconds(20) }
+      elseif (((Get-Date) - $r.t).TotalSeconds -gt 180) { [void]$done.Add(@{ id = $r.id; s = 0 }); $running.Remove($r) }   # never seen: stop waiting, but leave Cove where it is
+      continue
+    }
     if ($r.p.HasExited) {
       [void]$done.Add(@{ id = $r.id; s = [int]((Get-Date) - $r.t).TotalSeconds })
       $running.Remove($r)
@@ -255,7 +263,7 @@ function Handle($ctx) {
       $ra = Join-Path $Data 'retroarch-cove.cfg'
       # rewritten each start so every copy gets the current lines: sound on, not muted, through the driver that follows Windows' default speakers
       [void](New-Item -ItemType Directory -Force -Path $Data); [IO.File]::WriteAllText($ra, "input_menu_toggle_gamepad_combo = `"4`"`r`naudio_enable = `"true`"`r`naudio_mute_enable = `"false`"`r`naudio_driver = `"xaudio`"`r`naudio_device = `"`"`r`n")
-      Json $res @{ v = 10; version = [string]$ver.version; repo = [string]$ver.repo; sep = [string][IO.Path]::DirectorySeparatorChar; app = $App; appdata = $env:APPDATA; local = $env:LOCALAPPDATA
+      Json $res @{ v = 12; version = [string]$ver.version; repo = [string]$ver.repo; sep = [string][IO.Path]::DirectorySeparatorChar; app = $App; appdata = $env:APPDATA; local = $env:LOCALAPPDATA
         docs = [Environment]::GetFolderPath('MyDocuments'); desktop = [Environment]::GetFolderPath('Desktop') }
     }
     '/api/ping' { Sweep; $d = @($done); $done.Clear(); Json $res @{ done = $d; running = $running.Count; ids = @($running | ForEach-Object { $_.id }) } }
@@ -314,6 +322,14 @@ function Handle($ctx) {
       Json $res @{ files = $n }
     }
     '/api/launch' {
+      if ($j.uri) {
+        $a = @{ FilePath = [string]$j.uri }
+        if ($j.uri -notmatch '^\w{2,}:') { $a.WorkingDirectory = Split-Path ([string]$j.uri) }   # a plain program path, as GOG gives
+        Start-Process @a
+        [void]$running.Add(@{ id = $j.id; p = $null; dir = [string]$j.dir; t = Get-Date })
+        Hide-Cove ([string]$j.after)
+        Json $res @{ ok = $true }; break
+      }
       $a = @{ FilePath = $j.exe; PassThru = $true }
       if ($j.args) { $a.ArgumentList = $j.args }
       if ($j.cwd) { $a.WorkingDirectory = $j.cwd }
@@ -321,6 +337,34 @@ function Handle($ctx) {
       if ($p) { [void]$running.Add(@{ id = $j.id; p = $p; t = Get-Date }); $script:front = $p; $script:frontUntil = (Get-Date).AddSeconds(20) }
       Hide-Cove ([string]$j.after)
       Json $res @{ ok = $true }
+    }
+    '/api/stores' {   # installed games from Steam, Epic and GOG: name, how to start it, and its install folder
+      $out = New-Object System.Collections.ArrayList; $seen = @{}
+      try {
+        $sp = (Get-ItemProperty 'HKCU:\Software\Valve\Steam' -ErrorAction Stop).SteamPath
+        $libs = @($sp); $vdf = Join-Path $sp 'steamapps\libraryfolders.vdf'
+        if (Test-Path -LiteralPath $vdf) { $libs += @([regex]::Matches([IO.File]::ReadAllText($vdf), '"path"\s+"([^"]+)"') | ForEach-Object { $_.Groups[1].Value -replace '\\\\', '\' }) }
+        foreach ($l in $libs) {
+          foreach ($m in @(Get-ChildItem -LiteralPath (Join-Path $l 'steamapps') -Filter 'appmanifest_*.acf' -ErrorAction SilentlyContinue)) {
+            $t = [IO.File]::ReadAllText($m.FullName); $f = @{}
+            foreach ($k in 'appid', 'name', 'installdir') { $f[$k] = [regex]::Match($t, '"' + $k + '"\s+"([^"]*)"').Groups[1].Value }
+            if (-not $f.appid -or $seen['s' + $f.appid] -or $f.name -match 'Redistributable|Proton|Steam Linux Runtime|Steamworks|SteamVR') { continue }
+            $seen['s' + $f.appid] = 1
+            [void]$out.Add(@{ store = 'steam'; id = $f.appid; name = $f.name; uri = 'steam://rungameid/' + $f.appid; dir = [IO.Path]::GetFullPath((Join-Path $l ('steamapps\common\' + $f.installdir))) })
+          }
+        }
+      } catch {}
+      foreach ($m in @(Get-ChildItem -LiteralPath (Join-Path $env:ProgramData 'Epic\EpicGamesLauncher\Data\Manifests') -Filter '*.item' -ErrorAction SilentlyContinue)) {
+        try { $e = [IO.File]::ReadAllText($m.FullName) | ConvertFrom-Json } catch { continue }
+        if ($e.AppCategories -and -not ($e.AppCategories -contains 'games')) { continue }   # skips Unreal Engine and other tools
+        [void]$out.Add(@{ store = 'epic'; id = $e.AppName; name = $e.DisplayName; uri = 'com.epicgames.launcher://apps/' + $e.CatalogNamespace + '%3A' + $e.CatalogItemId + '%3A' + $e.AppName + '?action=launch&silent=true'; dir = [string]$e.InstallLocation })
+      }
+      foreach ($k in @(Get-ChildItem 'HKLM:\SOFTWARE\WOW6432Node\GOG.com\Games' -ErrorAction SilentlyContinue)) {
+        $g = Get-ItemProperty $k.PSPath
+        if (-not $g.exe -or $g.dependsOn) { continue }   # dependsOn marks add-ons
+        [void]$out.Add(@{ store = 'gog'; id = [string]$g.gameID; name = $g.gameName; uri = $g.exe; dir = [string]$g.path })
+      }
+      Json $res @{ games = @($out) }
     }
     '/api/discord' {
       Discord-Set ([string]$j.clientId) $j.activity
