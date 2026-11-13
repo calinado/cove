@@ -949,7 +949,7 @@ function render(keep){
   if(INF&&!fById(INF))INF=null;
   const inF=f=>GAMES.filter(g=>gs(g.id).dir===f.id), q0=$('#q').value.trim();
   const pre=INF?`<button class="tile fold" data-f="" title="Back"><span class="art" style="--ar:1"><svg class="ic bk" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span><span class="name">Back</span><span class="meta">${esc(fById(INF).name)}</span></button>`
-    :tab==='all'&&!q0?(S.folders||[]).map(f=>`<button class="tile fold" data-f="${f.id}" title="${esc(f.name)}"><span class="art" style="--ar:1">${inF(f).length?`<span class="mini">${[0,1,2,3].map(n=>{const g=inF(f)[n],u=g&&artUrl(g);return u?`<i style="background-image:url('${esc(u)}')"></i>`:g?`<i style="background:linear-gradient(140deg,hsl(${hue(g.title)} 70% 46%),hsl(${(hue(g.title)+60)%360} 65% 22%))"></i>`:'<i></i>'}).join('')}</span>`:`<svg class="ic big" viewBox="0 0 24 24">${FLOOK[f.look]||FLOOK.folder}</svg>`}</span><span class="name"><svg class="ic" viewBox="0 0 24 24">${FLOOK[f.look]||FLOOK.folder}</svg>${esc(f.name)}</span><span class="meta">${inF(f).length} game${inF(f).length===1?'':'s'}</span></button>`).join(''):'';
+    :tab==='all'?(S.folders||[]).filter(f=>!q0||(f.name+' '+inF(f).map(g=>g.title).join(' ')).toLowerCase().includes(q0.toLowerCase())).map(f=>`<button class="tile fold" data-f="${f.id}" title="${esc(f.name)}"><span class="art" style="--ar:1">${inF(f).length?`<span class="mini">${[0,1,2,3].map(n=>{const g=inF(f)[n],u=g&&artUrl(g);return u?`<i style="background-image:url('${esc(u)}')"></i>`:g?`<i style="background:linear-gradient(140deg,hsl(${hue(g.title)} 70% 46%),hsl(${(hue(g.title)+60)%360} 65% 22%))"></i>`:'<i></i>'}).join('')}</span>`:`<svg class="ic big" viewBox="0 0 24 24">${FLOOK[f.look]||FLOOK.folder}</svg>`}</span><span class="name"><svg class="ic" viewBox="0 0 24 24">${FLOOK[f.look]||FLOOK.folder}</svg>${esc(f.name)}</span><span class="meta">${inF(f).length} game${inF(f).length===1?'':'s'}</span></button>`).join(''):'';
   $('#count').textContent=list.length+(list.length===1?' game':' games');
   let last='';
   $('#grid').classList.toggle('still',!!keep);
@@ -965,8 +965,9 @@ function render(keep){
   const em=$('#empty'); em.hidden=list.length>0||!!pre;
   if(!list.length)em.innerHTML=GAMES.length?'Nothing here yet.':'No games yet.<br>Point Cove at the folder where your games are and they show up here. Nothing gets moved.<br><br><button class="btn pri xl" data-act="addgames">Add a games folder</button>';
   const t=focusId&&tiles().find(x=>x.dataset.id===focusId);
-  (t||$('.tile'))?.focus({preventScroll:!!keep});
-  if(!list.length)hero(null);
+  if(document.activeElement!==$('#q'))(t||$('.tile'))?.focus({preventScroll:!!keep});   // typing in search keeps the cursor in the box
+  else hero(list[0]||null);
+  if(!list.length&&document.activeElement!==$('#q'))hero(null);
 }
 const game=el=>GAMES.find(g=>g.id===el?.dataset?.id);
 const tiles=()=>[...document.querySelectorAll('.tile')];
@@ -1222,7 +1223,7 @@ document.addEventListener('keydown',e=>{
   if($('#dd')&&e.key==='Escape')return $('#dd').click();
   if($('#layer').children.length){if(e.key==='Escape')closeModal();const a={ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r'}[e.key],el=document.activeElement;if(a&&!(el.tagName==='SELECT'||(el.tagName==='INPUT'&&el.type!=='checkbox'))){e.preventDefault();navKey(a)}return}
   const typing=document.activeElement===$('#q');
-  if(e.key==='Escape'){if(EDIT)return edit(false);$('#q').value='';INF=null;render();return}
+  if(e.key==='Escape'){if(EDIT)return edit(false);$('#q').value='';$('#q').blur();INF=null;render();return}
   if(typing){if(e.key==='ArrowDown'||e.key==='Enter'){e.preventDefault();$('.tile')?.focus()}return}
   const k=e.key.toLowerCase(), g=game(document.activeElement);
   const m={arrowleft:[-1,0],arrowright:[1,0],arrowup:[0,-1],arrowdown:[0,1]}[k];
