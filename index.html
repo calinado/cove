@@ -181,12 +181,13 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .mini i:empty:not([style]){box-shadow:inset 0 0 0 1px rgba(var(--tint),.1)}
 .fold .big{width:44%;height:44%;color:var(--acc);stroke-width:1.5}
 .fold .name .ic{width:14px;height:14px;color:var(--acc);vertical-align:-2px;margin-right:6px}
+.more .mn{position:absolute;bottom:10px;right:12px;font-size:15px;color:var(--acc)}
 .fold .bk{width:38%;height:38%;color:var(--acc)}
-#bulk{position:fixed;left:50%;bottom:78px;translate:-50% 0;z-index:9;display:flex;gap:6px;align-items:center;padding:8px;border-radius:16px;max-width:calc(100vw - 40px);overflow-x:auto;scrollbar-width:none;box-shadow:0 14px 40px rgba(0,0,0,.55);backdrop-filter:blur(30px)}
+#bulk{position:fixed;left:50%;bottom:78px;translate:-50% 0;z-index:9;display:flex;gap:6px;align-items:center;padding:8px;border-radius:16px;max-width:calc(100vw - 40px);flex-wrap:wrap;justify-content:center;box-shadow:0 14px 40px rgba(0,0,0,.55);backdrop-filter:blur(30px)}
 #bulk b{padding:0 10px;font-size:13px;white-space:nowrap}#bulk select,#bulk input{max-width:170px}
 .tile.sel .art{outline:3px solid var(--acc);outline-offset:3px}
 .tile.sel::before{content:"";position:absolute;z-index:4;top:14px;left:14px;width:24px;height:24px;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.5);background:var(--acc) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
-#bulk{bottom:90px}#bulk[hidden]{display:none}#bulk>*{flex:none}.edit #toast{bottom:160px}
+#bulk{bottom:90px}#bulk[hidden]{display:none}#bulk>*{flex:none}.edit #toast{bottom:210px}
 .edit .tile{cursor:grab}.edit .tile .art{animation:wig .6s ease-in-out infinite alternate}.edit .tile:nth-child(even) .art{animation-delay:-.3s}
 @keyframes wig{from{rotate:-.6deg}to{rotate:.6deg}}   /* a gentle jiggle on the cover only */
 .tile img{-webkit-user-drag:none}
@@ -205,7 +206,7 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 #hero h1,.modal h2{font-family:var(--head,var(--font))}
 .sp-compact #grid{gap:10px!important}.sp-roomy #grid{gap:44px!important}
 .no-info #hero{display:none!important}
-.tint-tinted :is(.tile,#hero) :is(.art,.cover){background:var(--acc)!important}.tint-tinted :is(.tile,#hero) :is(.art,.cover) img{mix-blend-mode:luminosity}
+.tint-tinted :is(.tile,#hero) :is(.art,.cover) img{filter:grayscale(1) sepia(1) hue-rotate(var(--th,0deg)) saturate(2.4) contrast(1.05)}   /* every cover in the accent's hue */
 .tint-mono :is(.tile,#hero) :is(.art,.cover) img{filter:grayscale(1)}.tint-dim .tile:not(:focus) .art img{filter:brightness(.6)}
 #bootgo{position:fixed;left:50%;top:40%;translate:-50% 0;z-index:90;padding:22px 30px;border-radius:18px;font-size:17px;animation:pop .3s var(--spring)}
 .no-names .tile .name,.no-names .tile .meta{display:none}
@@ -226,10 +227,18 @@ details.adv>summary:focus{outline:2px solid var(--acc);outline-offset:2px}
 #empty{text-align:center;color:var(--dim);margin:auto;line-height:1.8}
 
 /* layout: Home (hero + two rows of icons that scroll sideways) */
+.v-ds .stage{gap:22px;padding-bottom:10px}
+.v-ds #hero{height:min(34vh,320px);padding:22px 28px;background:linear-gradient(90deg,var(--bg) 22%,color-mix(in srgb,var(--bg) 55%,transparent) 55%,transparent),var(--wide,none) center/cover,rgba(var(--tint),.05);border:1px solid rgba(var(--tint),.12)}
+.v-ds #hero .cover{height:100%;width:auto;aspect-ratio:var(--ar,1)}
+.v-ds main{flex:1;overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none;padding:0}
+.v-ds .tile.gap{visibility:visible;background:none;box-shadow:none;border:1px solid rgba(var(--tint),.07)}.v-ds .tile.gap .art{background:none;box-shadow:none}   /* empty slots stay visible, like the 3DS grid */
+.v-ds{--ds:max(44px,min(calc(var(--tile)*1.1),calc((100vh - 270px - min(34vh,320px))/var(--rows,3) - 18px)))}
+.v-ds #grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--rows,3),auto);grid-auto-columns:var(--ds);gap:14px;padding:22px;margin:auto 0}
+.v-ds .tile{padding:5px}.v-ds .tile .name,.v-ds .tile .meta,.v-ds .sec,.v-ds .new{display:none}
 .v-home main,.v-shelf main{overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none}
 .v-home #grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--rows,2),auto);grid-auto-columns:max(60px,min(var(--tile),calc((100vh - 590px)/var(--rows,2) - 34px)));gap:18px;margin:auto 0;padding:30px 14px}
 .v-home .tile .name,.v-home .tile .meta,.v-home .sec,.v-shelf .sec,.v-shelf .tile .meta{display:none}
-@media (max-height:780px){.v-home #grid{grid-template-rows:auto!important;grid-auto-columns:min(var(--tile),calc(100vh - 480px))!important}}   /* short screens: one row */
+@media (max-height:780px){.v-ds #hero{height:30vh}.v-home #grid{grid-template-rows:auto!important;grid-auto-columns:min(var(--tile),calc(100vh - 480px))!important}}   /* short screens: one row */
 /* layout: Grid (everything, grouped by system) */
 .v-grid #hero{display:none}
 .v-grid #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--tile),1fr));gap:22px}
@@ -356,6 +365,8 @@ footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:
 .tabs{display:flex;gap:6px;padding:10px 28px 4px;flex-wrap:wrap}
 .row{display:flex;gap:10px;align-items:center;margin:9px 0;flex-wrap:wrap}
 .row label{min-width:120px;color:var(--dim);font-size:13px}
+.scrim.peek{background:none;backdrop-filter:none;justify-content:flex-end;padding:0 18px;transition:padding .3s}
+.scrim.peek .modal{width:min(560px,46vw);height:calc(100vh - 36px)!important;max-height:none}
 .slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin:10px 0}
 .slot{display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:12px;background:rgba(var(--tint),.06)}.slot.empty{opacity:.6}
 .slot span{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.slot .btn{padding:5px 10px;font-size:12px}
@@ -887,13 +898,13 @@ addEventListener('pagehide',()=>navigator.sendBeacon('/api/quit?t='+T));
 
 /* ---------- main view ---------- */
 const STYLES=[['frost','Frosted','Glass panels over soft light'],['art','Full art','The selected game fills the screen'],['flat','Flat','Solid colour, no glow']];
-const LAYOUTS=[['shelf','Shelf','One row of large covers'],['home','Home','Big card over two rows of icons'],['grid','Grid','Everything, grouped by system'],['list','List','Cover on the left, rows on the right']];
+const LAYOUTS=[['shelf','Shelf','One row of large covers'],['home','Home','Big card over two rows of icons'],['grid','Grid','Everything, grouped by system'],['list','List','Cover on the left, rows on the right'],['ds','Home Menu','3DS style: an icon grid you zoom in and out, with folders and empty slots']];
 const THEMES=[['frost','Frost','#CCFF00','#0b0d08'],['aurora','Aurora','#b9a2ff','#090818'],['joy','Joy','#ff4554','#0f0f13'],['midnight','Midnight','#ffd166','#050a1c'],['mint','Mint','#5eead4','#03110f'],['sunset','Sunset','#ffb347','#160910'],['mono','Mono','#ffffff','#111'],['neon','Arcade neon','#ff2bd6','#05010d'],['crt','CRT retro','#7cff6b','#060b06'],['dark','Console dark','#4da3ff','#0c0d10'],['basicb','Basic black','#19d3c5','#2d2d2d'],
   ['daylight','Daylight','#2563eb','#dde6f6'],['channel','Channel','#00a3e0','#eef4f8'],['pocket','Pocket','#f26b1d','#f5ede2'],['sakura','Sakura','#e2457f','#fbeaf1'],['paper','Paper light','#d9480f','#f4f1ea'],['basicw','Basic white','#0ab9e6','#ebebeb']];
 const LIGHT=['daylight','channel','pocket','sakura','paper','basicw'];
 const sws=(cur,act)=>[['Dark',x=>!LIGHT.includes(x[0])],['Light',x=>LIGHT.includes(x[0])],['Custom',x=>x[0].startsWith('c:')]].map(([h,f])=>{const l=THEMES.concat((S.themes||[]).map(t=>['c:'+t.id,t.name,t.acc,t.bg])).filter(x=>!x[0].startsWith('c:')===(h!=='Custom')).filter(f);return l.length?`<h4>${h}</h4><div class="sws">${l.map(x=>`<button class="sw ${x[0]===cur?'on':''}" data-act="${act}" data-arg="${x[0]}" style="--a:${x[2]};--b:${x[3]}"><i></i><span>${x[1]}</span></button>`).join('')}</div>`:''}).join('');
 const seg=(list,cur,act)=>`<div class="seg">${list.map(x=>`<button class="${x[0]===cur?'on':''}" data-act="${act}" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>`;
-const LKEYS=['tint','walls','theme','style','view','size','sp','info','names','rows','corners','fit','accent','wall','group','sort','pack','motion','show'];
+const LKEYS=['cap','tint','walls','theme','style','view','size','sp','info','names','rows','corners','fit','accent','wall','group','sort','pack','motion','show'];
 function saveLayout(i){const L=S.layouts=S.layouts||[];L[i]={name:L[i]?.name||'Layout '+(i+1),ui:Object.fromEntries(LKEYS.filter(k=>S.ui[k]!==undefined).map(k=>[k,S.ui[k]])),order:S.order?[...S.order]:null,at:Date.now()};save()}
 function loadLayout(i){const l=(S.layouts||[])[i];if(!l)return;const rest=Object.fromEntries(Object.entries(S.ui).filter(([k])=>!LKEYS.includes(k)));S.ui={...structuredClone(DEF.ui),...rest,...l.ui};if(l.order)S.order=[...l.order];look();save();render()}
 const ICON={settings:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',layout:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
@@ -953,6 +964,7 @@ const fById=id=>(S.folders||[]).find(f=>f.id===id);
 const mark=(id,label)=>ART['systems/'+id]?`<img class="lg" alt="${esc(label)}" src="/file?t=${T}&p=${encodeURIComponent(ART['systems/'+id])}">`:`<svg class="ic" viewBox="0 0 24 24">${glyph(id)}</svg><span>${esc(label)}</span>`;
 // little pictures of each layout for the layout menu
 const LAYPIC={shelf:'<rect x="1" y="6" width="7" height="10" rx="1.5" opacity=".5"/><rect x="10" y="3" width="12" height="16" rx="2"/><rect x="24" y="6" width="7" height="10" rx="1.5" opacity=".5"/>',
+  ds:'<rect x="1" y="1" width="30" height="7" rx="2"/>'+[0,1,2].map(r=>[0,1,2,3,4,5].map(c=>`<rect x="${1+c*5.1}" y="${10+r*4}" width="4" height="3.2" rx=".8" opacity=".6"/>`).join('')).join(''),
   home:'<rect x="1" y="1" width="30" height="8" rx="2"/><rect x="1" y="11" width="6" height="4.5" rx="1"/><rect x="9" y="11" width="6" height="4.5" rx="1"/><rect x="17" y="11" width="6" height="4.5" rx="1"/><rect x="25" y="11" width="6" height="4.5" rx="1"/><rect x="1" y="16.5" width="6" height="4.5" rx="1"/><rect x="9" y="16.5" width="6" height="4.5" rx="1"/><rect x="17" y="16.5" width="6" height="4.5" rx="1"/><rect x="25" y="16.5" width="6" height="4.5" rx="1"/>',
   grid:'<rect x="1" y="1" width="8.5" height="9" rx="1.5"/><rect x="11.75" y="1" width="8.5" height="9" rx="1.5"/><rect x="22.5" y="1" width="8.5" height="9" rx="1.5"/><rect x="1" y="12" width="8.5" height="9" rx="1.5"/><rect x="11.75" y="12" width="8.5" height="9" rx="1.5"/><rect x="22.5" y="12" width="8.5" height="9" rx="1.5"/>',
   list:'<rect x="1" y="1" width="11" height="20" rx="2"/><rect x="14" y="1" width="17" height="5" rx="1.5"/><rect x="14" y="8.5" width="17" height="5" rx="1.5"/><rect x="14" y="16" width="17" height="5" rx="1.5"/>'};
@@ -999,6 +1011,8 @@ function visible(){
   }
   const run=NOW?l.findIndex(g=>g.id===NOW.id):-1;
   if(run>0)l.unshift(l.splice(run,1)[0]);   // the running game is always first
+  const cap=+(S.ui.cap??24); MORE=0;
+  if(cap&&!FULL&&S.ui.view==='shelf'&&tab==='all'&&!INF&&!q&&l.length>cap){MORE=l.length-cap;l=l.slice(0,cap)}   // a long shelf ends in a Full library tile
   return l;
 }
 function render(keep){
@@ -1015,13 +1029,15 @@ function render(keep){
   const nG=list.filter(g=>!g.gap).length; $('#count').textContent=nG+(nG===1?' game':' games');
   let last='';
   $('#grid').classList.toggle('still',!!keep);
-  $('#grid').innerHTML=pre+list.map((g,i)=>{
+  const backT=FULL&&!INF?`<button class="tile fold" data-back="1" title="Back to the shelf"><span class="art" style="--ar:1"><svg class="ic bk" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span><span class="name">Back to shelf</span><span class="meta">${GAMES.length} games</span></button>`:'';
+  $('#grid').innerHTML=backT+pre+list.map((g,i)=>{
     if(g.gap)return `<button class="tile gap" data-gap="${g.id}" tabindex="-1" title="Empty slot"><span class="art"></span><span class="name">&nbsp;</span></button>`;
     const s=sysOf(g.sys), o=gs(g.id), k=o.fav&&tab!=='fav'&&tab!=='recent'?'\u0001':groupBy()==='category'?(cats(g)[0]||'Other'):g.sys, head=heads&&k!==last?`<div class="sec">${k==='\u0001'?'Favourites':groupBy()==='category'?esc(k):esc(s.name)}</div>`:''; last=k;
     findArt(g);
     return `${head}<button class="tile ${NOW&&NOW.id===g.id?'playing':''} ${SEL.has(g.id)?'sel':''}" data-id="${esc(g.id)}" title="${esc(g.title)}" style="--i:${Math.min(i,28)}">
       <span class="art" ${cover(g)}${o.fav?`<svg class="fav" viewBox="0 0 24 24">${FLOOK.star}</svg>`:''}${NOW&&NOW.id===g.id?'<span class="run">Running</span>':''}</span>${o.last?'':'<span class="new"></span>'}
       <span class="name">${esc(g.title)}</span><span class="meta">${esc(s.label||s.name)}${played(o.time)?' &middot; '+played(o.time):''}</span></button>`}).join('');
+  if(MORE)$('#grid').insertAdjacentHTML('beforeend',`<button class="tile fold more" data-more="1" title="Full library"><span class="art" style="--ar:1"><svg class="ic big" viewBox="0 0 24 24">${ICON.layout}</svg><b class="mn">+${MORE}</b></span><span class="name">Full library</span><span class="meta">All ${GAMES.length} games</span></button>`);
   const chip=(g,note)=>{const u=artUrl(g);return `<button class="glass" data-n="${esc(g.id)}" tabindex="-1" title="${esc(g.title)}"><i style="${u?`background-image:url('${esc(u)}')`:`background:linear-gradient(140deg,hsl(${hue(g.title)} 70% 46%),hsl(${(hue(g.title)+60)%360} 65% 22%))`}"></i><b>${esc(g.title)}</b><small>${note}</small></button>`};
   const rec=GAMES.filter(g=>gs(g.id).last).sort((a,b)=>gs(b.id).last-gs(a.id).last).slice(0,4), fresh=GAMES.filter(g=>S.seen[g.id]>Date.now()-14*864e5&&!gs(g.id).last).sort((a,b)=>S.seen[b.id]-S.seen[a.id]).slice(0,4);
   $('#news').innerHTML=tab==='all'&&!INF&&!q0&&S.ui.news!==false?(rec.length?'<span>Jump back in</span>'+rec.map(g=>chip(g,ago(gs(g.id).last).replace('Last played ',''))).join(''):'')+(fresh.length?'<span>New</span>'+fresh.map(g=>chip(g,sysOf(g.sys).label||sysOf(g.sys).name)).join(''):''):'';
@@ -1046,6 +1062,7 @@ function hero(g){
   h.classList.remove('in'); void h.offsetWidth; h.classList.add('in');
   if(window.CoveNative)try{CoveNative.call('second',JSON.stringify({title:g.title,sys:s.name,year:S.meta[artKey(g)]?.y||'',about:S.meta[artKey(g)]?.d||'',img:/^https:/.test(u)?u:u?'https://cove.local'+u:'',acc:getComputedStyle(document.documentElement).getPropertyValue('--acc').trim()}))}catch{}
   const bg=$('#bg'), img=wallFor()?`url("/file?t=${T}&p=${encodeURIComponent(wallFor())}")`:u?`url("${u}")`:'';
+  $('#hero').style.setProperty('--wide',S.wide[artKey(g)]?`url("${S.wide[artKey(g)]}")`:'none');
   const wide=S.wide[artKey(g)], sharp=$('#bgart'), big=wallFor()?img:wide?`url("${wide}")`:img;
   if(bg.dataset.img!==img){bg.dataset.img=img;bg.classList.add('swap');setTimeout(()=>{if(bg.dataset.img!==img)return;bg.style.backgroundImage=img;bg.classList.remove('swap')},240)}
   if(sharp.dataset.img!==big){sharp.dataset.img=big;sharp.classList.add('swap');setTimeout(()=>{if(sharp.dataset.img!==big)return;sharp.style.backgroundImage=big;sharp.classList.toggle('wide',!!(wide||wallFor()));sharp.classList.remove('swap')},240)}
@@ -1187,7 +1204,7 @@ function launchFx(g,r){
   d.innerHTML=`<div>${media(g)}<h2>${esc(g.title)}</h2><p>Starting in ${esc(r.name)}${r.need?' &middot; F1 or Start + Select opens its menu':''}</p><div class="bar"><i></i></div></div>`;
   document.body.append(d);setTimeout(()=>d.classList.add('out'),2300);setTimeout(()=>d.remove(),2800);
 }
-$('#grid').addEventListener('click',e=>{if(dragged)return;const gp=e.target.closest('.tile.gap');if(gp){if(EDIT){snap();S.order=S.order.filter(i=>i!==gp.dataset.gap);save();render(true)}return}const st=e.target.closest('.tile');if(st&&game(st)&&(EDIT||e.ctrlKey||e.shiftKey)){if(!EDIT)edit(true);return pickTile(st,e.shiftKey)}if(EDIT)return;const t=e.target.closest('.tile'),g=game(t);if(g)start(g);else if(t){INF=t.dataset.f||null;render();blip(INF?'open':'back')}});
+$('#grid').addEventListener('click',e=>{if(dragged)return;const mb=e.target.closest('[data-more],[data-back]');if(mb){FULL=!!mb.dataset.more;look();render();blip(FULL?'open':'back');return}const gp=e.target.closest('.tile.gap');if(gp){if(EDIT){snap();S.order=S.order.filter(i=>i!==gp.dataset.gap);save();render(true)}return}const st=e.target.closest('.tile');if(st&&game(st)&&(EDIT||e.ctrlKey||e.shiftKey)){if(!EDIT)edit(true);return pickTile(st,e.shiftKey)}if(EDIT)return;const t=e.target.closest('.tile'),g=game(t);if(g)start(g);else if(t){INF=t.dataset.f||null;render();blip(INF?'open':'back')}});
 const opts=t=>{const g=game(t),f=fById(t?.dataset?.f);g?details(g):f&&folderEdit(f)};   // Options for whatever tile this is: a game or a folder
 $('#grid').addEventListener('contextmenu',e=>{const t=e.target.closest('.tile');if(!t)return;e.preventDefault();opts(t)});
 // folders: drop a game on another game to start one, drop it on a folder to add it, right-click (long-press on a touch screen) the background to make one, right-click a folder to change it
@@ -1338,11 +1355,12 @@ $('#quick').addEventListener('click',async e=>{
   if(q==='settings')settings(); if(q==='layout'||q==='theme'||q==='sort')menu(q); if(q==='random')surprise(); if(q==='user')users();
   if(q==='add'){const p=await pick('folder');if(p){addRoot(p);await scan();render();toast(GAMES.length+' games in your library')}}
 });
-const zoom=d=>{S.ui.size=Math.max(90,Math.min(260,(S.ui.size||150)+d*20));look();save();toast('Cover size '+S.ui.size)};
+const zoom=d=>{if(S.ui.view==='ds'&&!FULL){S.ui.rows=Math.max(1,Math.min(6,(S.ui.rows||3)-d));look();save();return toast(S.ui.rows+(S.ui.rows===1?' row':' rows'))}   // Home Menu zooms by rows, like the 3DS's resize buttons
+  S.ui.size=Math.max(90,Math.min(260,(S.ui.size||150)+d*20));look();save();toast('Cover size '+S.ui.size)};
 addEventListener('wheel',e=>{if(e.ctrlKey&&!$('#layer').children.length){e.preventDefault();zoom(e.deltaY<0?1:-1)}},{passive:false});   // Ctrl+wheel resizes covers, like the 3DS's zoom buttons
 for(const el of [$('main'),$('#dock')])el.addEventListener('wheel',e=>{if(e.ctrlKey)return;
   if(el.scrollWidth<=el.clientWidth||e.shiftKey||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;   // nothing sideways to scroll, or already a sideways gesture
-  if(el===$('main')&&!/v-(shelf|home)/.test(document.body.className))return;
+  if(el===$('main')&&!/v-(shelf|home|ds)/.test(document.body.className))return;
   e.preventDefault();glide(el,(glides.get(el)?.x??el.scrollLeft)+e.deltaY*1.2);
 },{passive:false});
 $('#now').addEventListener('click',()=>{const g=NOW&&GAMES.find(x=>x.id===NOW.id);if(g)running(g)});
@@ -1354,7 +1372,7 @@ document.addEventListener('keydown',e=>{
   if($('#dd')&&e.key==='Escape')return $('#dd').click();
   if($('#layer').children.length){if(e.key==='Escape')closeModal();const a={ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r'}[e.key],el=document.activeElement;if(a&&!(el.tagName==='SELECT'||(el.tagName==='INPUT'&&el.type!=='checkbox'))){e.preventDefault();navKey(a)}return}
   const typing=document.activeElement===$('#q');
-  if(e.key==='Escape'){if(EDIT)return edit(false);$('#q').value='';$('#q').blur();INF=null;render();return}
+  if(e.key==='Escape'){if(EDIT)return edit(false);if(FULL&&!INF){FULL=false;look();return render()}$('#q').value='';$('#q').blur();INF=null;render();return}
   if(typing){if(e.key==='ArrowDown'||e.key==='Enter'){e.preventDefault();$('.tile')?.focus()}return}
   const k=e.key.toLowerCase(), g=game(document.activeElement);
   const m={arrowleft:[-1,0],arrowright:[1,0],arrowup:[0,-1],arrowdown:[0,1]}[k];
@@ -1395,7 +1413,9 @@ function dropdown(sel){
     if(sel.isConnected)sel.focus()};
   document.body.append(d); (d.querySelector('.on')||d.querySelector('button')).focus(); blip('tab');
 }
-let BOOTSTOP=null;
+const openLink=u=>INFO.android?window.open(u,'_blank'):api('open',{path:u});   // the person's own browser, not Cove's window
+document.addEventListener('click',e=>{const a=e.target.closest('a[target=_blank]');if(a&&/^https?:/.test(a.href)){e.preventDefault();openLink(a.href)}});
+let BOOTSTOP=null, FULL=false, MORE=0;   // FULL: the shelf's full library view (shown as Grid)
 window.navKey=k=>{
   if(BOOTSTOP){BOOTSTOP();BOOTSTOP=null;return}
   const dd=$('#dd');
@@ -1411,7 +1431,7 @@ window.navKey=k=>{
     if(k==='a'){const e=document.activeElement;e.tagName==='SELECT'?dropdown(e):e.click?.()} if(k==='bk')closeModal(); if(k==='lb')mtab(-1); if(k==='rb')mtab(1);
   }else{
     const m={l:[-1,0],r:[1,0],u:[0,-1],d:[0,1]}[k]; if(m)move(...m);
-    if(k==='a'&&EDIT&&g){pickTile(document.activeElement,false)} else if(k==='a'){if(g)start(g);else document.activeElement.closest?.('#quick button,#news button,.fold')?.click()} if(k==='x'&&g)fav(g); if(k==='bk'&&EDIT)edit(false); else if(k==='bk'&&INF){INF=null;render();blip('back')} if(k==='y')opts(document.activeElement);
+    if(k==='a'&&EDIT&&g){pickTile(document.activeElement,false)} else if(k==='a'){if(g)start(g);else document.activeElement.closest?.('#quick button,#news button,.fold')?.click()} if(k==='x'&&g)fav(g); if(k==='bk'&&EDIT)edit(false); else if(k==='bk'&&FULL&&!INF){FULL=false;look();render();blip('back')} else if(k==='bk'&&INF){INF=null;render();blip('back')} if(k==='y')opts(document.activeElement);
     if(k==='lb')cycle(-1); if(k==='rb')cycle(1); if(k==='start')settings(); if(k==='sel'||k==='lt')menu('layout'); if(k==='rt')menu('theme');
   }
 };
@@ -1498,8 +1518,9 @@ function look(){
     const [r,g,b]=[0,2,4].map(i=>{const v=parseInt(h.substr(i,2),16)/255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4}), L=.2126*r+.7152*g+.0722*b;
     d.style.setProperty('--on',(L+.05)/.05>=1.05/(L+.05)?'#0a0a0a':'#fff');
   }
-  document.body.className='v-'+u.view+' m-'+u.motion+' s-'+(u.style||'frost')+(INFO&&INFO.android?' android':'')+(u.fit==='contain'?' fit-whole':u.fit==='cover'?'':' fit-box')+(ct&&ct.glow===false?' no-glow':'')+(u.sp&&u.sp!=='normal'?' sp-'+u.sp:'')+(u.info===false?' no-info':'')+(u.names===false?' no-names':'')+(u.tint?' tint-'+u.tint:'');
-  d.style.setProperty('--rows',u.rows||2);
+  document.body.className='v-'+(FULL?'grid':u.view)+' m-'+u.motion+' s-'+(u.style||'frost')+(INFO&&INFO.android?' android':'')+(u.fit==='contain'?' fit-whole':u.fit==='cover'?'':' fit-box')+(ct&&ct.glow===false?' no-glow':'')+(u.sp&&u.sp!=='normal'?' sp-'+u.sp:'')+(u.info===false?' no-info':'')+(u.names===false?' no-names':'')+(u.tint?' tint-'+u.tint:'');
+  {const c=hex6(getComputedStyle(d).getPropertyValue('--acc')),[r,g,b]=[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)/255),mx=Math.max(r,g,b),mn=Math.min(r,g,b),dd=mx-mn;let h=dd?mx===r?((g-b)/dd)%6:mx===g?(b-r)/dd+2:(r-g)/dd+4:0;d.style.setProperty('--th',(h*60-38)+'deg')}   // sepia sits near 38 degrees; turn it to the accent's hue
+  d.style.setProperty('--rows',u.rows||(u.view==='ds'?3:2));
   if(wallFor())$('#bg').style.backgroundImage=`url("/file?t=${T}&p=${encodeURIComponent(wallFor())}")`;
 }
 // button hints appear only once a controller is connected, labelled the way that controller is
@@ -1804,10 +1825,28 @@ async function settings(t='lib'){
       <p class="dim">The overlay is drawn by Discord itself, per program, so it is switched on in Discord rather than here. With a game running: Discord Settings &rsaquo; Registered Games &rsaquo; "Add it" and pick the emulator, then turn its overlay on there and under Game Overlay.</p></div>
     <small>Some emulators post their own Discord status too. If you see two cards, turn the emulator's one off in its settings.</small>`}
   if(t==='look'){const u=S.ui;body=`
-    <h3>Saved layouts</h3><small>Each slot keeps a whole look: theme, style, layout and its settings, cover size and your arrangement. Save what you have now into a slot, and load it back any time.</small>
-    <div class="slots">${[...Array(8)].map((_,i)=>{const l=(S.layouts||[])[i];return `<div class="slot ${l?'':'empty'}"><b>${l?esc(l.name):'Empty'}</b>${l?`<small>${esc((THEMES.find(x=>x[0]===l.ui.theme)||[0,'Custom theme'])[1])} · ${esc((LAYOUTS.find(x=>x[0]===l.ui.view)||[0,''])[1])}</small>`:''}<span>${l?`<button class="btn" data-act="lload" data-arg="${i}">Load</button>`:''}<button class="btn" data-act="lsave" data-arg="${i}">${l?'Replace':'Save here'}</button>${l?`<button class="btn bad" data-act="ldel" data-arg="${i}">Clear</button>`:''}</span></div>`}).join('')}</div>
-    <div class="row"><label>Shuffle</label><input type="checkbox" data-set="shuffle" ${u.shuffle?'checked':''}><small>Each time Cove opens, pick one of your saved layouts at random</small></div>
     <h3>Theme</h3>${sws(u.theme,'theme')}
+    <h3>Style</h3>${seg(STYLES,u.style||'frost','style')}
+    <h3>Layout</h3><div class="row">${LAYOUTS.map(x=>`<button class="btn ${x[0]===u.view?'pri':''}" data-act="view" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>
+    <small>Fine-tune any layout under Covers below.</small>
+    ${u.view==='home'||u.view==='ds'?`<div class="row"><label>Rows</label>${seg((u.view==='ds'?[['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6']]:[['1','1'],['2','2'],['3','3'],['4','4']]),String(u.rows||(u.view==='ds'?3:2)),'rows')}</div>`:''}
+    ${u.view==='shelf'?`<div class="row"><label>Shelf length</label>${seg([['12','12'],['24','24'],['48','48'],['0','All']],String(u.cap??24),'cap')}<small>After that many games, a Full library tile opens everything as a grid</small></div>`:''}
+    ${adv('covers','Covers',`
+    <div class="row"><label>Shape</label><select data-set="fit">${opt('box','Console box shapes, filled',u.fit||'box')}${opt('cover','All square, filled',u.fit||'box')}${opt('contain','Whole cover with a blurred edge',u.fit||'box')}</select></div>
+    <div class="row"><label>Icon size</label><input type="range" min="110" max="240" data-set="size" value="${u.size}"></div>
+    <div class="row"><label>Corners</label><select data-set="corners">${opt('soft','Soft',u.corners)}${opt('round','Extra round',u.corners)}${opt('sharp','Sharp',u.corners)}</select></div>
+    <div class="row"><label>Cover tint</label>${seg([['','Off'],['tinted','Tinted'],['mono','Mono'],['dim','Dimmed']],u.tint||'','tint')}<small>One look for every cover</small></div>
+    <div class="row"><label>Spacing</label>${seg([['compact','Compact'],['normal','Normal'],['roomy','Roomy']],u.sp||'normal','sp')}</div>
+    <div class="row"><label>Titles under covers</label><input type="checkbox" data-set="names" ${u.names===false?'':'checked'}></div>
+    <div class="row"><label>Game info</label><input type="checkbox" data-set="info" ${u.info===false?'':'checked'}><small>The title, details and art for the selected game</small></div>
+    <div class="row"><button class="btn" data-act="laydef">Reset to the preset</button></div>
+    `)}
+    ${adv('colours','Colour and background',`
+    <div class="row"><label>Accent colour</label><input type="color" data-set="accent" value="${esc(u.accent||'#ccff00')}"><button class="btn" data-act="noaccent">Use theme colour</button></div>
+    <div class="row"><label>Wallpaper</label><code>${esc(u.wall||'follows the selected game')}</code><button class="btn" data-act="wall">Choose image</button><button class="btn" data-act="nowall">Clear</button></div>
+    <small>Right-click any tab along the top (or a folder) to give that page its own background.</small>
+    `)}
+    ${adv('ct','Custom themes',`
     <div class="row"><button class="btn" data-act="newtheme">New custom theme</button><small>Starts as a copy of the theme you are on, then change anything below.</small></div>
     ${(ct=>ct?`<h3>Custom theme</h3>
     <div class="row"><label>Name</label><input class="w" type="text" data-set="c.name" value="${esc(ct.name)}"></div>
@@ -1819,31 +1858,23 @@ async function settings(t='lib'){
     <div class="row"><label>Sounds</label><select data-set="c.pack">${opt('','Same as Settings',ct.pack||'')}${PACKS.map(x=>opt(x[0],x[1],ct.pack||'')).join('')}</select></div>
     <div class="row"><label>Title font</label><select data-set="c.head">${opt('','Same as the font',ct.head||'')}${[...new Set(Object.keys(FONTS).concat(ct.head||[]))].map(f=>opt(f,f,ct.head||'')).join('')}</select></div>
     <div class="row"><button class="btn bad" data-act="deltheme">Delete this theme</button></div>`:'')(ctheme())}
-    <h3>Style</h3>${seg(STYLES,u.style||'frost','style')}
-    <small>${STYLES.map(x=>x[1]+': '+x[2].toLowerCase()).join('. ')}.</small>
-    <h3>Sounds</h3>${seg(PACKS,u.pack||'soft','pack')}
-    <h3>Layout</h3><div class="row">${LAYOUTS.map(x=>`<button class="btn ${x[0]===u.view?'pri':''}" data-act="view" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>
-    <small>Pick a preset, then adjust it below. Home: a big card over rows of icons. Grid: everything at once. Shelf: one row of large covers. List: cover on the left, rows on the right.</small>
-    <div class="row"><label>Spacing</label>${seg([['compact','Compact'],['normal','Normal'],['roomy','Roomy']],u.sp||'normal','sp')}</div>
-    <div class="row"><label>Game info</label><input type="checkbox" data-set="info" ${u.info===false?'':'checked'}><small>The title, details and art for the selected game</small></div>
-    <div class="row"><label>Titles under covers</label><input type="checkbox" data-set="names" ${u.names===false?'':'checked'}></div>
-    ${u.view==='home'?`<div class="row"><label>Rows</label>${seg([['1','1'],['2','2'],['3','3']],String(u.rows||2),'rows')}</div>`:''}
-    <div class="row"><button class="btn" data-act="laydef">Reset to the preset</button></div>
-    <h3>Details</h3>
-    <div class="row"><label>Covers</label><select data-set="fit">${opt('box','Console box shapes, filled',u.fit||'box')}${opt('cover','All square, filled',u.fit||'box')}${opt('contain','Whole cover with a blurred edge',u.fit||'box')}</select></div>
-    <div class="row"><label>When a game starts</label><select data-set="after">${opt('taskbar','Minimise Cove to the taskbar',u.after||'taskbar')}${opt('tray','Hide Cove in the system tray',u.after||'taskbar')}${opt('stay','Leave Cove open behind the game',u.after||'taskbar')}</select></div>
-    <div class="row"><label>Corners</label><select data-set="corners">${opt('soft','Soft',u.corners)}${opt('round','Extra round',u.corners)}${opt('sharp','Sharp',u.corners)}</select></div>
+    `)}
+    ${adv('slots','Saved layouts',`
+    <small>Each slot keeps a whole look: theme, style, layout and its settings, cover size and your arrangement. Save what you have now into a slot, and load it back any time.</small>
+    <div class="slots">${[...Array(8)].map((_,i)=>{const l=(S.layouts||[])[i];return `<div class="slot ${l?'':'empty'}"><b>${l?esc(l.name):'Empty'}</b>${l?`<small>${esc((THEMES.find(x=>x[0]===l.ui.theme)||[0,'Custom theme'])[1])} · ${esc((LAYOUTS.find(x=>x[0]===l.ui.view)||[0,''])[1])}</small>`:''}<span>${l?`<button class="btn" data-act="lload" data-arg="${i}">Load</button>`:''}<button class="btn" data-act="lsave" data-arg="${i}">${l?'Replace':'Save here'}</button>${l?`<button class="btn bad" data-act="ldel" data-arg="${i}">Clear</button>`:''}</span></div>`}).join('')}</div>
+    <div class="row"><label>Shuffle</label><input type="checkbox" data-set="shuffle" ${u.shuffle?'checked':''}><small>Each time Cove opens, pick one of your saved layouts at random</small></div>
+    `)}
+    ${adv('sound','Sound and motion',`
+    <div class="row"><label>Sound set</label>${seg(PACKS,u.pack||'soft','pack')}</div>
+    <div class="row"><label>Sounds</label><input type="checkbox" data-set="sound" ${u.sound?'checked':''}><input type="range" min="0" max="100" data-set="vol" value="${u.vol??70}"><button class="btn" data-act="sfx">Play them</button></div>
     <div class="row"><label>Motion</label><select data-set="motion">${opt('full','Full',u.motion)}${opt('calm','Calm',u.motion)}${opt('off','Off',u.motion)}</select></div>
-    <div class="row"><label>Icon size</label><input type="range" min="110" max="240" data-set="size" value="${u.size}"></div>
-    <div class="row"><label>Accent colour</label><input type="color" data-set="accent" value="${esc(u.accent||'#ccff00')}"><button class="btn" data-act="noaccent">Use theme colour</button></div>
-    <small>Right-click any tab along the top (or a folder) to give that page its own background.</small>
-    <div class="row"><label>Wallpaper</label><code>${esc(u.wall||'follows the selected game')}</code><button class="btn" data-act="wall">Choose image</button><button class="btn" data-act="nowall">Clear</button></div>
+    `)}
+    ${adv('start','Starting games',`
+    <div class="row"><label>When a game starts</label><select data-set="after">${opt('taskbar','Minimise Cove to the taskbar',u.after||'taskbar')}${opt('tray','Hide Cove in the system tray',u.after||'taskbar')}${opt('stay','Leave Cove open behind the game',u.after||'taskbar')}</select></div>
     <div class="row"><label>When Cove opens</label><select data-set="bootlast">${opt('','Show the library',u.bootlast?'1':'')}${opt('1','Start the last game I played',u.bootlast?'1':'')}</select><small>You get 3 seconds to stay in Cove instead</small></div>
-    <div class="row"><label>Cover tint</label>${seg([['','Off'],['tinted','Tinted'],['mono','Black and white'],['dim','Dimmed']],u.tint||'','tint')}<small>One look for every cover</small></div>
     <div class="row"><label>Preview card</label><input type="checkbox" data-set="confirm" ${u.confirm!==false?'checked':''}><small>Show the game, emulator and save check before starting</small></div>
     <div class="row"><label>Recent strip</label><input type="checkbox" data-set="news" ${u.news!==false?'checked':''}><small>Last played and newly added games above the home screen</small></div>
-    <div class="row"><label>Sounds</label><input type="checkbox" data-set="sound" ${u.sound?'checked':''}><input type="range" min="0" max="100" data-set="vol" value="${u.vol??70}"><button class="btn" data-act="sfx">Play them</button></div>
-    <div class="row"><label>Artwork</label><button class="btn" data-act="reart">Look for missing covers again</button></div>`}
+    `)}`}
   if(t==='share')body=`
     <div class="card"><b>Desktop shortcut</b><p class="dim">Puts a Cove shortcut on this PC's desktop.</p><button class="btn pri" data-act="applnk">Create desktop shortcut</button></div>
     <div class="card"><b>Send to a friend</b><p class="dim">Makes Cove-share.zip with the launcher, your theme and your custom systems. No games, saves or folder paths are included. They unzip it, run Cove.bat, and get the same setup walkthrough.</p><button class="btn pri" data-act="pack">Export share pack</button></div>
@@ -1859,6 +1890,7 @@ async function settings(t='lib'){
     <div class="row"><button class="btn" data-act="applnk">Add Cove to the desktop</button><button class="btn" data-act="site">Open the Cove page</button><button class="btn" data-act="open" data-arg="${esc(INFO.app)}">Open Cove's folder</button></div>
     <small>CALINADO &copy; ${new Date().getFullYear()} &middot; <a href="https://calinado.com" target="_blank" rel="noopener" style="color:var(--acc)">calinado.com</a></small>`;
   modal('Settings',body,'<button class="btn pri" data-act="x">Done</button>',tabsHtml);
+  $('#layer .scrim')?.classList.toggle('peek',t==='look');   // on Look, the panel moves aside so every change shows on the library behind it
   const E=id=>S.emus.find(e=>e.id===id), again=()=>settings(t);
   if(t==='emus')coreMarks();
   if(t==='share')$('#impf').onchange=async e=>{try{const o=JSON.parse(await e.target.files[0].text());if(!o.cove)throw 0;
@@ -1886,7 +1918,7 @@ async function settings(t='lib'){
   onAct=async(a,arg)=>{
     if(a==='x')return closeModal();
     if(a==='tab')return settings(arg);
-    if(a==='keysite')return window.open(arg,'_blank');
+    if(a==='keysite')return openLink(arg);
     if(a==='getra'){toast('Downloading RetroArch. This takes a few minutes.');try{await getRA();toast('RetroArch is ready')}catch(e){toast(e.message)}return again()}
     if(a==='core'||a==='coreall'){
       const ra=S.emus.find(e=>e.kind==='retroarch'), b=[...document.querySelectorAll('#layer [data-act=core]')].filter(x=>a==='core'?x.dataset.arg===arg:!x.dataset.have);
@@ -1937,13 +1969,13 @@ async function settings(t='lib'){
       d.on=true;save();blip('ok');toast('Connected. Check your Discord profile');return again()}
     if(a==='sfx'){['move','tab','ok','back','open','launch'].forEach((k,i)=>setTimeout(()=>blip(k),i*650));return}
     if(a==='tint'){S.ui.tint=arg;look();save();return again()}
-    if(a==='sp'||a==='rows'){S.ui[a]=a==='rows'?+arg:arg;look();save();return again()}
+    if(a==='sp'||a==='rows'||a==='cap'){S.ui[a]=a==='sp'?arg:+arg;render();look();save();return again()}
     if(a==='laydef'){['sp','info','names','rows'].forEach(k=>delete S.ui[k]);look();save();return again()}
     if(a==='lsave'){saveLayout(+arg);blip('ok');toast('Saved to slot '+(+arg+1));return again()}
     if(a==='lload'){loadLayout(+arg);blip('ok');return again()}
     if(a==='ldel'){S.layouts[+arg]=null;save();return again()}
     if(a==='exp'){const o={cove:1,ui:S.ui,themes:S.themes||[],layouts:S.layouts||[],cols:S.cols||[]};const u=URL.createObjectURL(new Blob([JSON.stringify(o,null,1)],{type:'application/json'}));const l=document.createElement('a');l.href=u;l.download='cove-setup.json';l.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Saved cove-setup.json to your Downloads')}
-    if(a==='newtheme'){newTheme();blip('ok');return again()}
+    if(a==='newtheme'){OPEN.add('ct');newTheme();blip('ok');return again()}
     if(a==='deltheme'){S.themes=S.themes.filter(x=>x!==ctheme());S.ui.theme='frost';look();save();return again()}
     if(a==='noaccent'){S.ui.accent='';look();save();return again()}
     if(a==='theme'||a==='view'||a==='style'||a==='pack'){S.ui[a]=arg;look();save();blip('tab');return again()}
@@ -1951,7 +1983,7 @@ async function settings(t='lib'){
     if(a==='wall'){const p=await pick('image');if(p){S.ui.wall=p;look();save();again()}return}
     if(a==='nowall'){S.ui.wall='';look();save();return again()}
     if(a==='upd')return checkUpdate(true);
-    if(a==='site'){if(INFO.repo)window.open('https://github.com/'+INFO.repo,'_blank');return}
+    if(a==='site'){if(INFO.repo)openLink('https://github.com/'+INFO.repo);return}
     if(a==='applnk'){await api('shortcut',{name:'Cove'});return toast('Cove is on your desktop')}
     if(a==='pack'){const r=await api('pack',{preset:JSON.stringify({ui:{...S.ui,wall:''},systems:S.systems,discord:{...S.discord,on:false}})});toast('Saved '+r.path);return api('open',{path:dir(r.path)})}
     if(a==='rewiz'){S.setup=false;return wizard(0)}

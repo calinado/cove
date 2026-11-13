@@ -1,2 +1,2 @@
 @echo off
-start "" powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "%~dp0server.ps1"
+start "" wscript.exe "%~dp0Cove.vbs"

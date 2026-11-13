@@ -1,5 +1,5 @@
 {
-  "version": "1.4.0",
+  "version": "1.4.1",
   "repo": "calinado/cove",
-  "notes": "Favourites sit at the top with a star. Empty spaces you can leave anywhere in My order, and Undo (Ctrl+Z). Right-click a tab or folder for its own background. Mix themes: copy colours from one theme and sounds from another. Cover tint for every cover. Optionally start straight into your last game."
+  "notes": "New Home Menu layout in the style of the 3DS: an icon grid you zoom with Ctrl+scroll, with folders and empty slots. Long shelves end in a Full library tile. Look settings are tidied into sections and sit beside your library so changes show live. Cover tint fixed. Cove starts with no PowerShell window, and links open in your own browser."
 }

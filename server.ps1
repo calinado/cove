@@ -35,10 +35,12 @@ if (-not $started -and -not $NoBrowser) {   # a copy is already running; if it h
 if (-not $started) { Open-UI; exit }   # already running and answering: just show the window
 try { [void](New-Item -ItemType Directory -Force -Path $Data); [IO.File]::WriteAllText((Join-Path $Data 'helper.pid'), [string]$PID) } catch {}
 Open-UI
+$vbs = Join-Path $App 'Cove.vbs'   # copies updated from older versions get the hidden starter, and their shortcuts are switched to it
+if (-not (Test-Path -LiteralPath $vbs)) { try { [IO.File]::WriteAllText($vbs, ('Set s = CreateObject("WScript.Shell")' + "`r`n" + 'd = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName)' + "`r`n" + 's.Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File " & Chr(34) & d & "\server.ps1" & Chr(34), 0, False' + "`r`n")) } catch {} }
 
 # version.json says which version this is and which GitHub repo updates come from
 $VerPath = Join-Path $App 'version.json'
-$AppFiles = 'index.html', 'server.ps1', 'Cove.bat', 'cove.ico', 'README.txt', 'version.json'
+$AppFiles = 'index.html', 'server.ps1', 'Cove.bat', 'Cove.vbs', 'cove.ico', 'README.txt', 'version.json'
 $restart = $false
 function Get-Ver { try { return [IO.File]::ReadAllText($VerPath, $Utf8) | ConvertFrom-Json } catch { return $null } }
 
@@ -200,16 +202,16 @@ function Pick($kind) {
 }
 function Cove-Link($path) {
   $sh = New-Object -ComObject WScript.Shell; $lnk = $sh.CreateShortcut($path)
-  $lnk.TargetPath = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
-  $lnk.Arguments = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + (Join-Path $App 'server.ps1') + '"'
-  $lnk.WorkingDirectory = $App; $lnk.IconLocation = (Join-Path $App 'cove.ico'); $lnk.WindowStyle = 7; $lnk.Save()
+  $lnk.TargetPath = Join-Path $env:SystemRoot 'System32\wscript.exe'   # runs Cove.vbs, which starts the helper with no window at all
+  $lnk.Arguments = '"' + (Join-Path $App 'Cove.vbs') + '"'
+  $lnk.WorkingDirectory = $App; $lnk.IconLocation = (Join-Path $App 'cove.ico'); $lnk.Save()
   if ($HasWin) { try { [CoveWin]::LinkId($path, 'CALINADO.Cove') } catch {} }
 }
 function Tag-Cove {   # gives Cove's window its own taskbar identity; repeated because Edge can put its own back
   if (-not $HasWin) { return }
   try {
     $h = [CoveWin]::Find()
-    if ($h -ne [IntPtr]::Zero) { [CoveWin]::Tag($h, 'CALINADO.Cove', ('"' + $env:SystemRoot + '\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + (Join-Path $App 'server.ps1') + '"'), ((Join-Path $App 'cove.ico') + ',0'), 'Cove') }
+    if ($h -ne [IntPtr]::Zero) { [CoveWin]::Tag($h, 'CALINADO.Cove', ('"' + $env:SystemRoot + '\System32\wscript.exe" "' + (Join-Path $App 'Cove.vbs') + '"'), ((Join-Path $App 'cove.ico') + ',0'), 'Cove') }
   } catch {}
 }
 function Sweep {
