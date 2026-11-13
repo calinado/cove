@@ -1,5 +1,5 @@
 {
-  "version": "1.4.3",
+  "version": "1.4.4",
   "repo": "calinado/cove",
-  "notes": "Home Menu icons now size themselves to fit your screen, so the bottom row is never cut off. Each page is its own page, centred, with nothing of the next page peeking in. Fixed the stray line of pixels at the corner of some covers."
+  "notes": "Fixed the thin line of game art showing along the left edge of the Home Menu's top panel."
 }

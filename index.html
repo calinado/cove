@@ -226,7 +226,7 @@ details.adv>summary:focus{outline:2px solid var(--acc);outline-offset:2px}
 
 /* layout: Home (hero + two rows of icons that scroll sideways) */
 .v-ds .stage{gap:22px;padding-bottom:10px}
-.v-ds #hero{height:min(34vh,320px);padding:22px 28px;background:linear-gradient(90deg,var(--bg) 22%,color-mix(in srgb,var(--bg) 55%,transparent) 55%,transparent),var(--wide,none) center/cover,rgba(var(--tint),.05);border:1px solid rgba(var(--tint),.12)}
+.v-ds #hero{height:min(34vh,320px);padding:22px 28px;background:linear-gradient(90deg,var(--bg) 22%,color-mix(in srgb,var(--bg) 55%,transparent) 55%,transparent),var(--wide,none) center/cover,rgba(var(--tint),.05);background-origin:border-box;border:1px solid rgba(var(--tint),.12)}
 .v-ds #hero .cover{height:100%;width:auto;aspect-ratio:var(--ar,1)}
 .v-ds main{container-type:size;flex:1;overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none;padding:0;--e:calc(var(--pl,22px) + var(--pw,100vw) - 6px);mask:linear-gradient(90deg,transparent calc(var(--pl,22px) - 8px),#000 calc(var(--pl,22px) - 8px) var(--e),transparent var(--e))}   /* hide the edge of the next and last pages */
 .v-ds .tile.gap{visibility:visible;pointer-events:auto;background:none;box-shadow:none;border:1px solid rgba(var(--tint),.07)}.v-ds .tile.gap .art{background:none;box-shadow:none}   /* empty slots stay visible, like the 3DS grid */
