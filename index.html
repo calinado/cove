@@ -181,7 +181,11 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .fold .big{width:44%;height:44%;color:var(--acc);stroke-width:1.5}
 .fold .name .ic{width:14px;height:14px;color:var(--acc);vertical-align:-2px;margin-right:6px}
 .fold .bk{width:38%;height:38%;color:var(--acc)}
-#editdone{position:fixed;left:50%;bottom:86px;translate:-50% 0;z-index:8;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+#bulk{position:fixed;left:50%;bottom:78px;translate:-50% 0;z-index:8;display:flex;gap:6px;align-items:center;padding:8px;border-radius:16px;max-width:calc(100vw - 40px);flex-wrap:wrap;justify-content:center;box-shadow:0 14px 40px rgba(0,0,0,.55);backdrop-filter:blur(30px)}
+#bulk b{padding:0 10px;font-size:13px;white-space:nowrap}#bulk select,#bulk input{max-width:170px}
+.tile.sel .art{outline:3px solid var(--acc);outline-offset:3px}
+.tile.sel::before{content:"";position:absolute;z-index:4;top:14px;left:14px;width:24px;height:24px;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.5);background:var(--acc) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
+#bulk{bottom:90px}
 .edit .tile{cursor:grab}.edit .tile .art{animation:wig .6s ease-in-out infinite alternate}.edit .tile:nth-child(even) .art{animation-delay:-.3s}
 @keyframes wig{from{rotate:-.6deg}to{rotate:.6deg}}   /* a gentle jiggle on the cover only */
 .tile img{-webkit-user-drag:none}
@@ -428,7 +432,7 @@ span.dot.big{width:56px;height:56px;border-radius:50%;flex:none;display:inline-g
   <div id="hints"><span><b class="gl"><span class="gx">A</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span class="gn">B</span></b>Start</span><span><b class="gl"><span class="gx">Y</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M12 5l8 14H4z"/></svg></span><span class="gn">X</span></b>Options</span><span><b class="gl"><span class="gx">X</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg></span><span class="gn">Y</span></b>Pin</span><span><b class="gl w"><span class="gx">LB RB</span><span class="gp">L1 R1</span><span class="gn">L R</span></b>Systems</span><span><b class="gl w"><span class="gx">LT</span><span class="gp">L2</span><span class="gn">ZL</span></b>Layout</span><span><b class="gl w"><span class="gx">RT</span><span class="gp">R2</span><span class="gn">ZR</span></b>Theme</span><span><b class="gl w"><span class="gx">START</span><span class="gp">OPTIONS</span><span class="gn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></b>Settings</span></div>
 </footer>
 <div id="toast" class="glass"></div>
-<button id="editdone" class="btn pri xl" hidden>Done arranging</button>
+<div id="bulk" class="glass" hidden></div>
 <div id="layer"></div>
 
 <script>
@@ -970,7 +974,7 @@ function render(keep){
   $('#grid').innerHTML=pre+list.map((g,i)=>{
     const s=sysOf(g.sys), o=gs(g.id), k=o.fav&&tab!=='fav'&&tab!=='recent'?'\u0001':groupBy()==='category'?(cats(g)[0]||'Other'):g.sys, head=heads&&k!==last?`<div class="sec">${k==='\u0001'?'Pinned':groupBy()==='category'?esc(k):esc(s.name)}</div>`:''; last=k;
     findArt(g);
-    return `${head}<button class="tile ${NOW&&NOW.id===g.id?'playing':''}" data-id="${esc(g.id)}" title="${esc(g.title)}" style="--i:${Math.min(i,28)}">
+    return `${head}<button class="tile ${NOW&&NOW.id===g.id?'playing':''} ${SEL.has(g.id)?'sel':''}" data-id="${esc(g.id)}" title="${esc(g.title)}" style="--i:${Math.min(i,28)}">
       <span class="art" ${cover(g)}${o.fav?`<svg class="fav" viewBox="0 0 24 24">${FLOOK.star}</svg>`:''}${NOW&&NOW.id===g.id?'<span class="run">Running</span>':''}</span>${o.last?'':'<span class="new"></span>'}
       <span class="name">${esc(g.title)}</span><span class="meta">${esc(s.label||s.name)}${played(o.time)?' &middot; '+played(o.time):''}</span></button>`}).join('');
   const chip=(g,note)=>{const u=artUrl(g);return `<button class="glass" data-n="${esc(g.id)}" tabindex="-1" title="${esc(g.title)}"><i style="${u?`background-image:url('${esc(u)}')`:`background:linear-gradient(140deg,hsl(${hue(g.title)} 70% 46%),hsl(${(hue(g.title)+60)%360} 65% 22%))`}"></i><b>${esc(g.title)}</b><small>${note}</small></button>`};
@@ -1137,7 +1141,7 @@ function launchFx(g,r){
   d.innerHTML=`<div>${media(g)}<h2>${esc(g.title)}</h2><p>Starting in ${esc(r.name)}${r.need?' &middot; F1 or Start + Select opens its menu':''}</p><div class="bar"><i></i></div></div>`;
   document.body.append(d);setTimeout(()=>d.classList.add('out'),2300);setTimeout(()=>d.remove(),2800);
 }
-$('#grid').addEventListener('click',e=>{if(dragged||EDIT)return;const t=e.target.closest('.tile'),g=game(t);if(g)start(g);else if(t){INF=t.dataset.f||null;render();blip(INF?'open':'back')}});
+$('#grid').addEventListener('click',e=>{if(dragged)return;const st=e.target.closest('.tile');if(st&&game(st)&&(EDIT||e.ctrlKey||e.shiftKey)){if(!EDIT)edit(true);return pickTile(st,e.shiftKey)}if(EDIT)return;const t=e.target.closest('.tile'),g=game(t);if(g)start(g);else if(t){INF=t.dataset.f||null;render();blip(INF?'open':'back')}});
 const opts=t=>{const g=game(t),f=fById(t?.dataset?.f);g?details(g):f&&folderEdit(f)};   // Options for whatever tile this is: a game or a folder
 $('#grid').addEventListener('contextmenu',e=>{const t=e.target.closest('.tile');if(!t)return;e.preventDefault();opts(t)});
 // folders: drop a game on another game to start one, drop it on a folder to add it, right-click (long-press on a touch screen) the background to make one, right-click a folder to change it
@@ -1154,12 +1158,49 @@ function folderEdit(f){
 // dragging is done by hand (press, move, release) because the browser's own drag does not start from these tiles
 let drag=null, ghost=null, dragged=false, EDIT=false;
 // edit mode: the covers wiggle and dragging rearranges them, like a handheld's home screen
+// edit mode: drag covers to arrange them, click covers to select several and change them all at once
+let SEL=new Set(), LASTSEL=null;
 function edit(on){
-  EDIT=on; document.body.classList.toggle('edit',on); $('#editdone').hidden=!on;
+  EDIT=on; document.body.classList.toggle('edit',on); if(!on)SEL.clear();
   if(on&&S.ui.sort!=='custom'){const now=visible().map(g=>g.id);S.order=now.concat(GAMES.map(g=>g.id).filter(i=>!now.includes(i)));S.ui.sort='custom';save()}   // start from what is on screen
-  render(true); if(on)toast('Drag covers to rearrange them');
+  render(true); bulkBar(); if(on)toast('Drag to arrange. Click covers to select several');
 }
-$('#editdone').onclick=()=>edit(false);
+function pickTile(t,range){   // click: one game; Shift+click: everything between this and the last one picked
+  const id=t.dataset.id, ids=tiles().map(x=>x.dataset.id).filter(Boolean);
+  if(range&&LASTSEL&&ids.includes(LASTSEL)){const [a,b]=[ids.indexOf(LASTSEL),ids.indexOf(id)].sort((x,y)=>x-y);ids.slice(a,b+1).forEach(x=>SEL.add(x))}
+  else SEL.has(id)?SEL.delete(id):SEL.add(id);
+  LASTSEL=id; t.classList.toggle('sel',SEL.has(id)); tiles().forEach(x=>x.classList.toggle('sel',SEL.has(x.dataset.id))); blip('move'); bulkBar();
+}
+function bulkBar(){
+  const b=$('#bulk'); b.hidden=!EDIT; if(!EDIT)return;
+  const n=SEL.size, dis=n?'':'disabled', sel=[...SEL].map(id=>GAMES.find(g=>g.id===id)).filter(Boolean);
+  b.innerHTML=`<b>${n?n+' selected':'Click covers to select'}</b>
+    <button class="btn" data-b="all">${n&&n===visible().length?'Select none':'Select all'}</button>
+    <button class="btn" data-b="pin" ${dis}>${sel.length&&sel.every(g=>gs(g.id).fav)?'Unpin':'Pin'}</button>
+    <select data-b="dir" ${dis}><option value="">Move to folder...</option>${(S.folders||[]).map(f=>`<option value="${f.id}">${esc(f.name)}</option>`).join('')}<option value="+">New folder</option><option value="-">Out of folders</option></select>
+    <input type="text" data-b="cats" placeholder="Set categories" ${dis}>
+    <select data-b="sys" ${dis}><option value="">Change system...</option>${systems().filter(x=>!['steam','epic','gog'].includes(x.id)).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select>
+    <button class="btn" data-b="art" ${dis}>Find artwork again</button>
+    <button class="btn bad" data-b="hide" ${dis}>Hide</button>
+    <button class="btn pri" data-b="done">Done</button>`;
+}
+const each=f=>{for(const id of SEL)f(gs(id),GAMES.find(g=>g.id===id))};
+$('#bulk').addEventListener('click',async e=>{
+  const a=e.target.closest('[data-b]')?.dataset.b; if(!a||e.target.tagName==='SELECT'||e.target.tagName==='INPUT')return;
+  if(a==='done')return edit(false);
+  if(a==='all'){const v=visible().map(g=>g.id);SEL.size===v.length?SEL.clear():v.forEach(i=>SEL.add(i));render(true);return bulkBar()}
+  if(a==='pin'){const on=![...SEL].every(i=>gs(i).fav);each(o=>on?o.fav=true:delete o.fav);toast((on?'Pinned ':'Unpinned ')+SEL.size)}
+  if(a==='art'){each((o,g)=>{if(!g)return;const k=artKey(g);if(S.meta[k]?.m)return;delete S.meta[k];delete S.art[k];delete S.wide[k];findArt(g)});toast('Looking for artwork for '+SEL.size+' games')}
+  if(a==='hide'){toast('Hid '+SEL.size+' games. Bring them back from Settings > Library');each(o=>o.hide=true);SEL.clear();save();await scan()}
+  save(); blip('ok'); render(true); bulkBar();
+});
+$('#bulk').addEventListener('change',e=>{
+  const a=e.target.dataset.b, v=e.target.value.trim(); if(!v&&a!=='cats')return;
+  if(a==='dir'){const f=v==='+'?newFolder('Untitled folder'):null;each(o=>v==='-'?delete o.dir:o.dir=f?f.id:v);toast(v==='-'?'Taken out of folders':'Moved to '+(f||fById(v)).name)}
+  if(a==='cats'){each(o=>o.cats=v);toast('Categories set')}
+  if(a==='sys'){each((o,g)=>{if(g&&!g.store){o.sys=v;g.sys=v;delete o.emu}});toast('Moved to '+sysOf(v).name)}
+  save(); blip('ok'); render(true); bulkBar();
+});
 const shift=(a,x,y)=>{const from=a.indexOf(x);a.splice(from,1);const to=a.indexOf(y);a.splice(from<=to?to+1:to,0,x)};   // x lands on the far side of y, the way it looks on screen
 // where a drop would land: on a cover's middle = into it (folder), near its edges or in a gap = beside it
 function spot(e){
@@ -1212,7 +1253,7 @@ for(const ev of ['pointerup','pointercancel'])addEventListener(ev,e=>{
 });
 document.addEventListener('contextmenu',e=>{
   if(e.target.closest('.tile,#dock,#layer,#dd,input'))return; e.preventDefault();
-  $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${Math.min(e.clientX,innerWidth-340)}px;top:${Math.min(e.clientY,innerHeight-140)}px;transform-origin:top left"><div class="body list"><button class="item" data-act="new"><svg class="ic" style="color:var(--acc)" viewBox="0 0 24 24">${FLOOK.folder}</svg><b>Create new folder</b></button><button class="item" data-act="edit"><svg class="ic" style="color:var(--acc)" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/></svg><b>${EDIT?'Done arranging':'Edit home screen'}</b></button></div></div></div>`;
+  $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${Math.min(e.clientX,innerWidth-340)}px;top:${Math.min(e.clientY,innerHeight-140)}px;transform-origin:top left"><div class="body list"><button class="item" data-act="new"><svg class="ic" style="color:var(--acc)" viewBox="0 0 24 24">${FLOOK.folder}</svg><b>Create new folder</b></button><button class="item" data-act="edit"><svg class="ic" style="color:var(--acc)" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/></svg><b>${EDIT?'Done editing':'Edit and select games'}</b></button></div></div></div>`;
   focusables()[0].focus(); onChange=()=>{}; onAct=a=>{if(a==='edit'){$('#layer').innerHTML='';return edit(!EDIT)}const f=newFolder('Untitled folder');save();folderEdit(f)};
 });
 let heroT;
@@ -1291,7 +1332,7 @@ window.navKey=k=>{
     if(k==='a'){const e=document.activeElement;e.tagName==='SELECT'?dropdown(e):e.click?.()} if(k==='bk')closeModal(); if(k==='lb')mtab(-1); if(k==='rb')mtab(1);
   }else{
     const m={l:[-1,0],r:[1,0],u:[0,-1],d:[0,1]}[k]; if(m)move(...m);
-    if(k==='a'){if(g)start(g);else document.activeElement.closest?.('#quick button,#news button,.fold')?.click()} if(k==='x'&&g)fav(g); if(k==='bk'&&EDIT)edit(false); else if(k==='bk'&&INF){INF=null;render();blip('back')} if(k==='y')opts(document.activeElement);
+    if(k==='a'&&EDIT&&g){pickTile(document.activeElement,false)} else if(k==='a'){if(g)start(g);else document.activeElement.closest?.('#quick button,#news button,.fold')?.click()} if(k==='x'&&g)fav(g); if(k==='bk'&&EDIT)edit(false); else if(k==='bk'&&INF){INF=null;render();blip('back')} if(k==='y')opts(document.activeElement);
     if(k==='lb')cycle(-1); if(k==='rb')cycle(1); if(k==='start')settings(); if(k==='sel'||k==='lt')menu('layout'); if(k==='rt')menu('theme');
   }
 };

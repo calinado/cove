@@ -1,5 +1,5 @@
 {
-  "version": "1.2.1",
+  "version": "1.2.2",
   "repo": "calinado/cove",
-  "notes": "Calmer jiggle in edit mode. The selection outline now wraps the cover with the title underneath, so extra-round corners no longer clip text."
+  "notes": "Bulk editing: Ctrl or Shift+click covers (or use Edit and select games) to pin, move to a folder, set categories, change system, refind artwork or hide many games at once."
 }
