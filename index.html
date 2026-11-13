@@ -196,18 +196,16 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .dragging{user-select:none;cursor:grabbing}
 .tile.drop .art{outline:3px dashed var(--acc);outline-offset:4px;scale:.94;transition:scale .15s}
 .tile{transition:translate .18s ease}.tile.sl{translate:-20px 0}.tile.sr{translate:20px 0}
-.v-list .tile.sl{translate:0 -8px}.v-list .tile.sr{translate:0 8px}
+.vflow .tile.sl{translate:0 -10px}.vflow .tile.sr{translate:0 10px}.v-list .tile.sl{translate:0 -8px}.v-list .tile.sr{translate:0 8px}
 .tile.lifted{opacity:.3!important;animation:none}
 #insbar{position:absolute;top:8px;width:4px;height:var(--h);border-radius:4px;background:var(--acc);box-shadow:0 0 16px var(--acc);pointer-events:none;z-index:3;animation:fade .15s}
 #insbar.l{left:-24px}#insbar.r{right:-24px}
-.v-list #insbar{width:auto;height:4px;left:8px;right:8px}.v-list #insbar.l{top:-10px}.v-list #insbar.r{top:auto;bottom:-10px}
+.vflow #insbar{width:auto;height:4px;left:8px;right:8px}.vflow #insbar.r{top:auto}
 #ghost{position:fixed;z-index:50;pointer-events:none;translate:-50% -50%;width:110px!important;height:auto!important;aspect-ratio:var(--ar,1);border-radius:16px;overflow:hidden;opacity:.92;box-shadow:0 16px 40px rgba(0,0,0,.6)}
 #ghost img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 #hero h1,.modal h2{font-family:var(--head,var(--font))}
 .sp-compact #grid{gap:10px!important}.sp-roomy #grid{gap:44px!important}
 .no-info #hero{display:none!important}
-.tint-tinted :is(.tile,#hero) :is(.art,.cover) img{filter:grayscale(1) sepia(1) hue-rotate(var(--th,0deg)) saturate(2.4) contrast(1.05)}   /* every cover in the accent's hue */
-.tint-mono :is(.tile,#hero) :is(.art,.cover) img{filter:grayscale(1)}.tint-dim .tile:not(:focus) .art img{filter:brightness(.6)}
 #bootgo{position:fixed;left:50%;top:40%;translate:-50% 0;z-index:90;padding:22px 30px;border-radius:18px;font-size:17px;animation:pop .3s var(--spring)}
 .no-names .tile .name,.no-names .tile .meta{display:none}
 .no-glow #orbs{display:none}
@@ -230,10 +228,11 @@ details.adv>summary:focus{outline:2px solid var(--acc);outline-offset:2px}
 .v-ds .stage{gap:22px;padding-bottom:10px}
 .v-ds #hero{height:min(34vh,320px);padding:22px 28px;background:linear-gradient(90deg,var(--bg) 22%,color-mix(in srgb,var(--bg) 55%,transparent) 55%,transparent),var(--wide,none) center/cover,rgba(var(--tint),.05);border:1px solid rgba(var(--tint),.12)}
 .v-ds #hero .cover{height:100%;width:auto;aspect-ratio:var(--ar,1)}
-.v-ds main{flex:1;overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none;padding:0}
-.v-ds .tile.gap{visibility:visible;background:none;box-shadow:none;border:1px solid rgba(var(--tint),.07)}.v-ds .tile.gap .art{background:none;box-shadow:none}   /* empty slots stay visible, like the 3DS grid */
+.v-ds main{flex:1;overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none;padding:0;mask:linear-gradient(90deg,transparent 10px,#000 10px calc(100% - 10px),transparent calc(100% - 10px))}   /* hide the edge of the next and last pages */
+.v-ds .tile.gap{visibility:visible;pointer-events:auto;background:none;box-shadow:none;border:1px solid rgba(var(--tint),.07)}.v-ds .tile.gap .art{background:none;box-shadow:none}   /* empty slots stay visible, like the 3DS grid */
 .v-ds{--ds:max(44px,min(calc(var(--tile)*1.1),calc((100vh - 270px - min(34vh,320px))/var(--rows,3) - 18px)))}
 .v-ds #grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--rows,3),auto);grid-auto-columns:var(--ds);gap:14px;padding:22px;margin:auto 0}
+#dots{display:none}.v-ds #dots{display:flex;justify-content:center;gap:10px;height:8px}#dots i{width:7px;height:7px;border-radius:50%;background:rgba(var(--tint),.22);cursor:pointer;transition:background .2s,scale .2s}#dots i.on{background:var(--acc);scale:1.25}   /* Home Menu pages */
 .v-ds .tile{padding:5px}.v-ds .tile .name,.v-ds .tile .meta,.v-ds .sec,.v-ds .new{display:none}
 .v-home main,.v-shelf main{overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none}
 .v-home #grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--rows,2),auto);grid-auto-columns:max(60px,min(var(--tile),calc((100vh - 590px)/var(--rows,2) - 34px)));gap:18px;margin:auto 0;padding:30px 14px}
@@ -447,6 +446,7 @@ span.dot.big{width:56px;height:56px;border-radius:50%;flex:none;display:inline-g
 <div class="stage">
   <section id="hero" class="glass none"></section>
   <main><div id="grid"></div><div id="empty" hidden></div></main>
+  <div id="dots"></div>
 </div>
 <footer>
   <div id="quick"></div><span id="count"></span><span id="ver"></span>
@@ -898,13 +898,13 @@ addEventListener('pagehide',()=>navigator.sendBeacon('/api/quit?t='+T));
 
 /* ---------- main view ---------- */
 const STYLES=[['frost','Frosted','Glass panels over soft light'],['art','Full art','The selected game fills the screen'],['flat','Flat','Solid colour, no glow']];
-const LAYOUTS=[['shelf','Shelf','One row of large covers'],['home','Home','Big card over two rows of icons'],['grid','Grid','Everything, grouped by system'],['list','List','Cover on the left, rows on the right'],['ds','Home Menu','3DS style: an icon grid you zoom in and out, with folders and empty slots']];
+const LAYOUTS=[['shelf','Shelf','One row of large covers'],['ds','Home Menu','3DS style: an icon grid you zoom in and out, with folders and empty slots'],['grid','Grid','Everything, grouped by system'],['list','List','Cover on the left, rows on the right']];
 const THEMES=[['frost','Frost','#CCFF00','#0b0d08'],['aurora','Aurora','#b9a2ff','#090818'],['joy','Joy','#ff4554','#0f0f13'],['midnight','Midnight','#ffd166','#050a1c'],['mint','Mint','#5eead4','#03110f'],['sunset','Sunset','#ffb347','#160910'],['mono','Mono','#ffffff','#111'],['neon','Arcade neon','#ff2bd6','#05010d'],['crt','CRT retro','#7cff6b','#060b06'],['dark','Console dark','#4da3ff','#0c0d10'],['basicb','Basic black','#19d3c5','#2d2d2d'],
   ['daylight','Daylight','#2563eb','#dde6f6'],['channel','Channel','#00a3e0','#eef4f8'],['pocket','Pocket','#f26b1d','#f5ede2'],['sakura','Sakura','#e2457f','#fbeaf1'],['paper','Paper light','#d9480f','#f4f1ea'],['basicw','Basic white','#0ab9e6','#ebebeb']];
 const LIGHT=['daylight','channel','pocket','sakura','paper','basicw'];
 const sws=(cur,act)=>[['Dark',x=>!LIGHT.includes(x[0])],['Light',x=>LIGHT.includes(x[0])],['Custom',x=>x[0].startsWith('c:')]].map(([h,f])=>{const l=THEMES.concat((S.themes||[]).map(t=>['c:'+t.id,t.name,t.acc,t.bg])).filter(x=>!x[0].startsWith('c:')===(h!=='Custom')).filter(f);return l.length?`<h4>${h}</h4><div class="sws">${l.map(x=>`<button class="sw ${x[0]===cur?'on':''}" data-act="${act}" data-arg="${x[0]}" style="--a:${x[2]};--b:${x[3]}"><i></i><span>${x[1]}</span></button>`).join('')}</div>`:''}).join('');
 const seg=(list,cur,act)=>`<div class="seg">${list.map(x=>`<button class="${x[0]===cur?'on':''}" data-act="${act}" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>`;
-const LKEYS=['cap','tint','walls','theme','style','view','size','sp','info','names','rows','corners','fit','accent','wall','group','sort','pack','motion','show'];
+const LKEYS=['cap','walls','theme','style','view','size','sp','info','names','rows','corners','fit','accent','wall','group','sort','pack','motion','show'];
 function saveLayout(i){const L=S.layouts=S.layouts||[];L[i]={name:L[i]?.name||'Layout '+(i+1),ui:Object.fromEntries(LKEYS.filter(k=>S.ui[k]!==undefined).map(k=>[k,S.ui[k]])),order:S.order?[...S.order]:null,at:Date.now()};save()}
 function loadLayout(i){const l=(S.layouts||[])[i];if(!l)return;const rest=Object.fromEntries(Object.entries(S.ui).filter(([k])=>!LKEYS.includes(k)));S.ui={...structuredClone(DEF.ui),...rest,...l.ui};if(l.order)S.order=[...l.order];look();save();render()}
 const ICON={settings:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',layout:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
@@ -1015,6 +1015,19 @@ function visible(){
   if(cap&&!FULL&&S.ui.view==='shelf'&&tab==='all'&&!INF&&!q&&l.length>cap){MORE=l.length-cap;l=l.slice(0,cap)}   // a long shelf ends in a Full library tile
   return l;
 }
+// Home Menu pages: a page is as many whole columns as fit, the dots show which one you're on
+const pageW=()=>{if(S.ui.view!=='ds'||FULL)return 0;const m=$('main');if(!$('#grid .tile'))return 0;const w=parseFloat(getComputedStyle($('#grid')).gridAutoColumns)+14;return Math.max(1,Math.floor((m.clientWidth-30)/w))*w};
+function dots(){
+  const m=$('main'), w=pageW(), G=$('#grid'), cw=parseFloat(getComputedStyle(G).gridAutoColumns)+14, n=w?Math.ceil(Math.ceil(G.querySelectorAll('.tile').length/(S.ui.rows||3))*cw/w):0;
+  G.style.minWidth=n>1?((n-1)*w+m.clientWidth)+'px':'';   // pad the last page so every page lines up
+  const end=m.scrollLeft>=m.scrollWidth-m.clientWidth-2, cur=w?(end?n-1:Math.round(m.scrollLeft/w)):0;
+  $('#dots').innerHTML=n>1?Array.from({length:n},(_,i)=>`<i class="${i===cur?'on':''}" data-p="${i}"></i>`).join(''):'';
+}
+$('main').addEventListener('scroll',()=>requestAnimationFrame(dots),{passive:true});
+$('main').addEventListener('scrollend',()=>{const m=$('main'),w=pageW();if(w&&!glides.has(m)&&m.scrollLeft%w&&m.scrollLeft<m.scrollWidth-m.clientWidth-2)glide(m,Math.round(m.scrollLeft/w)*w,0)});   // a trackpad swipe settles on a page
+$('main').addEventListener('wheel',e=>{const w=pageW();if(!w||e.ctrlKey||!e.deltaY)return;e.preventDefault();const m=$('main');if(m.dataset.flip)return;m.dataset.flip=1;setTimeout(()=>delete m.dataset.flip,350);glide(m,Math.max(0,(Math.round(m.scrollLeft/w)+Math.sign(e.deltaY))*w),0)},{passive:false});
+$('#dots').addEventListener('click',e=>{const p=e.target.dataset.p;if(p!=null){glide($('main'),p*pageW(),0);blip('move')}});
+addEventListener('resize',()=>requestAnimationFrame(dots));
 function render(keep){
   const used=systems().concat(UNSORTED).filter(s=>GAMES.some(g=>g.sys===s.id));
   const tabs=[['all','All'],['fav','Favourites'],['recent','Recent']].concat((S.cols||[]).map(c=>['c:'+c.id,c.name]),used.map(s=>[s.id,s.label||s.name]));
@@ -1047,6 +1060,7 @@ function render(keep){
   if(document.activeElement!==$('#q'))(t||$('.tile'))?.focus({preventScroll:!!keep});   // typing in search keeps the cursor in the box
   else hero(list[0]||null);
   if(!list.length&&document.activeElement!==$('#q'))hero(null);
+  requestAnimationFrame(dots);
 }
 const game=el=>GAMES.find(g=>g.id===el?.dataset?.id);
 const tiles=()=>[...document.querySelectorAll('.tile')];
@@ -1087,6 +1101,7 @@ function glide(el,x,y){
 function goto(t){
   t.focus({preventScroll:true});
   const m=$('main'), a=m.getBoundingClientRect(), b=t.getBoundingClientRect();
+  if(pageW()){const w=pageW();glide(m,Math.max(0,Math.floor((m.scrollLeft+b.left-a.left-22)/w))*w,0);return blip('move')}   // Home Menu: turn to the page the game is on
   glide(m,m.scrollLeft+b.left+b.width/2-a.left-a.width/2,m.scrollTop+b.top+b.height/2-a.top-a.height/2);
   blip('move');
 }
@@ -1131,7 +1146,7 @@ function menu(kind){
     isS?`<h2>Group by</h2><div class="body">${seg([['console','Console'],['category','Category'],['none','Nothing']],S.ui.group||'console','group')}</div><h2>Show</h2><div class="body">${seg([['all','All games'],['installed','Installed only']],S.ui.show||'all','show')}</div>`:''}`}</div></div>`;
   ($('#layer .on')||focusables()[0])?.focus();
   onChange=()=>{};
-  onAct=(a,arg)=>{S.ui[{sty:'style',pack:'pack',show:'show',group:'group'}[a]||key]=arg;look();save();closeModal();blip('ok');render()};
+  onAct=(a,arg)=>{const k={sty:'style',pack:'pack',show:'show',group:'group'}[a]||key;S.ui[k]=arg;if(k==='theme')delete S.ui.accent;look();save();closeModal();blip('ok');render()};
   blip('tab');
 }
 function surprise(){
@@ -1239,7 +1254,7 @@ function pickTile(t,range){   // click: one game; Shift+click: everything betwee
 function bulkBar(){
   const b=$('#bulk'); b.hidden=!EDIT; if(!EDIT)return;
   const n=SEL.size, dis=n?'':'disabled', sel=[...SEL].map(id=>GAMES.find(g=>g.id===id)).filter(Boolean);
-  b.innerHTML=`<b>${n?n+' selected':'Click covers to select'}</b><button class="btn pri" data-b="done">Done</button><button class="btn" data-b="undo" ${UNDO.length?'':'disabled'}>Undo</button><button class="btn" data-b="gap">${n?'Add a space after':'Add a space'}</button>
+  b.innerHTML=`<b>${n?n+' selected':'Click covers to select'}</b><button class="btn pri" data-b="done">Done</button><button class="btn" data-b="undo" ${UNDO.length?'':'disabled'}>Undo</button><button class="btn" data-b="gap">${n?'Add a space after':'Add a space'}</button><button class="btn" data-b="reorder">Reset order</button>
     <button class="btn" data-b="all">${n&&n===visible().length?'Select none':'Select all'}</button>
     <button class="btn" data-b="pin" ${dis}>${sel.length&&sel.every(g=>gs(g.id).fav)?'Unfavourite':'Favourite'}</button>
     <select data-b="dir" ${dis}><option value="">Move to folder...</option>${(S.folders||[]).map(f=>`<option value="${f.id}">${esc(f.name)}</option>`).join('')}<option value="+">New folder</option><option value="-">Out of folders</option></select>
@@ -1253,6 +1268,7 @@ $('#bulk').addEventListener('click',async e=>{
   const a=e.target.closest('[data-b]')?.dataset.b; if(!a||e.target.tagName==='SELECT'||e.target.tagName==='INPUT')return;
   if(a==='done')return edit(false);
   if(a==='undo')return undo();
+  if(a==='reorder'){snap();S.order=null;S.ui.sort='console';save();blip('ok');toast('Order reset. Ctrl+Z brings it back');return render(true)}   // clears every empty slot and hand-made order
   if(a==='gap'){snap();if(!S.order?.length){const now=visible().map(g=>g.id);S.order=now.concat(GAMES.map(g=>g.id).filter(i=>!now.includes(i)))}S.ui.sort='custom';const ids=SEL.size?[...SEL]:[],O=S.order;const after=ids.length?ids:[LASTT?.dataset?.id||document.activeElement?.dataset?.id||O[0]].filter(Boolean);after.forEach(id=>O.splice(O.indexOf(id)+1,0,'_gap:'+uid()));save();blip('ok');return render(true)}
   if(a!=='all')snap();
   if(a==='all'){const v=visible().map(g=>g.id);SEL.size===v.length?SEL.clear():v.forEach(i=>SEL.add(i));render(true);return bulkBar()}
@@ -1269,10 +1285,10 @@ $('#bulk').addEventListener('change',e=>{
   save(); blip('ok'); render(true); bulkBar();
 });
 let UNDO=[];
-function snap(){UNDO.push(JSON.stringify({o:S.order||null,f:S.folders||[],g:Object.fromEntries(Object.entries(S.games).map(([k,v])=>[k,{dir:v.dir,fav:v.fav,cats:v.cats,hide:v.hide,sys:v.sys}]))}));if(UNDO.length>40)UNDO.shift();bulkBar()}
+function snap(){UNDO.push(JSON.stringify({s:S.ui.sort,o:S.order||null,f:S.folders||[],g:Object.fromEntries(Object.entries(S.games).map(([k,v])=>[k,{dir:v.dir,fav:v.fav,cats:v.cats,hide:v.hide,sys:v.sys}]))}));if(UNDO.length>40)UNDO.shift();bulkBar()}
 async function undo(){
   const u=UNDO.pop(); if(!u)return toast('Nothing to undo'); const d=JSON.parse(u); let hid=false;
-  S.order=d.o; S.folders=d.f;
+  S.order=d.o; S.folders=d.f; if(d.s)S.ui.sort=d.s;
   for(const k in S.games){const o=S.games[k],p=d.g[k]||{};for(const f of ['dir','fav','cats','hide','sys']){if(f==='hide'&&!!o.hide!==!!p.hide)hid=true;p[f]===undefined?delete o[f]:o[f]=p[f]}}
   save(); if(hid)await scan(); else GAMES.forEach(g=>{const s=gs(g.id).sys;if(s&&!g.store)g.sys=s});
   blip('back'); toast('Undone'); render(true); bulkBar();
@@ -1280,9 +1296,10 @@ async function undo(){
 const shift=(a,x,y)=>{const from=a.indexOf(x);a.splice(from,1);const to=a.indexOf(y);a.splice(from<=to?to+1:to,0,x)};   // x lands on the far side of y, the way it looks on screen
 // where a drop would land: on a cover's middle = into it (folder), near its edges or in a gap = beside it
 function spot(e){
-  const v=S.ui.view==='list', p=v?e.clientY:e.clientX, mine=game(drag.t);
+  const v=vflow(), p=v?e.clientY:e.clientX, mine=game(drag.t);
   let t=document.elementFromPoint(e.clientX,e.clientY)?.closest('.tile'), mode;
   if(t===drag.t)return null;
+  if(drag.t.dataset.gap){if(!t||!game(t))return null;const r=t.getBoundingClientRect();return{t,mode:(p-(v?r.top:r.left))/(v?r.height:r.width)<.5?'before':'after'}}   // an empty slot only moves between games
   if(t?.dataset.gap&&mine)return{t,mode:'gap'};
   if(!t){let best=220;for(const x of tiles()){if(x===drag.t)continue;const r=x.getBoundingClientRect(),d=Math.hypot(e.clientX-r.left-r.width/2,e.clientY-r.top-r.height/2);if(d<best){best=d;t=x}}if(!t)return null}
   const r=t.getBoundingClientRect(), f=(p-(v?r.top:r.left))/(v?r.height:r.width);
@@ -1292,13 +1309,18 @@ function spot(e){
   return{t,mode};
 }
 // shows the drop: covers part to open a gap with a bright bar in it, or the target gets a dashed outline for a folder
+const vflow=()=>S.ui.view==='list'||getComputedStyle($('#grid')).gridAutoFlow.startsWith('column');   // covers that follow each other top to bottom (List, Home Menu)
 function showSpot(sp){
   document.querySelectorAll('.tile.sl,.tile.sr,.tile.drop').forEach(x=>x.classList.remove('sl','sr','drop'));
   $('#insbar')?.remove(); if(!sp)return;
   if(sp.mode==='into')return sp.t.classList.add('drop');
   const all=tiles().filter(x=>x!==drag.t), i=all.indexOf(sp.t), a=sp.mode==='before'?all[i-1]:sp.t, b=sp.mode==='before'?sp.t:all[i+1];
-  a?.classList.add('sl'); b?.classList.add('sr');
-  const host=b||a, bar=document.createElement('i'); bar.id='insbar'; bar.className=b?'l':'r'; bar.style.setProperty('--h',host.querySelector('.art').offsetHeight+'px'); host.append(bar);
+  const vert=vflow(), sh=S.ui.view==='list'?8:vert?10:20, ra=a?.getBoundingClientRect(), rb=b?.getBoundingClientRect();
+  const line=ra&&rb&&(vert?Math.abs(ra.left-rb.left)<4:Math.abs(ra.top-rb.top)<4);   // b wrapped onto the next line: no parting, the bar sits just after a
+  document.body.classList.toggle('vflow',vert); if(line||!a||!b){a?.classList.add('sl'); b?.classList.add('sr')}
+  const useB=b&&(line||!a), host=useB?b:a, bar=document.createElement('i'); bar.id='insbar'; bar.className=useB?'l':'r';
+  bar.style[vert?(useB?'top':'bottom'):(useB?'left':'right')]=-(line?(vert?rb.top-ra.bottom:rb.left-ra.right)/2+sh+2:6)+'px';
+  if(!vert)bar.style.setProperty('--h',host.querySelector('.art').offsetHeight+'px'); host.append(bar);
 }
 function moveTo(g,o,after){   // puts game g just before or after game o, switching to "My order" if needed
   if(S.ui.sort!=='custom'){const now=visible().map(x=>x.id);S.order=now.concat(GAMES.map(x=>x.id).filter(i=>!now.includes(i)));S.ui.sort='custom';toast('Sorted by My order now')}
@@ -1307,12 +1329,12 @@ function moveTo(g,o,after){   // puts game g just before or after game o, switch
   if(!!gs(g.id).fav!==!!gs(o.id).fav)gs(g.id).fav=gs(o.id).fav||undefined;   // dropped among the pinned games: it becomes pinned, and the other way round
   save();blip('ok');render(true);
 }
-$('#grid').addEventListener('pointerdown',e=>{const t=e.target.closest('.tile');if(t&&!e.button&&(game(t)||t.dataset.f))drag={t,x:e.clientX,y:e.clientY}});
+$('#grid').addEventListener('pointerdown',e=>{const t=e.target.closest('.tile');if(t&&!e.button&&(game(t)||t.dataset.f||t.dataset.gap))drag={t,x:e.clientX,y:e.clientY}});
 addEventListener('pointermove',e=>{
   if(!drag)return;
   if(!ghost){
     if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<14)return;
-    ghost=drag.t.querySelector('.art').cloneNode(true); ghost.id='ghost'; document.body.append(ghost); document.body.classList.add('dragging'); drag.t.classList.add('lifted');
+    ghost=drag.t.querySelector('.art').cloneNode(true); ghost.id='ghost'; if(drag.t.dataset.gap)ghost.style.cssText='background:none;box-shadow:none;border:2px dashed var(--acc)'; document.body.append(ghost); document.body.classList.add('dragging'); drag.t.classList.add('lifted');
   }
   ghost.style.left=e.clientX+'px'; ghost.style.top=e.clientY+'px';
   const sp=spot(e); if(sp?.t!==drag.sp?.t||sp?.mode!==drag.sp?.mode){drag.sp=sp;showSpot(sp)}
@@ -1323,6 +1345,7 @@ for(const ev of ['pointerup','pointercancel'])addEventListener(ev,e=>{
   if(!sp)return render(true);
   snap();
   const t=sp.t, g=game(d.t), o=game(t);
+  if(d.t.dataset.gap){const O=S.order,id=d.t.dataset.gap;O.splice(O.indexOf(id),1);O.splice(O.indexOf(o.id)+(sp.mode==='after'?1:0),0,id);save();blip('ok');return render(true)}
   if(sp.mode==='gap'){const O=S.order,a=O.indexOf(g.id),b=O.indexOf(t.dataset.gap);O[b]=g.id;O[a]=t.dataset.gap;save();blip('ok');return render(true)}   // onto an empty slot: the game moves there, its old place becomes the empty slot
   if(!g){shift(S.folders,fById(d.t.dataset.f),fById(t.dataset.f));if(sp.mode==='before'){const F=S.folders,a=F.indexOf(fById(d.t.dataset.f)),b=F.indexOf(fById(t.dataset.f));if(a===b+1)F.splice(b,0,F.splice(a,1)[0])}save();blip('ok');return render(true)}
   if(o&&sp.mode!=='into')return moveTo(g,o,sp.mode==='after');
@@ -1518,10 +1541,9 @@ function look(){
     const [r,g,b]=[0,2,4].map(i=>{const v=parseInt(h.substr(i,2),16)/255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4}), L=.2126*r+.7152*g+.0722*b;
     d.style.setProperty('--on',(L+.05)/.05>=1.05/(L+.05)?'#0a0a0a':'#fff');
   }
-  document.body.className='v-'+(FULL?'grid':u.view)+' m-'+u.motion+' s-'+(u.style||'frost')+(INFO&&INFO.android?' android':'')+(u.fit==='contain'?' fit-whole':u.fit==='cover'?'':' fit-box')+(ct&&ct.glow===false?' no-glow':'')+(u.sp&&u.sp!=='normal'?' sp-'+u.sp:'')+(u.info===false?' no-info':'')+(u.names===false?' no-names':'')+(u.tint?' tint-'+u.tint:'');
-  {const c=hex6(getComputedStyle(d).getPropertyValue('--acc')),[r,g,b]=[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)/255),mx=Math.max(r,g,b),mn=Math.min(r,g,b),dd=mx-mn;let h=dd?mx===r?((g-b)/dd)%6:mx===g?(b-r)/dd+2:(r-g)/dd+4:0;d.style.setProperty('--th',(h*60-38)+'deg')}   // sepia sits near 38 degrees; turn it to the accent's hue
+  document.body.className='v-'+(FULL?'grid':u.view)+' m-'+u.motion+' s-'+(u.style||'frost')+(INFO&&INFO.android?' android':'')+(u.fit==='contain'?' fit-whole':u.fit==='cover'?'':' fit-box')+(ct&&ct.glow===false?' no-glow':'')+(u.sp&&u.sp!=='normal'?' sp-'+u.sp:'')+(u.info===false?' no-info':'')+(u.names===false?' no-names':'');
   d.style.setProperty('--rows',u.rows||(u.view==='ds'?3:2));
-  if(wallFor())$('#bg').style.backgroundImage=`url("/file?t=${T}&p=${encodeURIComponent(wallFor())}")`;
+  $('#bg').style.backgroundImage=wallFor()?`url("/file?t=${T}&p=${encodeURIComponent(wallFor())}")`:'';
 }
 // button hints appear only once a controller is connected, labelled the way that controller is
 setInterval(()=>{const p=[...navigator.getGamepads()].find(p=>p&&p.connected);document.body.classList.toggle('pad',!!p);document.body.dataset.pad=!p?'':/054c|playstation|dualsense|dualshock|wireless controller/i.test(p.id)?'ps':/057e|nintendo|pro controller|joy-con/i.test(p.id)?'nin':'xbox'},1000);
@@ -1829,17 +1851,17 @@ async function settings(t='lib'){
     <h3>Style</h3>${seg(STYLES,u.style||'frost','style')}
     <h3>Layout</h3><div class="row">${LAYOUTS.map(x=>`<button class="btn ${x[0]===u.view?'pri':''}" data-act="view" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>
     <small>Fine-tune any layout under Covers below.</small>
-    ${u.view==='home'||u.view==='ds'?`<div class="row"><label>Rows</label>${seg((u.view==='ds'?[['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6']]:[['1','1'],['2','2'],['3','3'],['4','4']]),String(u.rows||(u.view==='ds'?3:2)),'rows')}</div>`:''}
+    ${u.view==='ds'?`<div class="row"><label>Rows</label>${seg([['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6']],String(u.rows||3),'rows')}</div>`:''}
+    ${S.order?.length?`<div class="row"><button class="btn" data-act="reorder">Reset game order</button><small>Takes out every empty slot and your own arrangement</small></div>`:''}
     ${u.view==='shelf'?`<div class="row"><label>Shelf length</label>${seg([['12','12'],['24','24'],['48','48'],['0','All']],String(u.cap??24),'cap')}<small>After that many games, a Full library tile opens everything as a grid</small></div>`:''}
     ${adv('covers','Covers',`
     <div class="row"><label>Shape</label><select data-set="fit">${opt('box','Console box shapes, filled',u.fit||'box')}${opt('cover','All square, filled',u.fit||'box')}${opt('contain','Whole cover with a blurred edge',u.fit||'box')}</select></div>
     <div class="row"><label>Icon size</label><input type="range" min="110" max="240" data-set="size" value="${u.size}"></div>
     <div class="row"><label>Corners</label><select data-set="corners">${opt('soft','Soft',u.corners)}${opt('round','Extra round',u.corners)}${opt('sharp','Sharp',u.corners)}</select></div>
-    <div class="row"><label>Cover tint</label>${seg([['','Off'],['tinted','Tinted'],['mono','Mono'],['dim','Dimmed']],u.tint||'','tint')}<small>One look for every cover</small></div>
     <div class="row"><label>Spacing</label>${seg([['compact','Compact'],['normal','Normal'],['roomy','Roomy']],u.sp||'normal','sp')}</div>
     <div class="row"><label>Titles under covers</label><input type="checkbox" data-set="names" ${u.names===false?'':'checked'}></div>
     <div class="row"><label>Game info</label><input type="checkbox" data-set="info" ${u.info===false?'':'checked'}><small>The title, details and art for the selected game</small></div>
-    <div class="row"><button class="btn" data-act="laydef">Reset to the preset</button></div>
+    <div class="row"><button class="btn" data-act="laydef">Reset covers</button></div>
     `)}
     ${adv('colours','Colour and background',`
     <div class="row"><label>Accent colour</label><input type="color" data-set="accent" value="${esc(u.accent||'#ccff00')}"><button class="btn" data-act="noaccent">Use theme colour</button></div>
@@ -1968,9 +1990,9 @@ async function settings(t='lib'){
       try{await api('discord',{clientId:did(),activity:{type:0,details:'In the library',state:'Choosing a game',timestamps:{start:BOOT},assets:{large_image:'cove',large_text:'Cove'}}});DERR=''}catch(e){DERR=e.message;d.on=true;save();return again()}   // stays on, showing why, and keeps retrying
       d.on=true;save();blip('ok');toast('Connected. Check your Discord profile');return again()}
     if(a==='sfx'){['move','tab','ok','back','open','launch'].forEach((k,i)=>setTimeout(()=>blip(k),i*650));return}
-    if(a==='tint'){S.ui.tint=arg;look();save();return again()}
     if(a==='sp'||a==='rows'||a==='cap'){S.ui[a]=a==='sp'?arg:+arg;render();look();save();return again()}
-    if(a==='laydef'){['sp','info','names','rows'].forEach(k=>delete S.ui[k]);look();save();return again()}
+    if(a==='reorder'){snap();S.order=null;S.ui.sort='console';save();render(true);toast('Order reset. Ctrl+Z brings it back');return again()}
+    if(a==='laydef'){['fit','size','corners','sp','info','names','rows'].forEach(k=>k in DEF.ui?S.ui[k]=structuredClone(DEF.ui[k]):delete S.ui[k]);render(true);look();save();return again()}
     if(a==='lsave'){saveLayout(+arg);blip('ok');toast('Saved to slot '+(+arg+1));return again()}
     if(a==='lload'){loadLayout(+arg);blip('ok');return again()}
     if(a==='ldel'){S.layouts[+arg]=null;save();return again()}
@@ -1978,7 +2000,8 @@ async function settings(t='lib'){
     if(a==='newtheme'){OPEN.add('ct');newTheme();blip('ok');return again()}
     if(a==='deltheme'){S.themes=S.themes.filter(x=>x!==ctheme());S.ui.theme='frost';look();save();return again()}
     if(a==='noaccent'){S.ui.accent='';look();save();return again()}
-    if(a==='theme'||a==='view'||a==='style'||a==='pack'){S.ui[a]=arg;look();save();blip('tab');return again()}
+    if(a==='theme'||a==='view'||a==='style'||a==='pack'){S.ui[a]=arg;if(a==='theme')delete S.ui.accent;   // a new theme brings its own accent
+      look();save();blip('tab');return again()}
     if(a==='reart'){for(const k in S.art)if(!S.art[k]){delete S.art[k];delete S.meta[k]}LRFAIL.clear();save();closeModal();return toast('Looking for covers')}
     if(a==='wall'){const p=await pick('image');if(p){S.ui.wall=p;look();save();again()}return}
     if(a==='nowall'){S.ui.wall='';look();save();return again()}
@@ -2052,6 +2075,7 @@ async function checkUpdate(manual){
   if(!S.scrape.order.includes('steam'))S.scrape.order.splice(Math.max(0,S.scrape.order.indexOf('wiki')),0,'steam');
   if(S.artV!==2){S.artV=2;for(const k in S.art)if(!S.art[k])delete S.art[k]}   // retry covers recorded as missing by older versions
   if(S.ui.v2!==2){S.ui.v2=2;S.ui.view='shelf'}   // one-time switch to the current default layout
+  for(const u of [S.ui,...(S.layouts||[]).map(l=>l?.ui)])if(u?.view==='home')u.view='ds';   // the old Home layout is now the Home Menu
   if(!LAYOUTS.some(l=>l[0]===S.ui.view))S.ui.view='shelf';
   if(!S.users?.length){S.users=[{id:'p1',name:'Player 1',col:'#19d3c5'}];S.user='p1'}
   userUI();

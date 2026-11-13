@@ -1,5 +1,5 @@
 {
-  "version": "1.4.1",
+  "version": "1.4.2",
   "repo": "calinado/cove",
-  "notes": "New Home Menu layout in the style of the 3DS: an icon grid you zoom with Ctrl+scroll, with folders and empty slots. Long shelves end in a Full library tile. Look settings are tidied into sections and sit beside your library so changes show live. Cover tint fixed. Cove starts with no PowerShell window, and links open in your own browser."
+  "notes": "Home Menu replaces the old Home layout and now has pages with dots underneath. Empty spaces can be dragged around. Reset game order clears every space and your own arrangement (Ctrl+Z undoes it). The drop line no longer shows under a game in Home Menu. Picking a theme now changes its accent too. Reset covers works. Cover tint is gone."
 }
