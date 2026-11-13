@@ -1,5 +1,5 @@
 {
-  "version": "1.1.18",
+  "version": "1.1.19",
   "repo": "calinado/cove",
-  "notes": "Discord: everyone shows up as Cove, with the same name and icon. No setup and no Application ID box."
+  "notes": "Search: typing stays in the search box, and folders with a matching game (or name) show in the results."
 }
