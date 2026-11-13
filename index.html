@@ -99,7 +99,7 @@ header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align
 #dock{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:6px;border-radius:999px;min-width:0;max-width:100%;justify-self:center}
 #dock button{display:flex;align-items:center;gap:7px;white-space:nowrap;cursor:pointer;font-weight:700;font-size:13px;border:0;background:none;border-radius:999px;padding:9px 16px;color:var(--dim);transition:background .2s,color .2s,transform .2s var(--spring)}
 #dock button:hover{color:var(--fg);background:rgba(var(--tint),.1)}
-#dock button.on{background:var(--acc);color:var(--on);box-shadow:0 0 22px color-mix(in srgb,var(--acc) 55%,transparent);transform:scale(1.06)}
+#dock button.on{background:var(--acc);color:var(--on)}
 .ic{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
 .lg{height:20px;max-width:110px;object-fit:contain;display:block}
 .lg.big{height:34px;max-width:240px}
@@ -162,7 +162,7 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .fit-whole :is(.art,#hero .cover,.pv .cover,#fx .cover) img{object-fit:contain}
 /* covers take the shape of the console's own boxes and fill it: tall DVD cases, wide SNES boxes, square Switch icons */
 .fit-box.v-shelf .tile{flex:0 0 auto}
-.fit-box.v-shelf .art{height:calc(var(--tile)*1.75);aspect-ratio:var(--ar,1);align-self:flex-start}
+.fit-box.v-shelf .art{height:var(--sh);aspect-ratio:var(--ar,1);align-self:flex-start}
 .fit-box.v-shelf .tile .name{width:0;min-width:100%}
 .fit-box :is(#hero,.pv,#fx) .cover{aspect-ratio:var(--ar,1)}
 .pvbg{aspect-ratio:3.1;border-radius:var(--r);background:center/cover;margin-top:24px}
@@ -214,7 +214,7 @@ details.adv>summary:focus{outline:2px solid var(--acc);outline-offset:2px}
 
 /* layout: Home (hero + two rows of icons that scroll sideways) */
 .v-home main,.v-shelf main{overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none}
-.v-home #grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:var(--tile);gap:18px;margin:auto 0;padding:0 6px}
+.v-home #grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:var(--tile);gap:18px;margin:auto 0;padding:30px 14px}
 .v-home .tile .name,.v-home .tile .meta,.v-home .sec,.v-shelf .sec,.v-shelf .tile .meta{display:none}
 @media (max-height:780px){.v-home #grid{grid-template-rows:auto}}
 /* layout: Grid (everything, grouped by system) */
@@ -223,8 +223,9 @@ details.adv>summary:focus{outline:2px solid var(--acc);outline-offset:2px}
 /* layout: Shelf (one row of big covers) */
 .v-shelf #hero{background:none;border:0;box-shadow:none;backdrop-filter:none;padding:4px 14px}
 .v-shelf #hero::before,.v-shelf #hero .cover{display:none}
-.v-shelf #grid{display:flex;gap:26px;padding:0 10px;align-items:center}
-.v-shelf .tile{flex:0 0 calc(var(--tile)*1.75)}
+.v-shelf #grid{display:flex;gap:26px;padding:18px 16px;align-items:center}
+.v-shelf .tile{flex:0 0 var(--sh)}
+.v-shelf main{container-type:size;padding-block:0}.v-shelf{--sh:min(calc(var(--tile)*1.75),calc(100cqh - 100px))}   /* shelf covers shrink on short windows, so the selected one and its ring still fit */
 .v-shelf .tile:not(:focus){opacity:.72;transform:scale(.94)}
 /* layout: List (cover on the left, rows on the right) */
 .v-list .stage{flex-direction:row;gap:24px;padding-bottom:8px}

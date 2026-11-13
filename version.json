@@ -1,5 +1,5 @@
 {
-  "version": "1.1.16",
+  "version": "1.1.17",
   "repo": "calinado/cove",
-  "notes": "Taskbar: Cove gets a Start menu entry and its shortcuts carry its own taskbar identity, so pinning keeps the Cove icon."
+  "notes": "Smaller windows and screens: shelf covers resize to fit, so the selected game and its ring are no longer cut off, and the selected tab no longer has a clipped glow."
 }
