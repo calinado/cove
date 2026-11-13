@@ -1,5 +1,5 @@
 {
-  "version": "1.3.0",
+  "version": "1.4.0",
   "repo": "calinado/cove",
-  "notes": "Smart collections (tabs that fill themselves by rules), 8 saved layout slots with shuffle, folder colours, Ctrl+scroll to resize covers, export and import your whole setup. Fix: Done now closes bulk editing."
+  "notes": "Favourites sit at the top with a star. Empty spaces you can leave anywhere in My order, and Undo (Ctrl+Z). Right-click a tab or folder for its own background. Mix themes: copy colours from one theme and sounds from another. Cover tint for every cover. Optionally start straight into your last game."
 }
