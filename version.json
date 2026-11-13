@@ -1,5 +1,5 @@
 {
-  "version": "1.4.2",
+  "version": "1.4.3",
   "repo": "calinado/cove",
-  "notes": "Home Menu replaces the old Home layout and now has pages with dots underneath. Empty spaces can be dragged around. Reset game order clears every space and your own arrangement (Ctrl+Z undoes it). The drop line no longer shows under a game in Home Menu. Picking a theme now changes its accent too. Reset covers works. Cover tint is gone."
+  "notes": "Home Menu icons now size themselves to fit your screen, so the bottom row is never cut off. Each page is its own page, centred, with nothing of the next page peeking in. Fixed the stray line of pixels at the corner of some covers."
 }

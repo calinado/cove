@@ -133,8 +133,8 @@ header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align
 #hero{display:flex;gap:26px;align-items:center;padding:18px;border-radius:calc(var(--r) + 10px);flex:none;position:relative;overflow:clip;overflow-clip-margin:12px}   /* text near a rounded corner is no longer shaved off */
 #hero.none{visibility:hidden}
 #hero::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 1px 1px,rgba(var(--tint),.16) 1px,transparent 0) 0 0/18px 18px;mask:linear-gradient(100deg,transparent 30%,#000);pointer-events:none}
-#hero .cover{width:clamp(110px,21vh,210px);aspect-ratio:1;border-radius:var(--r);overflow:hidden;position:relative;flex:none;box-shadow:0 14px 34px var(--shade),inset 0 0 0 1px rgba(255,255,255,.2)}
-#hero .cover img,.art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:fade .35s}
+#hero .cover{width:clamp(110px,21vh,210px);aspect-ratio:1;border-radius:var(--r);overflow:hidden;clip-path:inset(0 round var(--r));position:relative;flex:none;box-shadow:0 14px 34px var(--shade),inset 0 0 0 1px rgba(255,255,255,.2)}
+#hero .cover img,.art img{clip-path:inset(0 round var(--ar0,var(--r)));position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:fade .35s}
 #hero .info{min-width:0;position:relative}
 #hero h1{font-size:clamp(24px,4.6vh,48px);font-weight:900;margin:10px 0 6px;line-height:1.04;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #hero p{margin:0;color:var(--dim);font-size:14px}
@@ -157,9 +157,9 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .tile:focus{transform:scale(1.08);z-index:2}
 .v-list .tile:focus::after{content:"";position:absolute;inset:-7px;border-radius:calc(var(--r) + 7px);border:3px solid var(--acc);box-shadow:0 0 32px color-mix(in srgb,var(--acc) 50%,transparent);animation:cursor 1s ease-in-out infinite alternate;pointer-events:none}
 @keyframes cursor{from{opacity:.55}to{opacity:1}}
-.art{position:relative;aspect-ratio:1;border-radius:calc(var(--r) - 8px);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);flex:none}
+.art{position:relative;aspect-ratio:1;--ar0:min(calc(var(--r) - 8px),24%);border-radius:var(--ar0);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);flex:none}
 .art::after,#hero .cover::after{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.3),transparent 40%);pointer-events:none}
-.art::before{content:"";position:absolute;inset:-12%;background:var(--img) center/cover;filter:blur(14px) brightness(.75)}   /* a soft copy of the cover fills the square behind it */
+.art::before{content:"";position:absolute;inset:0;background:var(--img) center/cover;filter:blur(14px) brightness(.75);clip-path:inset(0 round var(--ar0))}   /* a soft copy of the cover fills the square behind it */
 .fit-whole :is(.art,#hero .cover,.pv .cover,#fx .cover) img{object-fit:contain}
 /* covers take the shape of the console's own boxes and fill it: tall DVD cases, wide SNES boxes, square Switch icons */
 .fit-box.v-shelf .tile{flex:0 0 auto}
@@ -228,10 +228,9 @@ details.adv>summary:focus{outline:2px solid var(--acc);outline-offset:2px}
 .v-ds .stage{gap:22px;padding-bottom:10px}
 .v-ds #hero{height:min(34vh,320px);padding:22px 28px;background:linear-gradient(90deg,var(--bg) 22%,color-mix(in srgb,var(--bg) 55%,transparent) 55%,transparent),var(--wide,none) center/cover,rgba(var(--tint),.05);border:1px solid rgba(var(--tint),.12)}
 .v-ds #hero .cover{height:100%;width:auto;aspect-ratio:var(--ar,1)}
-.v-ds main{flex:1;overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none;padding:0;mask:linear-gradient(90deg,transparent 10px,#000 10px calc(100% - 10px),transparent calc(100% - 10px))}   /* hide the edge of the next and last pages */
+.v-ds main{container-type:size;flex:1;overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none;padding:0;--e:calc(var(--pl,22px) + var(--pw,100vw) - 6px);mask:linear-gradient(90deg,transparent calc(var(--pl,22px) - 8px),#000 calc(var(--pl,22px) - 8px) var(--e),transparent var(--e))}   /* hide the edge of the next and last pages */
 .v-ds .tile.gap{visibility:visible;pointer-events:auto;background:none;box-shadow:none;border:1px solid rgba(var(--tint),.07)}.v-ds .tile.gap .art{background:none;box-shadow:none}   /* empty slots stay visible, like the 3DS grid */
-.v-ds{--ds:max(44px,min(calc(var(--tile)*1.1),calc((100vh - 270px - min(34vh,320px))/var(--rows,3) - 18px)))}
-.v-ds #grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--rows,3),auto);grid-auto-columns:var(--ds);gap:14px;padding:22px;margin:auto 0}
+.v-ds #grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--rows,3),auto);grid-auto-columns:max(44px,min(calc(var(--tile)*1.1),calc((100cqh - 44px - (var(--rows,3) - 1)*14px)/var(--rows,3) - 12px)));gap:14px;padding:22px;margin:auto 0}
 #dots{display:none}.v-ds #dots{display:flex;justify-content:center;gap:10px;height:8px}#dots i{width:7px;height:7px;border-radius:50%;background:rgba(var(--tint),.22);cursor:pointer;transition:background .2s,scale .2s}#dots i.on{background:var(--acc);scale:1.25}   /* Home Menu pages */
 .v-ds .tile{padding:5px}.v-ds .tile .name,.v-ds .tile .meta,.v-ds .sec,.v-ds .new{display:none}
 .v-home main,.v-shelf main{overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none}
@@ -328,7 +327,7 @@ footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:
 .s-art #wash{display:block;background:linear-gradient(90deg,color-mix(in srgb,var(--bg) 86%,transparent),color-mix(in srgb,var(--bg) 42%,transparent) 58%,color-mix(in srgb,var(--bg) 14%,transparent)),linear-gradient(0deg,color-mix(in srgb,var(--bg) 95%,transparent) 16%,transparent 64%)}   /* keeps text and the cover row readable over any art */
 .s-art .glass,.s-flat .glass{background:color-mix(in srgb,var(--bg) 74%,transparent);box-shadow:0 10px 30px var(--shade)}
 .s-art .tile,.s-flat .tile{padding:0 0 10px;gap:8px;background:none;border-color:transparent;box-shadow:none}
-.s-art .art,.s-flat .art{border-radius:var(--r);box-shadow:0 10px 28px rgba(0,0,0,.5)}
+.s-art .art,.s-flat .art{--ar0:min(var(--r),24%);border-radius:var(--ar0);box-shadow:0 10px 28px rgba(0,0,0,.5)}
 .s-art .art::after,.s-flat .art::after,.s-art #hero .cover::after,.s-flat #hero .cover::after,.s-art #hero::before,.s-flat #hero::before{display:none}
 .s-art #hero,.s-art.v-list #hero{background:none;border-color:transparent;box-shadow:none}
 .s-art #hero .cover{display:none}
@@ -1020,6 +1019,7 @@ const pageW=()=>{if(S.ui.view!=='ds'||FULL)return 0;const m=$('main');if(!$('#gr
 function dots(){
   const m=$('main'), w=pageW(), G=$('#grid'), cw=parseFloat(getComputedStyle(G).gridAutoColumns)+14, n=w?Math.ceil(Math.ceil(G.querySelectorAll('.tile').length/(S.ui.rows||3))*cw/w):0;
   G.style.minWidth=n>1?((n-1)*w+m.clientWidth)+'px':'';   // pad the last page so every page lines up
+  const pl=w?Math.max(22,(m.clientWidth-w+14)/2):0; G.style.paddingLeft=w?pl+'px':''; m.style.setProperty('--pl',pl+'px'); m.style.setProperty('--pw',w?w+'px':'100vw');   // each page sits centred, nothing of the next one shows
   const end=m.scrollLeft>=m.scrollWidth-m.clientWidth-2, cur=w?(end?n-1:Math.round(m.scrollLeft/w)):0;
   $('#dots').innerHTML=n>1?Array.from({length:n},(_,i)=>`<i class="${i===cur?'on':''}" data-p="${i}"></i>`).join(''):'';
 }
@@ -1101,7 +1101,7 @@ function glide(el,x,y){
 function goto(t){
   t.focus({preventScroll:true});
   const m=$('main'), a=m.getBoundingClientRect(), b=t.getBoundingClientRect();
-  if(pageW()){const w=pageW();glide(m,Math.max(0,Math.floor((m.scrollLeft+b.left-a.left-22)/w))*w,0);return blip('move')}   // Home Menu: turn to the page the game is on
+  if(pageW()){const w=pageW();glide(m,Math.max(0,Math.floor((m.scrollLeft+b.left-a.left-(parseFloat($('#grid').style.paddingLeft)||22))/w))*w,0);return blip('move')}   // Home Menu: turn to the page the game is on
   glide(m,m.scrollLeft+b.left+b.width/2-a.left-a.width/2,m.scrollTop+b.top+b.height/2-a.top-a.height/2);
   blip('move');
 }
