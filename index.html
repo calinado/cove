@@ -196,6 +196,9 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 #ghost{position:fixed;z-index:50;pointer-events:none;translate:-50% -50%;width:110px!important;height:auto!important;aspect-ratio:var(--ar,1);border-radius:16px;overflow:hidden;opacity:.92;box-shadow:0 16px 40px rgba(0,0,0,.6)}
 #ghost img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 #hero h1,.modal h2{font-family:var(--head,var(--font))}
+.sp-compact #grid{gap:10px!important}.sp-roomy #grid{gap:44px!important}
+.no-info #hero{display:none!important}
+.no-names .tile .name,.no-names .tile .meta{display:none}
 .no-glow #orbs{display:none}
 .btn.bad{color:#ff6b6b;border-color:rgba(255,90,90,.45)}
 .foot.stack{flex-direction:column}.foot.stack .btn{width:100%}
@@ -214,9 +217,9 @@ details.adv>summary:focus{outline:2px solid var(--acc);outline-offset:2px}
 
 /* layout: Home (hero + two rows of icons that scroll sideways) */
 .v-home main,.v-shelf main{overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none}
-.v-home #grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:var(--tile);gap:18px;margin:auto 0;padding:30px 14px}
+.v-home #grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--rows,2),auto);grid-auto-columns:max(60px,min(var(--tile),calc((100vh - 590px)/var(--rows,2) - 34px)));gap:18px;margin:auto 0;padding:30px 14px}
 .v-home .tile .name,.v-home .tile .meta,.v-home .sec,.v-shelf .sec,.v-shelf .tile .meta{display:none}
-@media (max-height:780px){.v-home #grid{grid-template-rows:auto}}
+@media (max-height:780px){.v-home #grid{grid-template-rows:auto!important;grid-auto-columns:min(var(--tile),calc(100vh - 480px))!important}}   /* short screens: one row */
 /* layout: Grid (everything, grouped by system) */
 .v-grid #hero{display:none}
 .v-grid #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--tile),1fr));gap:22px}
@@ -727,7 +730,7 @@ const SRC={
       const k=K();
       if(!igdbTok||igdbTok.exp<Date.now()){const t=await viaHelper(`https://id.twitch.tv/oauth2/token?client_id=${encodeURIComponent(k.igdbId)}&client_secret=${encodeURIComponent(k.igdbSecret)}&grant_type=client_credentials`,{method:'POST',body:''});igdbTok={v:t.access_token,exp:Date.now()+(t.expires_in-60)*1000}}
       const r=await viaHelper('https://api.igdb.com/v4/games',{method:'POST',headers:{'Client-ID':k.igdbId,Authorization:'Bearer '+igdbTok.v},body:`search "${q.replace(/"/g,'')}"; fields name,summary,first_release_date,cover.image_id,genres.name,artworks.image_id,screenshots.image_id; limit ${n};`});
-      return r.map(g=>({title:g.name,img:g.cover?`https://images.igdb.com/igdb/image/upload/t_cover_big_2x/${g.cover.image_id}.jpg`:'',hero:(g.artworks||g.screenshots)?`https://images.igdb.com/igdb/image/upload/t_1080p/${(g.artworks||g.screenshots)[0].image_id}.jpg`:'',about:g.summary||'',year:g.first_release_date?''+new Date(g.first_release_date*1000).getFullYear():'',kind:(g.genres||[]).map(x=>x.name).join(', ')}));
+      return r.map(g=>({title:g.name,img:g.cover?`https://images.igdb.com/igdb/image/upload/t_cover_big_2x/${g.cover.image_id}.jpg`:'',hero:(g.artworks||g.screenshots)?`https://images.igdb.com/igdb/image/upload/t_1080p/${(g.artworks||g.screenshots)[0].image_id}.jpg`:'',about:g.summary||'',year:g.first_release_date?''+new Date(g.first_release_date*1000).getFullYear():'',kind:(g.genres||[]).map(x=>x.name).join(', '),genre:(g.genres||[]).map(x=>x.name).join(', ')}));
     }},
   sgdb:{name:'SteamGridDB',gives:'HD covers and wide background art, with the widest choice, including fan-made art for hacks and new releases.',needs:'A free API key from steamgriddb.com (Preferences > API).',url:'https://www.steamgriddb.com/profile/preferences/api',fields:[['sgdb','API key']],ready:()=>!!K().sgdb,
     find:async(q,n)=>{
@@ -742,17 +745,19 @@ const SRC={
   steam:{name:'Steam',gives:'Tall box art and a wide HD banner for any game that is also sold on Steam. No sign-up.',ready:()=>true,
     find:async q=>{
       const flat=x=>nrm(x).replace(/[^a-z0-9]/g,''), r=await viaHelper('https://store.steampowered.com/api/storesearch/?l=english&cc=US&term='+encodeURIComponent(q));
-      return (r.items||[]).filter(x=>flat(x.name)===flat(q)).map(x=>({title:x.name,img:`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.id}/library_600x900_2x.jpg`,hero:`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.id}/library_hero.jpg`,about:'',year:'',kind:'Steam'}));   // exact names only: a near miss would put the wrong game's art on a Nintendo exclusive
+      const hits=(r.items||[]).filter(x=>flat(x.name)===flat(q));
+      for(const x of hits)try{const d=await viaHelper(`https://store.steampowered.com/api/appdetails?appids=${x.id}&filters=genres`);x.genre=(d[x.id]?.data?.genres||[]).map(y=>y.description).join(', ')}catch{}
+      return hits.map(x=>({genre:x.genre||'',title:x.name,img:`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.id}/library_600x900_2x.jpg`,hero:`https://cdn.cloudflare.steamstatic.com/steam/apps/${x.id}/library_hero.jpg`,about:'',year:'',kind:'Steam'}));   // exact names only: a near miss would put the wrong game's art on a Nintendo exclusive
     }},
   wiki:{name:'Wikipedia',gives:'Cover, short description and year. Works with no sign-up.',ready:()=>true,
-    find:async q=>(await wikiSearch(q+' video game')).map(p=>({...p,year:yr(p.kind+' '+p.about)}))},
+    find:async q=>(await wikiSearch(q+' video game')).map(p=>({...p,year:yr(p.kind+' '+p.about),genre:(p.kind||'').replace(/\b\d{4}\b/g,'').replace(/\b(video )?game\b.*$/i,'').replace(/^[\s,-]+|[\s,-]+$/g,'')}))},   // "2017 action-adventure game" gives action-adventure
 };
 const only=()=>{const o=S.scrape.only;return o&&SRC[o]&&SRC[o].ready()?o:''};   // the one source pictures should come from, if chosen
 const sources=()=>S.scrape.order.filter(id=>SRC[id]&&!S.scrape.off[id]&&SRC[id].ready());
 const needsArt=g=>{const k=artKey(g),lr=!S.scrape.off.libretro&&sysOf(g.sys).lr;return !g.img&&!gs(g.id).art&&!ART[g.sys+'/'+g.base]&&!ESDE[g.sys+'/'+g.base]&&!S.art[k]&&(!!only()||!lr||LRFAIL.has(k)||!lrBase(g))};
 function applyMatch(g,hit){
   const k=artKey(g);
-  S.meta[k]=hit?{t:hit.title,d:hit.about,y:hit.year||yr(hit.kind+' '+hit.about),...(hit.force?{m:1}:{})}:0;   // m marks a match picked by hand
+  S.meta[k]=hit?{t:hit.title,d:hit.about,y:hit.year||yr(hit.kind+' '+hit.about),c:hit.genre||(S.meta[k]||{}).c||'',...(hit.force?{m:1}:{})}:0;   // m marks a match picked by hand
   if(hit&&hit.hero)S.wide[k]=hit.hero; else if(heroReady()&&!(k in S.wide))S.wide[k]=0;   // 0 = looked, none there
   const wk=u=>/wiki[mp]edia/.test(u||'');
   if(hit&&hit.img&&(needsArt(g)||hit.force||only()||wk(S.art[k])&&!wk(hit.img)))S.art[k]=hit.img;   // proper box art replaces a Wikipedia picture found earlier   
@@ -778,9 +783,9 @@ async function pumpArt(){
     for(const id of sources()){
       let res; try{res=await SRC[id].find(lookFor(g),id==='wiki'?5:2)}catch(e){if(id==='wiki')throw e;continue}   // a paid-for source failing just falls through to the next
       const hit=res.find(fits); if(!hit)continue;
-      got=got||{title:hit.title,img:'',about:'',year:'',hero:'',kind:hit.kind};
-      for(const f of ['img','about','year','hero'])if(!got[f]&&hit[f]&&(!only()||id===only()||f==='about'||f==='year'))got[f]=hit[f];   // with one picture source chosen, others only fill in the text
-      if(got.img&&got.about&&got.year&&got.hero)break;
+      got=got||{title:hit.title,img:'',about:'',year:'',hero:'',genre:'',kind:hit.kind};
+      for(const f of ['img','about','year','hero','genre'])if(!got[f]&&hit[f]&&(!only()||id===only()||f==='about'||f==='year'))got[f]=hit[f];   // with one picture source chosen, others only fill in the text
+      if(got.img&&got.about&&got.year&&got.hero&&got.genre)break;
     }
     applyMatch(g,got); artPending.delete(k);
   }catch{
@@ -793,6 +798,7 @@ async function pumpArt(){
 setInterval(()=>document.querySelectorAll('.art img').forEach(i=>{if(i.complete)return;i.dataset.w=(+i.dataset.w||0)+1;if(i.dataset.w>2&&/libretro/.test(i.src))artFail(i)}),2000);
 function artFail(img){const g=GAMES.find(x=>x.id===img.dataset.id);img.parentNode?.style.setProperty('--img','none');img.remove();if(g&&!/^\/file/.test(img.getAttribute('src'))){LRFAIL.add(artKey(g));findArt(g)}}
 const plain=g=>g.sys==='pc'||!!g.store;   // started directly, with no emulator or save file to check
+const cats=g=>(gs(g.id).cats??(S.meta[artKey(g)]||{}).c??'').split(',').map(x=>x.trim()).filter(Boolean).map(x=>x[0].toUpperCase()+x.slice(1));
 const hue=s=>[...s].reduce((h,c)=>(h*31+c.charCodeAt(0))%360,7);
 
 /* ---------- launching ---------- */
@@ -892,6 +898,7 @@ const GLYPH={handheld:'<rect x="6" y="3" width="12" height="18" rx="2.5"/><rect 
   all:ICON.layout,fav:'<path d="M12 4l2.4 5 5.5.7-4 3.8 1 5.4-4.9-2.7-4.9 2.7 1-5.4-4-3.8 5.5-.7z"/>',recent:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/>',unsorted:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 16.5v.1"/>'};
 const glyph=id=>GLYPH[Object.keys(KIND).find(k=>KIND[k].includes(id))||'disc'];
 // drop <system id>.png into Library\Art\systems (gba.png, switch2.png ...) and it replaces the name everywhere
+const groupBy=()=>S.ui.sort==='custom'||tab!=='all'||INF?'none':S.ui.group||'console';   // your own arrangement is never regrouped
 const ord=g=>{const i=(S.order||[]).indexOf(g.id);return i<0?1e9:i};
 const SORTS=[['custom','My order','Drag covers to arrange them'],['console','By console','Grouped by system, A to Z inside each'],['az','A to Z',''],['za','Z to A',''],['new','Newest first','By release year'],['old','Oldest first','By release year'],['recent','Recently played',''],['most','Most played','']];
 const FLOOK={folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',star:'<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9 6.8 19.6l1-5.8-4.3-4.1 5.9-.8z"/>',heart:'<path d="M12 20s-7-4.4-7-9.6A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.4C19 15.6 12 20 12 20z"/>',bolt:'<path d="M13 3L5 13.5h6L10 21l8-10.5h-6z"/>',stack:'<path d="M12 4l8 4-8 4-8-4zM4 12l8 4 8-4M4 16l8 4 8-4"/>'};
@@ -931,9 +938,12 @@ function visible(){
   let l=GAMES.filter(g=>tab==='all'||tab==='recent'?true:tab==='fav'?gs(g.id).fav:g.sys===tab);
   if(INF)l=GAMES.filter(g=>gs(g.id).dir===INF); else if(tab==='all'&&!q)l=l.filter(g=>!fById(gs(g.id).dir)||NOW&&NOW.id===g.id);   // on the main screen a game inside a folder is shown only as part of that folder
   if(tab==='recent')l=l.filter(g=>gs(g.id).last).sort((a,b)=>gs(b.id).last-gs(a.id).last).slice(0,40);
-  l=q?l.filter(g=>g.title.toLowerCase().includes(q)):l;
+  l=q?l.filter(g=>(g.title+' '+cats(g).join(' ')).toLowerCase().includes(q)):l;   // search matches categories too
   const so=S.ui.sort||'console', y=g=>+S.meta[artKey(g)]?.y||0, o=g=>gs(g.id);
   if(tab!=='recent'&&so!=='console')l=[...l].sort({az:(a,b)=>a.title.localeCompare(b.title),za:(a,b)=>b.title.localeCompare(a.title),new:(a,b)=>y(b)-y(a),old:(a,b)=>(y(a)||9999)-(y(b)||9999),recent:(a,b)=>(o(b).last||0)-(o(a).last||0),most:(a,b)=>(o(b).time||0)-(o(a).time||0),custom:(a,b)=>ord(a)-ord(b)}[so]);
+  const grp=groupBy();
+  if(grp==='category'){const c=g=>cats(g)[0]||'\uffff';l=[...l].sort((a,b)=>c(a).localeCompare(c(b)))}   // stable: keeps the chosen order inside each category
+  else if(grp==='console'&&so!=='console'){const ix=Object.fromEntries(systems().concat(UNSORTED).map((x,i)=>[x.id,i]));l=[...l].sort((a,b)=>ix[a.sys]-ix[b.sys])}
   if(tab!=='fav'&&tab!=='recent')l=l.filter(g=>gs(g.id).fav).concat(l.filter(g=>!gs(g.id).fav));   // pinned games lead the list
   if(S.ui.show==='installed')l=l.filter(g=>!g.owned);   // hides store games you own but have not installed
   const run=NOW?l.findIndex(g=>g.id===NOW.id):-1;
@@ -946,7 +956,7 @@ function render(keep){
   if(!tabs.some(t=>t[0]===tab))tab='all';
   $('#dock').innerHTML=tabs.map(t=>`<button class="${t[0]===tab?'on':''}" data-tab="${esc(t[0])}" title="${esc(t[1])}" tabindex="-1">${mark(t[0],t[1])}</button>`).join('');
   $('#dock .on')?.scrollIntoView({inline:'center',block:'nearest'});
-  const list=visible(), focusId=keep&&document.activeElement.dataset.id, heads=!INF&&tab==='all'&&used.length>1&&(S.ui.sort||'console')==='console';
+  const list=visible(), focusId=keep&&document.activeElement.dataset.id, heads=!INF&&tab==='all'&&!$('#q').value.trim()&&groupBy()!=='none'&&(groupBy()==='category'||used.length>1);
   if(INF&&!fById(INF))INF=null;
   const inF=f=>GAMES.filter(g=>gs(g.id).dir===f.id), q0=$('#q').value.trim();
   const pre=INF?`<button class="tile fold" data-f="" title="Back"><span class="art" style="--ar:1"><svg class="ic bk" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span><span class="name">Back</span><span class="meta">${esc(fById(INF).name)}</span></button>`
@@ -955,7 +965,7 @@ function render(keep){
   let last='';
   $('#grid').classList.toggle('still',!!keep);
   $('#grid').innerHTML=pre+list.map((g,i)=>{
-    const s=sysOf(g.sys), o=gs(g.id), k=o.fav&&tab!=='fav'&&tab!=='recent'?'\u0001':g.sys, head=heads&&k!==last?`<div class="sec">${k==='\u0001'?'Pinned':esc(s.name)}</div>`:''; last=k;
+    const s=sysOf(g.sys), o=gs(g.id), k=o.fav&&tab!=='fav'&&tab!=='recent'?'\u0001':groupBy()==='category'?(cats(g)[0]||'Other'):g.sys, head=heads&&k!==last?`<div class="sec">${k==='\u0001'?'Pinned':groupBy()==='category'?esc(k):esc(s.name)}</div>`:''; last=k;
     findArt(g);
     return `${head}<button class="tile ${NOW&&NOW.id===g.id?'playing':''}" data-id="${esc(g.id)}" title="${esc(g.title)}" style="--i:${Math.min(i,28)}">
       <span class="art" ${cover(g)}${o.fav?`<svg class="fav" viewBox="0 0 24 24">${FLOOK.star}</svg>`:''}${NOW&&NOW.id===g.id?'<span class="run">Running</span>':''}</span>${o.last?'':'<span class="new"></span>'}
@@ -976,7 +986,7 @@ function hero(g){
   const h=$('#hero'); h.classList.toggle('none',!g);
   if(!g){if(!S.ui.wall)for(const b of [$('#bg'),$('#bgart')]){b.dataset.img='';b.classList.add('swap')}return}   // a folder or Back has no art of its own: fade the last game's out
   const o=gs(g.id), s=sysOf(g.sys), r=resolve(g), u=artUrl(g);
-  h.innerHTML=`<div class="cover" ${cover(g)}</div><div class="info">${ART['systems/'+g.sys]?`<img class="lg big" alt="" src="/file?t=${T}&p=${encodeURIComponent(ART['systems/'+g.sys])}">`:`<span class="chip" style="--h:${hue(g.sys)}">${esc(s.name)}</span>`}${S.meta[artKey(g)]?.y?` <span class="chip yr">${S.meta[artKey(g)].y}</span>`:''}<h1>${esc(g.title)}</h1>
+  h.innerHTML=`<div class="cover" ${cover(g)}</div><div class="info">${ART['systems/'+g.sys]?`<img class="lg big" alt="" src="/file?t=${T}&p=${encodeURIComponent(ART['systems/'+g.sys])}">`:`<span class="chip" style="--h:${hue(g.sys)}">${esc(s.name)}</span>`}${S.meta[artKey(g)]?.y?` <span class="chip yr">${S.meta[artKey(g)].y}</span>`:''}${cats(g).slice(0,2).map(c=>` <span class="chip yr">${esc(c)}</span>`).join('')}<h1>${esc(g.title)}</h1>
     <p>${esc([played(o.time)&&'Played '+played(o.time),ago(o.last),r?r.name:g.sys==='unsorted'?'Pick a system to play':'No emulator set up yet'].filter(Boolean).join('   ·   '))}</p>
     ${S.meta[artKey(g)]?.d?`<p class="about">${esc(S.meta[artKey(g)].d)}</p>`:''}
     <div class="cta"><span><b class="gl"><span class="gx">A</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span class="gn">B</span></b>Start</span><span><b class="gl"><span class="gx">Y</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M12 5l8 14H4z"/></svg></span><span class="gn">X</span></b>Options</span>${o.fav?'<span>&#9733; Favourite</span>':''}</div></div>`;
@@ -1048,10 +1058,10 @@ function menu(kind){
     :`<h2>${isS?'Sort':'Layout'}</h2><div class="body list">${
     isS?SORTS.map(x=>`<button class="item ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}"><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')
        :LAYOUTS.map(x=>`<button class="item ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}"><svg class="lp" viewBox="0 0 32 22">${LAYPIC[x[0]]}</svg><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')}</div>${
-    isS?`<h2>Show</h2><div class="body">${seg([['all','All games'],['installed','Installed only']],S.ui.show||'all','show')}</div>`:''}`}</div></div>`;
+    isS?`<h2>Group by</h2><div class="body">${seg([['console','Console'],['category','Category'],['none','Nothing']],S.ui.group||'console','group')}</div><h2>Show</h2><div class="body">${seg([['all','All games'],['installed','Installed only']],S.ui.show||'all','show')}</div>`:''}`}</div></div>`;
   ($('#layer .on')||focusables()[0])?.focus();
   onChange=()=>{};
-  onAct=(a,arg)=>{S.ui[{sty:'style',pack:'pack',show:'show'}[a]||key]=arg;look();save();closeModal();blip('ok');if(a==='show')render()};
+  onAct=(a,arg)=>{S.ui[{sty:'style',pack:'pack',show:'show',group:'group'}[a]||key]=arg;look();save();closeModal();blip('ok');render()};
   blip('tab');
 }
 function surprise(){
@@ -1105,7 +1115,7 @@ async function preview(g){
   let ok=[]; try{ok=(await api('exists',{paths:[g.store?g.home:g.folder||g.path,r?r.exe:'',data].concat(side)})).r}catch{}
   const sav=side.find((p,i)=>ok[3+i]), line=(cls,t,sub)=>`<div class="chk"><i class="${cls}"></i><span>${t}${sub?`<small class="dim">${esc(sub)}</small>`:''}</span></div>`;
   modal('',`${S.wide[artKey(g)]?`<div class="pvbg" style="background-image:url('${esc(S.wide[artKey(g)])}')"></div>`:''}<div class="pv"><div class="cover" ${cover(g)}</div><div style="min-width:0;flex:1">
-      <span class="chip" style="--h:${hue(g.sys)}">${esc(s.name)}</span>${S.meta[artKey(g)]?.y?` <span class="chip yr">${S.meta[artKey(g)].y}</span>`:''}<h1>${esc(g.title)}</h1>
+      <span class="chip" style="--h:${hue(g.sys)}">${esc(s.name)}</span>${S.meta[artKey(g)]?.y?` <span class="chip yr">${S.meta[artKey(g)].y}</span>`:''}${cats(g).slice(0,2).map(c=>` <span class="chip yr">${esc(c)}</span>`).join('')}<h1>${esc(g.title)}</h1>
       ${S.meta[artKey(g)]?.d?`<p class="dim" style="margin:-8px 0 12px">${esc(S.meta[artKey(g)].d)}</p>`:''}
       ${NOW&&NOW.id===g.id?line('warn','Already running','Starting it again opens a second copy'):''}
       ${g.owned?line('warn','Not installed','Starting it opens Steam to install it'):g.store?line(ok[0]?'':'bad',ok[0]?'Installed, opens in '+esc(s.name):'Install folder not found',g.home):line(ok[0]?'':'bad',ok[0]?'Game file found':'Game file is missing',g.folder||g.path)}
@@ -1365,7 +1375,8 @@ function look(){
     const [r,g,b]=[0,2,4].map(i=>{const v=parseInt(h.substr(i,2),16)/255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4}), L=.2126*r+.7152*g+.0722*b;
     d.style.setProperty('--on',(L+.05)/.05>=1.05/(L+.05)?'#0a0a0a':'#fff');
   }
-  document.body.className='v-'+u.view+' m-'+u.motion+' s-'+(u.style||'frost')+(INFO&&INFO.android?' android':'')+(u.fit==='contain'?' fit-whole':u.fit==='cover'?'':' fit-box')+(ct&&ct.glow===false?' no-glow':'');
+  document.body.className='v-'+u.view+' m-'+u.motion+' s-'+(u.style||'frost')+(INFO&&INFO.android?' android':'')+(u.fit==='contain'?' fit-whole':u.fit==='cover'?'':' fit-box')+(ct&&ct.glow===false?' no-glow':'')+(u.sp&&u.sp!=='normal'?' sp-'+u.sp:'')+(u.info===false?' no-info':'')+(u.names===false?' no-names':'');
+  d.style.setProperty('--rows',u.rows||2);
   if(u.wall)$('#bg').style.backgroundImage=`url("/file?t=${T}&p=${encodeURIComponent(u.wall)}")`;
 }
 // button hints appear only once a controller is connected, labelled the way that controller is
@@ -1444,6 +1455,7 @@ function details(g){
     <div class="row"><label>Extra arguments</label><input class="w" type="text" data-set="args" value="${esc(o.args)}" placeholder="added after the emulator's own arguments"></div>
     <div class="row"><label>Runs as</label><code>${r?esc('"'+r.exe+'" '+r.args):'no emulator set up for this system yet'}</code></div>`}
     <div class="row"><label>Display name</label><input class="w" type="text" data-set="title" value="${esc(g.title)}"></div>
+    <div class="row"><label>Categories</label><input class="w" type="text" data-set="cats" value="${esc(o.cats??cats(g).join(', '))}" placeholder="e.g. RPG, Racing, Party"></div>
     <div class="row"><label>Folder</label><select data-set="dir">${opt('','None',o.dir||'')}${(S.folders||[]).map(f=>opt(f.id,f.name,o.dir)).join('')}</select><input class="w" type="text" data-set="newdir" placeholder="or type a new folder name"></div>
     <code>${esc(target)}</code>`,
     `${g.store?'':'<button class="btn bad" data-act="del">Delete</button>'}<button class="btn" data-act="hide">Hide</button>${g.store?'':'<button class="btn" data-act="show">Show file</button>'}${r&&r.exe&&!INFO.android?'<button class="btn" data-act="emu">Open emulator</button>':''}<button class="btn" data-act="art">Set artwork</button><button class="btn" data-act="match">Fix match</button>${r&&MODDIR[S.emus.find(e=>e.exe===r.exe)?.kind]?'<button class="btn" data-act="mods">Mods</button>':''}<button class="btn" data-act="lnk">Desktop shortcut</button><button class="btn" data-act="fav">${o.fav?'Unpin':'Pin to the front'}</button><button class="btn pri" data-act="play">Launch</button>`);
@@ -1683,7 +1695,12 @@ async function settings(t='lib'){
     <small>${STYLES.map(x=>x[1]+': '+x[2].toLowerCase()).join('. ')}.</small>
     <h3>Sounds</h3>${seg(PACKS,u.pack||'soft','pack')}
     <h3>Layout</h3><div class="row">${LAYOUTS.map(x=>`<button class="btn ${x[0]===u.view?'pri':''}" data-act="view" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>
-    <small>Home: a big card for the selected game over two rows of icons. Grid: everything, grouped by system. Shelf: one row of large covers. List: cover on the left, rows on the right.</small>
+    <small>Pick a preset, then adjust it below. Home: a big card over rows of icons. Grid: everything at once. Shelf: one row of large covers. List: cover on the left, rows on the right.</small>
+    <div class="row"><label>Spacing</label>${seg([['compact','Compact'],['normal','Normal'],['roomy','Roomy']],u.sp||'normal','sp')}</div>
+    <div class="row"><label>Game info</label><input type="checkbox" data-set="info" ${u.info===false?'':'checked'}><small>The title, details and art for the selected game</small></div>
+    <div class="row"><label>Titles under covers</label><input type="checkbox" data-set="names" ${u.names===false?'':'checked'}></div>
+    ${u.view==='home'?`<div class="row"><label>Rows</label>${seg([['1','1'],['2','2'],['3','3']],String(u.rows||2),'rows')}</div>`:''}
+    <div class="row"><button class="btn" data-act="laydef">Reset to the preset</button></div>
     <h3>Details</h3>
     <div class="row"><label>Covers</label><select data-set="fit">${opt('box','Console box shapes, filled',u.fit||'box')}${opt('cover','All square, filled',u.fit||'box')}${opt('contain','Whole cover with a blurred edge',u.fit||'box')}</select></div>
     <div class="row"><label>When a game starts</label><select data-set="after">${opt('taskbar','Minimise Cove to the taskbar',u.after||'taskbar')}${opt('tray','Hide Cove in the system tray',u.after||'taskbar')}${opt('stay','Leave Cove open behind the game',u.after||'taskbar')}</select></div>
@@ -1782,6 +1799,8 @@ async function settings(t='lib'){
       try{await api('discord',{clientId:did(),activity:{type:0,details:'In the library',state:'Choosing a game',timestamps:{start:BOOT},assets:{large_image:'cove',large_text:'Cove'}}});DERR=''}catch(e){DERR=e.message;d.on=true;save();return again()}   // stays on, showing why, and keeps retrying
       d.on=true;save();blip('ok');toast('Connected. Check your Discord profile');return again()}
     if(a==='sfx'){['move','tab','ok','back','open','launch'].forEach((k,i)=>setTimeout(()=>blip(k),i*650));return}
+    if(a==='sp'||a==='rows'){S.ui[a]=a==='rows'?+arg:arg;look();save();return again()}
+    if(a==='laydef'){['sp','info','names','rows'].forEach(k=>delete S.ui[k]);look();save();return again()}
     if(a==='newtheme'){newTheme();blip('ok');return again()}
     if(a==='deltheme'){S.themes=S.themes.filter(x=>x!==ctheme());S.ui.theme='frost';look();save();return again()}
     if(a==='noaccent'){S.ui.accent='';look();save();return again()}
