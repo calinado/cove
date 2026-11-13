@@ -130,7 +130,7 @@ header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align
 
 /* stage: hero card + games */
 .stage{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:8px 24px 0}
-#hero{display:flex;gap:26px;align-items:center;padding:18px;border-radius:calc(var(--r) + 10px);flex:none;position:relative;overflow:hidden}
+#hero{display:flex;gap:26px;align-items:center;padding:18px;border-radius:calc(var(--r) + 10px);flex:none;position:relative;overflow:clip;overflow-clip-margin:12px}   /* text near a rounded corner is no longer shaved off */
 #hero.none{visibility:hidden}
 #hero::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 1px 1px,rgba(var(--tint),.16) 1px,transparent 0) 0 0/18px 18px;mask:linear-gradient(100deg,transparent 30%,#000);pointer-events:none}
 #hero .cover{width:clamp(110px,21vh,210px);aspect-ratio:1;border-radius:var(--r);overflow:hidden;position:relative;flex:none;box-shadow:0 14px 34px var(--shade),inset 0 0 0 1px rgba(255,255,255,.2)}
@@ -144,6 +144,7 @@ header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align
 .chip.yr{background:rgba(var(--tint),.18);color:var(--fg)}
 #hero .about{margin-top:8px;max-width:70ch;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px}
 .v-shelf #hero .about{max-width:60ch}
+.cta .pinned{display:inline-flex;gap:5px;align-items:center;color:var(--acc)}.cta .pinned svg{width:14px;height:14px;fill:currentColor;stroke:none}
 .cta{margin-top:14px;display:flex;gap:16px;align-items:center;font-size:13px;font-weight:700}
 .gl{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--fg);color:var(--bg);font:700 11px var(--mono);margin-right:6px}
 .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 44px var(--font);color:rgba(255,255,255,.92);text-shadow:0 2px 14px rgba(0,0,0,.35)}
@@ -228,7 +229,7 @@ details.adv>summary:focus{outline:2px solid var(--acc);outline-offset:2px}
 .v-grid #hero{display:none}
 .v-grid #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--tile),1fr));gap:22px}
 /* layout: Shelf (one row of big covers) */
-.v-shelf #hero{background:none;border:0;box-shadow:none;backdrop-filter:none;padding:4px 14px}
+.v-shelf #hero{background:none;border:0;box-shadow:none;backdrop-filter:none;padding:4px 14px;overflow:visible;border-radius:0}
 .v-shelf #hero::before,.v-shelf #hero .cover{display:none}
 .v-shelf #grid{display:flex;gap:26px;padding:18px 16px;align-items:center}
 .v-shelf .tile{flex:0 0 var(--sh)}
@@ -996,7 +997,7 @@ function hero(g){
   h.innerHTML=`<div class="cover" ${cover(g)}</div><div class="info">${ART['systems/'+g.sys]?`<img class="lg big" alt="" src="/file?t=${T}&p=${encodeURIComponent(ART['systems/'+g.sys])}">`:`<span class="chip" style="--h:${hue(g.sys)}">${esc(s.name)}</span>`}${S.meta[artKey(g)]?.y?` <span class="chip yr">${S.meta[artKey(g)].y}</span>`:''}${cats(g).slice(0,2).map(c=>` <span class="chip yr">${esc(c)}</span>`).join('')}<h1>${esc(g.title)}</h1>
     <p>${esc([played(o.time)&&'Played '+played(o.time),ago(o.last),r?r.name:g.sys==='unsorted'?'Pick a system to play':'No emulator set up yet'].filter(Boolean).join('   ·   '))}</p>
     ${S.meta[artKey(g)]?.d?`<p class="about">${esc(S.meta[artKey(g)].d)}</p>`:''}
-    <div class="cta"><span><b class="gl"><span class="gx">A</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span class="gn">B</span></b>Start</span><span><b class="gl"><span class="gx">Y</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M12 5l8 14H4z"/></svg></span><span class="gn">X</span></b>Options</span>${o.fav?'<span>&#9733; Favourite</span>':''}</div></div>`;
+    <div class="cta"><span><b class="gl"><span class="gx">A</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span class="gn">B</span></b>Start</span><span><b class="gl"><span class="gx">Y</span><span class="gp"><svg viewBox="0 0 24 24"><path d="M12 5l8 14H4z"/></svg></span><span class="gn">X</span></b>Options</span>${o.fav?'<span class="pinned"><svg class="ic" viewBox="0 0 24 24">'+FLOOK.star+'</svg>Pinned</span>':''}</div></div>`;
   h.classList.remove('in'); void h.offsetWidth; h.classList.add('in');
   if(window.CoveNative)try{CoveNative.call('second',JSON.stringify({title:g.title,sys:s.name,year:S.meta[artKey(g)]?.y||'',about:S.meta[artKey(g)]?.d||'',img:/^https:/.test(u)?u:u?'https://cove.local'+u:'',acc:getComputedStyle(document.documentElement).getPropertyValue('--acc').trim()}))}catch{}
   const bg=$('#bg'), img=S.ui.wall?`url("/file?t=${T}&p=${encodeURIComponent(S.ui.wall)}")`:u?`url("${u}")`:'';

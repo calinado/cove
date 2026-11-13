@@ -1,5 +1,5 @@
 {
-  "version": "1.2.2",
+  "version": "1.2.3",
   "repo": "calinado/cove",
-  "notes": "Bulk editing: Ctrl or Shift+click covers (or use Edit and select games) to pin, move to a folder, set categories, change system, refind artwork or hide many games at once."
+  "notes": "Fix: text beside the selected game is no longer clipped by rounded corners. \"Favourite\" there now reads Pinned with a drawn icon."
 }
