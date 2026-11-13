@@ -1,5 +1,5 @@
 {
-  "version": "1.1.17",
+  "version": "1.1.18",
   "repo": "calinado/cove",
-  "notes": "Smaller windows and screens: shelf covers resize to fit, so the selected game and its ring are no longer cut off, and the selected tab no longer has a clipped glow."
+  "notes": "Discord: everyone shows up as Cove, with the same name and icon. No setup and no Application ID box."
 }

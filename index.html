@@ -531,7 +531,7 @@ async function coreMarks(){   // fills in which cores are downloaded on the Emul
   b.forEach((x,i)=>{x.textContent=have[i]?'Remove':'Get';x.dataset.have=have[i]?1:'';x.previousElementSibling.textContent=have[i]?'Downloaded':'Not downloaded'});
 }
 const DISCORD_APP='1569984473385148432';                                    // Cove's own Discord Application ID; when set, Discord is one button for everyone
-const did=()=>/^\d{17,20}$/.test(S.discord.id||'')?S.discord.id:DISCORD_APP;
+const did=()=>DISCORD_APP;   // every copy shows up as Cove's own Discord app: same name and icon for everyone
 let DERR='';   // why the last Discord update failed, shown in Settings   // a pasted key, token or secret is not an ID: fall back to Cove's own                                              // bump with server.ps1's info.v when the helper changes
 const SW=['.nsp','.xci','.nsz','.xcz','.nup'];            // Switch-family files: told apart by "Switch 2"/"NX2" in the path
 const NOISY=['.zip','.7z','.bin','.exe','.bat','.lnk','.url','.img','.m3u','.dol','.nca','.nro','.ccd','.mds','.md','.wad'];  // only count inside a folder named after a system
@@ -1662,8 +1662,6 @@ async function settings(t='lib'){
       <button class="btn pri xl" data-act="dtoggle">${d.on?'Turn off':'Turn on'}</button>
       ${d.on?`<p class="${DERR?'':'dim'}" style="margin:14px 0 0">${DERR?'Not showing: '+esc(DERR)+(/not running/.test(DERR)?'. Open the Discord app (not the website). If it is open, it may be running as administrator: close it and open it normally.':''):'Connected'}</p>`:''}</div>
     <div class="row"><label>Show cover art</label><input type="checkbox" data-set="art" ${d.art?'checked':''}></div>
-    ${adv('dapp','Use your own Discord app (optional)',`<small>Cove shows up under its own app by default. To use yours, create an application at discord.com/developers, and paste its Application ID: the long number on its General Information page, not a token, key or secret. Clear the box to go back to Cove's.</small>
-      <div class="row"><label>Application ID</label><input class="w" type="text" data-set="id" value="${esc(d.id||'')}" placeholder="${DISCORD_APP?'blank uses Cove\'s own':'a long number'}"></div>`)}
     <div class="card"><b>Discord overlay in games</b>
       <p class="dim">The overlay is drawn by Discord itself, per program, so it is switched on in Discord rather than here. With a game running: Discord Settings &rsaquo; Registered Games &rsaquo; "Add it" and pick the emulator, then turn its overlay on there and under Game Overlay.</p></div>
     <small>Some emulators post their own Discord status too. If you see two cards, turn the emulator's one off in its settings.</small>`}
@@ -1716,7 +1714,7 @@ async function settings(t='lib'){
       if(k==='fontx'){if(!v.trim())return;k='font';v=v.trim()}
       ct[k]=k==='glass'?+v:v;look();save();return k==='font'&&!FONTS[v]?again():undefined}
     if(t==='look'){S.ui[k]=k==='size'||k==='vol'?+v:v;look();save();if(k==='vol'||k==='sound')blip('ok');if(k==='news')render(true);return}
-    if(t==='discord'){S.discord[k]=typeof v==='string'?v.trim():v;save();if(k==='id'&&S.discord.id&&!/^\d{17,20}$/.test(S.discord.id))toast('That is not an Application ID, so Cove keeps using its own');return syncPresence().then(again)}
+    if(t==='discord'){S.discord[k]=typeof v==='string'?v.trim():v;save();return syncPresence().then(again)}
     if(k==='def'){S.defaults[arg]=v;save();return}
     if(k==='only'){S.scrape.only=v;save();return}
     if(k==='core'){(S.cores=S.cores||{})[arg]=v;save();return coreMarks()}
@@ -1778,7 +1776,6 @@ async function settings(t='lib'){
     if(a==='dtoggle'){
       const d=S.discord;
       if(d.on){d.on=false;save();try{await api('discord',{clientId:did(),activity:null})}catch{};return again()}
-      if(!did())return toast('Paste an Application ID under "Use your own Discord app"');
       try{await api('discord',{clientId:did(),activity:{type:0,details:'In the library',state:'Choosing a game',timestamps:{start:BOOT},assets:{large_image:'cove',large_text:'Cove'}}});DERR=''}catch(e){DERR=e.message;d.on=true;save();return again()}   // stays on, showing why, and keeps retrying
       d.on=true;save();blip('ok');toast('Connected. Check your Discord profile');return again()}
     if(a==='sfx'){['move','tab','ok','back','open','launch'].forEach((k,i)=>setTimeout(()=>blip(k),i*650));return}
