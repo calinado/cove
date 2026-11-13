@@ -1,5 +1,5 @@
 {
-  "version": "1.2.0",
+  "version": "1.2.1",
   "repo": "calinado/cove",
-  "notes": "Categories: genres found automatically (or typed in a game's Options), group your library by category, and search by genre. Custom layouts: spacing, game info, titles and Home rows on top of each layout preset."
+  "notes": "Calmer jiggle in edit mode. The selection outline now wraps the cover with the title underneath, so extra-round corners no longer clip text."
 }

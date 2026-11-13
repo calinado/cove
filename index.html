@@ -154,7 +154,7 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .still .tile{animation:none}
 .tile:hover{transform:translateY(-4px) scale(1.03)}
 .tile:focus{transform:scale(1.08);z-index:2}
-.tile:focus::after{content:"";position:absolute;inset:-7px;border-radius:calc(var(--r) + 7px);border:3px solid var(--acc);box-shadow:0 0 32px color-mix(in srgb,var(--acc) 50%,transparent);animation:cursor 1s ease-in-out infinite alternate;pointer-events:none}
+.v-list .tile:focus::after{content:"";position:absolute;inset:-7px;border-radius:calc(var(--r) + 7px);border:3px solid var(--acc);box-shadow:0 0 32px color-mix(in srgb,var(--acc) 50%,transparent);animation:cursor 1s ease-in-out infinite alternate;pointer-events:none}
 @keyframes cursor{from{opacity:.55}to{opacity:1}}
 .art{position:relative;aspect-ratio:1;border-radius:calc(var(--r) - 8px);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);flex:none}
 .art::after,#hero .cover::after{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.3),transparent 40%);pointer-events:none}
@@ -182,8 +182,8 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .fold .name .ic{width:14px;height:14px;color:var(--acc);vertical-align:-2px;margin-right:6px}
 .fold .bk{width:38%;height:38%;color:var(--acc)}
 #editdone{position:fixed;left:50%;bottom:86px;translate:-50% 0;z-index:8;box-shadow:0 10px 30px rgba(0,0,0,.5)}
-.edit .tile{animation:wig .26s ease-in-out infinite alternate;cursor:grab}.edit .tile:nth-child(even){animation-delay:-.13s}
-@keyframes wig{from{rotate:-1.1deg}to{rotate:1.1deg}}
+.edit .tile{cursor:grab}.edit .tile .art{animation:wig .6s ease-in-out infinite alternate}.edit .tile:nth-child(even) .art{animation-delay:-.3s}
+@keyframes wig{from{rotate:-.6deg}to{rotate:.6deg}}   /* a gentle jiggle on the cover only */
 .tile img{-webkit-user-drag:none}
 .dragging{user-select:none;cursor:grabbing}
 .tile.drop .art{outline:3px dashed var(--acc);outline-offset:4px;scale:.94;transition:scale .15s}
@@ -395,6 +395,9 @@ code{font-family:var(--mono);font-size:12px;word-break:break-all;color:var(--dim
 .btn.pri,.tabs .btn.on{box-shadow:none}.btn.pri:hover{background:var(--acc)}
 .tabs .btn:not(.on){background:none}
 .btn.bad{background:none}
+/* the selection outline wraps the cover, with the title underneath it (List keeps the whole row) */
+body:not(.v-list) .tile:focus .art{outline:3px solid var(--acc);outline-offset:4px;box-shadow:0 0 28px color-mix(in srgb,var(--acc) 45%,transparent)}
+.v-list .tile{border-radius:min(var(--r),18px)}.v-list .tile:focus::after{border-radius:min(calc(var(--r) + 5px),23px)}
 #quick button{background:none;border:0;box-shadow:none;border-radius:var(--rb)}
 #quick button:hover,#quick button:focus{background:rgba(var(--tint),.1)}
 input[type=text],select{border-color:transparent}
