@@ -893,7 +893,7 @@ const GLYPH={handheld:'<rect x="6" y="3" width="12" height="18" rx="2.5"/><rect 
 const glyph=id=>GLYPH[Object.keys(KIND).find(k=>KIND[k].includes(id))||'disc'];
 // drop <system id>.png into Library\Art\systems (gba.png, switch2.png ...) and it replaces the name everywhere
 const ord=g=>{const i=(S.order||[]).indexOf(g.id);return i<0?1e9:i};
-const SORTS=[['custom','My order','Arrange it yourself: right-click the background, Edit home screen'],['console','By console','Grouped by system, A to Z inside each'],['az','A to Z',''],['za','Z to A',''],['new','Newest first','By release year'],['old','Oldest first','By release year'],['recent','Recently played',''],['most','Most played','']];
+const SORTS=[['custom','My order','Drag covers to arrange them'],['console','By console','Grouped by system, A to Z inside each'],['az','A to Z',''],['za','Z to A',''],['new','Newest first','By release year'],['old','Oldest first','By release year'],['recent','Recently played',''],['most','Most played','']];
 const FLOOK={folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',star:'<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9 6.8 19.6l1-5.8-4.3-4.1 5.9-.8z"/>',heart:'<path d="M12 20s-7-4.4-7-9.6A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.4C19 15.6 12 20 12 20z"/>',bolt:'<path d="M13 3L5 13.5h6L10 21l8-10.5h-6z"/>',stack:'<path d="M12 4l8 4-8 4-8-4zM4 12l8 4 8-4M4 16l8 4 8-4"/>'};
 let INF=null;   // the folder that is open, if any
 const fById=id=>(S.folders||[]).find(f=>f.id===id);
@@ -935,6 +935,7 @@ function visible(){
   const so=S.ui.sort||'console', y=g=>+S.meta[artKey(g)]?.y||0, o=g=>gs(g.id);
   if(tab!=='recent'&&so!=='console')l=[...l].sort({az:(a,b)=>a.title.localeCompare(b.title),za:(a,b)=>b.title.localeCompare(a.title),new:(a,b)=>y(b)-y(a),old:(a,b)=>(y(a)||9999)-(y(b)||9999),recent:(a,b)=>(o(b).last||0)-(o(a).last||0),most:(a,b)=>(o(b).time||0)-(o(a).time||0),custom:(a,b)=>ord(a)-ord(b)}[so]);
   if(tab!=='fav'&&tab!=='recent')l=l.filter(g=>gs(g.id).fav).concat(l.filter(g=>!gs(g.id).fav));   // pinned games lead the list
+  if(S.ui.show==='installed')l=l.filter(g=>!g.owned);   // hides store games you own but have not installed
   const run=NOW?l.findIndex(g=>g.id===NOW.id):-1;
   if(run>0)l.unshift(l.splice(run,1)[0]);   // the running game is always first
   return l;
@@ -1046,10 +1047,11 @@ function menu(kind){
   $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${b.left}px;bottom:${innerHeight-b.top+12}px">${isT?`<h2>Theme</h2><div class="body">${sws(cur,'set')}</div><h2>Style</h2><div class="body">${seg(STYLES,S.ui.style||'frost','sty')}</div><h2>Sounds</h2><div class="body">${seg(PACKS,S.ui.pack||'soft','pack')}</div>`
     :`<h2>${isS?'Sort':'Layout'}</h2><div class="body list">${
     isS?SORTS.map(x=>`<button class="item ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}"><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')
-       :LAYOUTS.map(x=>`<button class="item ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}"><svg class="lp" viewBox="0 0 32 22">${LAYPIC[x[0]]}</svg><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')}</div>`}</div></div>`;
+       :LAYOUTS.map(x=>`<button class="item ${x[0]===cur?'on':''}" data-act="set" data-arg="${x[0]}"><svg class="lp" viewBox="0 0 32 22">${LAYPIC[x[0]]}</svg><b>${x[1]}</b><small>${x[2]}</small></button>`).join('')}</div>${
+    isS?`<h2>Show</h2><div class="body">${seg([['all','All games'],['installed','Installed only']],S.ui.show||'all','show')}</div>`:''}`}</div></div>`;
   ($('#layer .on')||focusables()[0])?.focus();
   onChange=()=>{};
-  onAct=(a,arg)=>{S.ui[{sty:'style',pack:'pack'}[a]||key]=arg;look();save();closeModal();blip('ok')};
+  onAct=(a,arg)=>{S.ui[{sty:'style',pack:'pack',show:'show'}[a]||key]=arg;look();save();closeModal();blip('ok');if(a==='show')render()};
   blip('tab');
 }
 function surprise(){

@@ -1,5 +1,5 @@
 {
-  "version": "1.1.19",
+  "version": "1.1.20",
   "repo": "calinado/cove",
-  "notes": "Search: typing stays in the search box, and folders with a matching game (or name) show in the results."
+  "notes": "Sort menu: Show all games or installed only (hides store games you own but have not installed)."
 }
