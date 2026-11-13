@@ -1,5 +1,5 @@
 {
-  "version": "1.2.3",
+  "version": "1.3.0",
   "repo": "calinado/cove",
-  "notes": "Fix: text beside the selected game is no longer clipped by rounded corners. \"Favourite\" there now reads Pinned with a drawn icon."
+  "notes": "Smart collections (tabs that fill themselves by rules), 8 saved layout slots with shuffle, folder colours, Ctrl+scroll to resize covers, export and import your whole setup. Fix: Done now closes bulk editing."
 }

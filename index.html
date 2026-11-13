@@ -182,11 +182,11 @@ main{flex:1;min-height:0;overflow:auto;padding:24px 12px 24px;scrollbar-width:th
 .fold .big{width:44%;height:44%;color:var(--acc);stroke-width:1.5}
 .fold .name .ic{width:14px;height:14px;color:var(--acc);vertical-align:-2px;margin-right:6px}
 .fold .bk{width:38%;height:38%;color:var(--acc)}
-#bulk{position:fixed;left:50%;bottom:78px;translate:-50% 0;z-index:8;display:flex;gap:6px;align-items:center;padding:8px;border-radius:16px;max-width:calc(100vw - 40px);flex-wrap:wrap;justify-content:center;box-shadow:0 14px 40px rgba(0,0,0,.55);backdrop-filter:blur(30px)}
+#bulk{position:fixed;left:50%;bottom:78px;translate:-50% 0;z-index:9;display:flex;gap:6px;align-items:center;padding:8px;border-radius:16px;max-width:calc(100vw - 40px);overflow-x:auto;scrollbar-width:none;box-shadow:0 14px 40px rgba(0,0,0,.55);backdrop-filter:blur(30px)}
 #bulk b{padding:0 10px;font-size:13px;white-space:nowrap}#bulk select,#bulk input{max-width:170px}
 .tile.sel .art{outline:3px solid var(--acc);outline-offset:3px}
 .tile.sel::before{content:"";position:absolute;z-index:4;top:14px;left:14px;width:24px;height:24px;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.5);background:var(--acc) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
-#bulk{bottom:90px}
+#bulk{bottom:90px}#bulk[hidden]{display:none}#bulk>*{flex:none}.edit #toast{bottom:160px}
 .edit .tile{cursor:grab}.edit .tile .art{animation:wig .6s ease-in-out infinite alternate}.edit .tile:nth-child(even) .art{animation-delay:-.3s}
 @keyframes wig{from{rotate:-.6deg}to{rotate:.6deg}}   /* a gentle jiggle on the cover only */
 .tile img{-webkit-user-drag:none}
@@ -351,6 +351,10 @@ footer{display:flex;align-items:center;gap:16px;padding:8px 24px 16px;animation:
 .tabs{display:flex;gap:6px;padding:10px 28px 4px;flex-wrap:wrap}
 .row{display:flex;gap:10px;align-items:center;margin:9px 0;flex-wrap:wrap}
 .row label{min-width:120px;color:var(--dim);font-size:13px}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin:10px 0}
+.slot{display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:12px;background:rgba(var(--tint),.06)}.slot.empty{opacity:.6}
+.slot span{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.slot .btn{padding:5px 10px;font-size:12px}
+.chips{display:flex;flex-wrap:wrap;gap:4px 2px;flex:1}
 .row label.sm{min-width:0;display:inline-flex;align-items:center;gap:6px;margin-right:8px;font-size:12px}
 .card{border:1px solid rgba(var(--tint),.16);border-radius:20px;padding:14px 16px;margin:12px 0;background:rgba(var(--tint),.06);box-shadow:inset 0 1px 0 rgba(var(--tint),.18)}
 input[type=text],select{background:var(--field);border:1px solid rgba(var(--tint),.18);border-radius:12px;padding:8px 12px;min-width:0;outline:none}
@@ -884,6 +888,9 @@ const THEMES=[['frost','Frost','#CCFF00','#0b0d08'],['aurora','Aurora','#b9a2ff'
 const LIGHT=['daylight','channel','pocket','sakura','paper','basicw'];
 const sws=(cur,act)=>[['Dark',x=>!LIGHT.includes(x[0])],['Light',x=>LIGHT.includes(x[0])],['Custom',x=>x[0].startsWith('c:')]].map(([h,f])=>{const l=THEMES.concat((S.themes||[]).map(t=>['c:'+t.id,t.name,t.acc,t.bg])).filter(x=>!x[0].startsWith('c:')===(h!=='Custom')).filter(f);return l.length?`<h4>${h}</h4><div class="sws">${l.map(x=>`<button class="sw ${x[0]===cur?'on':''}" data-act="${act}" data-arg="${x[0]}" style="--a:${x[2]};--b:${x[3]}"><i></i><span>${x[1]}</span></button>`).join('')}</div>`:''}).join('');
 const seg=(list,cur,act)=>`<div class="seg">${list.map(x=>`<button class="${x[0]===cur?'on':''}" data-act="${act}" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div>`;
+const LKEYS=['theme','style','view','size','sp','info','names','rows','corners','fit','accent','wall','group','sort','pack','motion','show'];
+function saveLayout(i){const L=S.layouts=S.layouts||[];L[i]={name:L[i]?.name||'Layout '+(i+1),ui:Object.fromEntries(LKEYS.filter(k=>S.ui[k]!==undefined).map(k=>[k,S.ui[k]])),order:S.order?[...S.order]:null,at:Date.now()};save()}
+function loadLayout(i){const l=(S.layouts||[])[i];if(!l)return;const rest=Object.fromEntries(Object.entries(S.ui).filter(([k])=>!LKEYS.includes(k)));S.ui={...structuredClone(DEF.ui),...rest,...l.ui};if(l.order)S.order=[...l.order];look();save();render()}
 const ICON={settings:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',layout:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
   theme:'<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17z" fill="currentColor"/>',add:'<path d="M12 5v14M5 12h14"/>',user:'<circle cx="12" cy="8" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/>',pad:'<path d="M7.5 8h9a4.5 4.5 0 0 1 4.5 4.5V15a2.4 2.4 0 0 1-4.5 1.2L15.6 15H8.4l-.9 1.2A2.4 2.4 0 0 1 3 15v-2.5A4.5 4.5 0 0 1 7.5 8z"/><path d="M8 10.6v2.4M6.8 11.8h2.4"/>',sort:'<path d="M7 5v14M4 16l3 3 3-3M14 7h6M14 12h4M14 17h2"/>',random:'<rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r=".8" fill="currentColor"/><circle cx="15" cy="15" r=".8" fill="currentColor"/><circle cx="12" cy="12" r=".8" fill="currentColor"/>'};
 $('#quick').innerHTML=[['settings','Settings'],['layout','Change layout'],['sort','Sort games'],['theme','Change theme'],['random','Surprise me'],['add','Add games'],['user','Players']].map(q=>`<button class="glass" data-q="${q[0]}" title="${q[1]}" tabindex="-1"><svg viewBox="0 0 24 24">${ICON[q[0]]}</svg></button>`).join('');
@@ -904,7 +911,33 @@ function newTheme(){   // starts as a copy of whatever theme is showing
 const GLYPH={handheld:'<rect x="6" y="3" width="12" height="18" rx="2.5"/><rect x="8.5" y="5.5" width="7" height="6" rx="1"/><circle cx="12" cy="16" r="1.3"/>',hybrid:'<rect x="2.5" y="7" width="19" height="10" rx="3"/><path d="M7.5 7v10M16.5 7v10"/>',
   disc:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.2"/>',cart:'<path d="M5 5h14v14h-3v-3H8v3H5z"/><path d="M9 9h6"/>',arcade:'<circle cx="12" cy="6" r="2.5"/><path d="M12 8.5V15M6 15h12v4H6z"/>',pc:'<rect x="3.5" y="5" width="17" height="11" rx="1.5"/><path d="M9 20h6M12 16v4"/>',
   all:ICON.layout,fav:'<path d="M12 4l2.4 5 5.5.7-4 3.8 1 5.4-4.9-2.7-4.9 2.7 1-5.4-4-3.8 5.5-.7z"/>',recent:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/>',unsorted:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 16.5v.1"/>'};
-const glyph=id=>GLYPH[Object.keys(KIND).find(k=>KIND[k].includes(id))||'disc'];
+const colOf=id=>(S.cols||[]).find(c=>'c:'+c.id===id);
+const colMatch=(c,g)=>{const r=c.rules||{}, o=gs(g.id);
+  return (!r.sys?.length||r.sys.includes(g.sys))&&(!r.cat||cats(g).some(x=>x.toLowerCase().includes(r.cat.toLowerCase())))
+    &&(r.state!=='installed'||!g.owned)&&(r.state!=='unplayed'||!o.last)&&(r.state!=='played'||o.last)&&(r.state!=='pinned'||o.fav)
+    &&(r.state!=='recent'||o.last>Date.now()-30*864e5)&&(!r.text||g.title.toLowerCase().includes(r.text.toLowerCase()))};
+function colEdit(c){
+  const fresh=!c; if(fresh){c={id:uid(),name:'New collection',rules:{}};(S.cols=S.cols||[]).push(c)}
+  const r=c.rules, n=()=>GAMES.filter(g=>colMatch(c,g)).length;
+  modal('Collection',`<div class="row"><label>Name</label><input class="w" type="text" data-set="name" value="${esc(c.name)}"></div>
+    <small>A collection is a tab along the top that fills itself: any game matching these rules shows up, including games you add later. A game can be in as many collections as you like.</small>
+    <div class="row"><label>Systems</label><div class="chips">${systems().concat(UNSORTED).filter(x=>GAMES.some(g=>g.sys===x.id)).map(x=>`<label class="sm"><input type="checkbox" data-set="sys" data-arg="${x.id}" ${r.sys?.includes(x.id)?'checked':''}>${esc(x.label||x.name)}</label>`).join('')}</div></div>
+    <div class="row"><label>Category has</label><input class="w" type="text" data-set="cat" value="${esc(r.cat||'')}" placeholder="e.g. RPG"></div>
+    <div class="row"><label>Name has</label><input class="w" type="text" data-set="text" value="${esc(r.text||'')}" placeholder="e.g. Mario"></div>
+    <div class="row"><label>Only</label><select data-set="state">${[['','Any game'],['installed','Installed'],['unplayed','Never played'],['played','Played'],['recent','Played in the last 30 days'],['pinned','Pinned']].map(x=>opt(x[0],x[1],r.state||'')).join('')}</select></div>
+    <p class="dim" id="colN">${n()} games match</p>`,
+    `<button class="btn bad" data-act="del">Delete collection</button><button class="btn pri" data-act="x">Done</button>`);
+  if(fresh){$('#layer input').focus();$('#layer input').select()}
+  onChange=(k,v,arg)=>{
+    if(k==='name')c.name=v.trim()||c.name;
+    else if(k==='sys'){r.sys=(r.sys||[]).filter(x=>x!==arg);if(v)r.sys.push(arg)}
+    else r[k]=typeof v==='string'?v.trim():v;
+    save();$('#colN').textContent=n()+' games match';render(true);
+  };
+  onAct=a=>{if(a==='del'){S.cols=S.cols.filter(x=>x!==c);if(tab==='c:'+c.id)tab='all';save()}closeModal();render()};
+  tab='c:'+c.id; render(true);
+}
+const glyph=id=>id.startsWith('c:')?'<path d="M4 6h16M4 12h10M4 18h6"/><circle cx="18" cy="16" r="3"/>':GLYPH[Object.keys(KIND).find(k=>KIND[k].includes(id))||'disc'];
 // drop <system id>.png into Library\Art\systems (gba.png, switch2.png ...) and it replaces the name everywhere
 const groupBy=()=>S.ui.sort==='custom'||tab!=='all'||INF?'none':S.ui.group||'console';   // your own arrangement is never regrouped
 const ord=g=>{const i=(S.order||[]).indexOf(g.id);return i<0?1e9:i};
@@ -943,7 +976,7 @@ function media(g){
 const cover=g=>{const u=artUrl(g),h=hue(g.title);return `style="--ar:${AR[g.sys]||1};background:linear-gradient(140deg,hsl(${h} 70% 46%),hsl(${(h+60)%360} 65% 22%));--img:${u?`url('${esc(u)}')`:'none'}"><span class="ph">${esc(g.title[0].toUpperCase())}</span>${u?`<img loading="lazy" data-id="${esc(g.id)}" alt="" src="${esc(u)}" onload="artOk(this)" onerror="artFail(this)">`:''}`};
 function visible(){
   const q=$('#q').value.trim().toLowerCase();
-  let l=GAMES.filter(g=>tab==='all'||tab==='recent'?true:tab==='fav'?gs(g.id).fav:g.sys===tab);
+  let l=GAMES.filter(g=>tab.startsWith('c:')?colOf(tab)&&colMatch(colOf(tab),g):tab==='all'||tab==='recent'?true:tab==='fav'?gs(g.id).fav:g.sys===tab);
   if(INF)l=GAMES.filter(g=>gs(g.id).dir===INF); else if(tab==='all'&&!q)l=l.filter(g=>!fById(gs(g.id).dir)||NOW&&NOW.id===g.id);   // on the main screen a game inside a folder is shown only as part of that folder
   if(tab==='recent')l=l.filter(g=>gs(g.id).last).sort((a,b)=>gs(b.id).last-gs(a.id).last).slice(0,40);
   l=q?l.filter(g=>(g.title+' '+cats(g).join(' ')).toLowerCase().includes(q)):l;   // search matches categories too
@@ -960,7 +993,7 @@ function visible(){
 }
 function render(keep){
   const used=systems().concat(UNSORTED).filter(s=>GAMES.some(g=>g.sys===s.id));
-  const tabs=[['all','All'],['fav','Pinned'],['recent','Recent']].concat(used.map(s=>[s.id,s.label||s.name]));
+  const tabs=[['all','All'],['fav','Pinned'],['recent','Recent']].concat((S.cols||[]).map(c=>['c:'+c.id,c.name]),used.map(s=>[s.id,s.label||s.name]));
   if(!tabs.some(t=>t[0]===tab))tab='all';
   $('#dock').innerHTML=tabs.map(t=>`<button class="${t[0]===tab?'on':''}" data-tab="${esc(t[0])}" title="${esc(t[1])}" tabindex="-1">${mark(t[0],t[1])}</button>`).join('');
   $('#dock .on')?.scrollIntoView({inline:'center',block:'nearest'});
@@ -968,7 +1001,7 @@ function render(keep){
   if(INF&&!fById(INF))INF=null;
   const inF=f=>GAMES.filter(g=>gs(g.id).dir===f.id), q0=$('#q').value.trim();
   const pre=INF?`<button class="tile fold" data-f="" title="Back"><span class="art" style="--ar:1"><svg class="ic bk" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span><span class="name">Back</span><span class="meta">${esc(fById(INF).name)}</span></button>`
-    :tab==='all'?(S.folders||[]).filter(f=>!q0||(f.name+' '+inF(f).map(g=>g.title).join(' ')).toLowerCase().includes(q0.toLowerCase())).map(f=>`<button class="tile fold" data-f="${f.id}" title="${esc(f.name)}"><span class="art" style="--ar:1">${inF(f).length?`<span class="mini">${[0,1,2,3].map(n=>{const g=inF(f)[n],u=g&&artUrl(g);return u?`<i style="background-image:url('${esc(u)}')"></i>`:g?`<i style="background:linear-gradient(140deg,hsl(${hue(g.title)} 70% 46%),hsl(${(hue(g.title)+60)%360} 65% 22%))"></i>`:'<i></i>'}).join('')}</span>`:`<svg class="ic big" viewBox="0 0 24 24">${FLOOK[f.look]||FLOOK.folder}</svg>`}</span><span class="name"><svg class="ic" viewBox="0 0 24 24">${FLOOK[f.look]||FLOOK.folder}</svg>${esc(f.name)}</span><span class="meta">${inF(f).length} game${inF(f).length===1?'':'s'}</span></button>`).join(''):'';
+    :tab==='all'?(S.folders||[]).filter(f=>!q0||(f.name+' '+inF(f).map(g=>g.title).join(' ')).toLowerCase().includes(q0.toLowerCase())).map(f=>`<button class="tile fold" data-f="${f.id}" title="${esc(f.name)}" ${f.col?`style="--acc:${esc(f.col)};--tint:${[1,3,5].map(i=>parseInt(hex6(f.col).slice(i,i+2),16)).join(',')}"`:''}><span class="art" style="--ar:1">${inF(f).length?`<span class="mini">${[0,1,2,3].map(n=>{const g=inF(f)[n],u=g&&artUrl(g);return u?`<i style="background-image:url('${esc(u)}')"></i>`:g?`<i style="background:linear-gradient(140deg,hsl(${hue(g.title)} 70% 46%),hsl(${(hue(g.title)+60)%360} 65% 22%))"></i>`:'<i></i>'}).join('')}</span>`:`<svg class="ic big" viewBox="0 0 24 24">${FLOOK[f.look]||FLOOK.folder}</svg>`}</span><span class="name"><svg class="ic" viewBox="0 0 24 24">${FLOOK[f.look]||FLOOK.folder}</svg>${esc(f.name)}</span><span class="meta">${inF(f).length} game${inF(f).length===1?'':'s'}</span></button>`).join(''):'';
   $('#count').textContent=list.length+(list.length===1?' game':' games');
   let last='';
   $('#grid').classList.toggle('still',!!keep);
@@ -1150,11 +1183,12 @@ const newFolder=name=>{const f={id:uid(),name,look:'folder'};(S.folders=S.folder
 function folderEdit(f){
   modal('Folder',`<div class="row"><label>Name</label><input class="w" type="text" data-set="name" value="${esc(f.name)}"></div>
     <div class="row"><label>Icon</label><select data-set="look">${Object.keys(FLOOK).map(k=>opt(k,k[0].toUpperCase()+k.slice(1),f.look)).join('')}</select></div>
+    <div class="row"><label>Colour</label><input type="color" data-set="col" value="${esc(f.col||'#888888')}"><button class="btn" data-act="nocol">Follow the theme</button></div>
     <small>Drag games onto this folder to add them, or pick it under Folder in a game's Options. Inside the folder, drag a game onto Back to take it out.</small>`,
     `<button class="btn bad" data-act="del">Delete folder</button><button class="btn pri" data-act="x">Done</button>`);
   $('#layer input').focus(); $('#layer input').select();
-  onChange=(k,v)=>{f[k]=v.trim()||f[k];save()};
-  onAct=a=>{if(a==='del'){S.folders=S.folders.filter(x=>x!==f);save()}closeModal()};
+  onChange=(k,v)=>{f[k]=v.trim()||f[k];save();render(true)};
+  onAct=a=>{if(a==='nocol'){delete f.col;save();render(true);return folderEdit(f)}if(a==='del'){S.folders=S.folders.filter(x=>x!==f);save()}closeModal();render(true)};
 }
 // dragging is done by hand (press, move, release) because the browser's own drag does not start from these tiles
 let drag=null, ghost=null, dragged=false, EDIT=false;
@@ -1175,15 +1209,14 @@ function pickTile(t,range){   // click: one game; Shift+click: everything betwee
 function bulkBar(){
   const b=$('#bulk'); b.hidden=!EDIT; if(!EDIT)return;
   const n=SEL.size, dis=n?'':'disabled', sel=[...SEL].map(id=>GAMES.find(g=>g.id===id)).filter(Boolean);
-  b.innerHTML=`<b>${n?n+' selected':'Click covers to select'}</b>
+  b.innerHTML=`<b>${n?n+' selected':'Click covers to select'}</b><button class="btn pri" data-b="done">Done</button>
     <button class="btn" data-b="all">${n&&n===visible().length?'Select none':'Select all'}</button>
     <button class="btn" data-b="pin" ${dis}>${sel.length&&sel.every(g=>gs(g.id).fav)?'Unpin':'Pin'}</button>
     <select data-b="dir" ${dis}><option value="">Move to folder...</option>${(S.folders||[]).map(f=>`<option value="${f.id}">${esc(f.name)}</option>`).join('')}<option value="+">New folder</option><option value="-">Out of folders</option></select>
     <input type="text" data-b="cats" placeholder="Set categories" ${dis}>
     <select data-b="sys" ${dis}><option value="">Change system...</option>${systems().filter(x=>!['steam','epic','gog'].includes(x.id)).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select>
     <button class="btn" data-b="art" ${dis}>Find artwork again</button>
-    <button class="btn bad" data-b="hide" ${dis}>Hide</button>
-    <button class="btn pri" data-b="done">Done</button>`;
+    <button class="btn bad" data-b="hide" ${dis}>Hide</button>`;
 }
 const each=f=>{for(const id of SEL)f(gs(id),GAMES.find(g=>g.id===id))};
 $('#bulk').addEventListener('click',async e=>{
@@ -1252,10 +1285,11 @@ for(const ev of ['pointerup','pointercancel'])addEventListener(ev,e=>{
   if(t.dataset.f){gs(g.id).dir=t.dataset.f;toast('Added to '+fById(t.dataset.f).name)}else{delete gs(g.id).dir;toast('Taken out of the folder')}
   save(); blip('ok'); render(true);
 });
+$('#dock').addEventListener('contextmenu',e=>{const cb=e.target.closest('[data-tab^="c:"]');if(cb){e.preventDefault();e.stopPropagation();colEdit(colOf(cb.dataset.tab))}});   // right-click a collection's tab to change it
 document.addEventListener('contextmenu',e=>{
   if(e.target.closest('.tile,#dock,#layer,#dd,input'))return; e.preventDefault();
-  $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${Math.min(e.clientX,innerWidth-340)}px;top:${Math.min(e.clientY,innerHeight-140)}px;transform-origin:top left"><div class="body list"><button class="item" data-act="new"><svg class="ic" style="color:var(--acc)" viewBox="0 0 24 24">${FLOOK.folder}</svg><b>Create new folder</b></button><button class="item" data-act="edit"><svg class="ic" style="color:var(--acc)" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/></svg><b>${EDIT?'Done editing':'Edit and select games'}</b></button></div></div></div>`;
-  focusables()[0].focus(); onChange=()=>{}; onAct=a=>{if(a==='edit'){$('#layer').innerHTML='';return edit(!EDIT)}const f=newFolder('Untitled folder');save();folderEdit(f)};
+  $('#layer').innerHTML=`<div class="scrim pop"><div class="glass menu" style="left:${Math.min(e.clientX,innerWidth-340)}px;top:${Math.min(e.clientY,innerHeight-140)}px;transform-origin:top left"><div class="body list"><button class="item" data-act="new"><svg class="ic" style="color:var(--acc)" viewBox="0 0 24 24">${FLOOK.folder}</svg><b>Create new folder</b></button><button class="item" data-act="edit"><svg class="ic" style="color:var(--acc)" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/></svg><b>${EDIT?'Done editing':'Edit and select games'}</b></button><button class="item" data-act="col"><svg class="ic" style="color:var(--acc)" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h6"/><circle cx="18" cy="16" r="3"/></svg><b>New smart collection</b></button></div></div></div>`;
+  focusables()[0].focus(); onChange=()=>{}; onAct=a=>{if(a==='edit'){$('#layer').innerHTML='';return edit(!EDIT)}if(a==='col'){$('#layer').innerHTML='';return colEdit()}const f=newFolder('Untitled folder');save();folderEdit(f)};
 });
 let heroT;
 $('#grid').addEventListener('focusin',e=>{clearTimeout(heroT);heroT=setTimeout(()=>hero(game(e.target)),70)});   // settle before redrawing, so fast scrolling stays light
@@ -1266,7 +1300,9 @@ $('#quick').addEventListener('click',async e=>{
   if(q==='settings')settings(); if(q==='layout'||q==='theme'||q==='sort')menu(q); if(q==='random')surprise(); if(q==='user')users();
   if(q==='add'){const p=await pick('folder');if(p){addRoot(p);await scan();render();toast(GAMES.length+' games in your library')}}
 });
-for(const el of [$('main'),$('#dock')])el.addEventListener('wheel',e=>{
+const zoom=d=>{S.ui.size=Math.max(90,Math.min(260,(S.ui.size||150)+d*20));look();save();toast('Cover size '+S.ui.size)};
+addEventListener('wheel',e=>{if(e.ctrlKey&&!$('#layer').children.length){e.preventDefault();zoom(e.deltaY<0?1:-1)}},{passive:false});   // Ctrl+wheel resizes covers, like the 3DS's zoom buttons
+for(const el of [$('main'),$('#dock')])el.addEventListener('wheel',e=>{if(e.ctrlKey)return;
   if(el.scrollWidth<=el.clientWidth||e.shiftKey||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;   // nothing sideways to scroll, or already a sideways gesture
   if(el===$('main')&&!/v-(shelf|home)/.test(document.body.className))return;
   e.preventDefault();glide(el,(glides.get(el)?.x??el.scrollLeft)+e.deltaY*1.2);
@@ -1286,6 +1322,7 @@ document.addEventListener('keydown',e=>{
   const m={arrowleft:[-1,0],arrowright:[1,0],arrowup:[0,-1],arrowdown:[0,1]}[k];
   if(m){e.preventDefault();move(...m)}
   else if(k==='/'){e.preventDefault();$('#q').focus()}
+  else if(k==='='||k==='+')zoom(1); else if(k==='-')zoom(-1);
   else if(k==='q')cycle(-1); else if(k==='e')cycle(1);
   else if(k==='f')fav(g); else if(k==='o'||k==='delete')opts(document.activeElement); else if(k==='s')settings();
   else if(k==='l')menu('layout'); else if(k==='t')menu('theme'); else if(k==='r')surprise();
@@ -1726,6 +1763,9 @@ async function settings(t='lib'){
       <p class="dim">The overlay is drawn by Discord itself, per program, so it is switched on in Discord rather than here. With a game running: Discord Settings &rsaquo; Registered Games &rsaquo; "Add it" and pick the emulator, then turn its overlay on there and under Game Overlay.</p></div>
     <small>Some emulators post their own Discord status too. If you see two cards, turn the emulator's one off in its settings.</small>`}
   if(t==='look'){const u=S.ui;body=`
+    <h3>Saved layouts</h3><small>Each slot keeps a whole look: theme, style, layout and its settings, cover size and your arrangement. Save what you have now into a slot, and load it back any time.</small>
+    <div class="slots">${[...Array(8)].map((_,i)=>{const l=(S.layouts||[])[i];return `<div class="slot ${l?'':'empty'}"><b>${l?esc(l.name):'Empty'}</b>${l?`<small>${esc((THEMES.find(x=>x[0]===l.ui.theme)||[0,'Custom theme'])[1])} · ${esc((LAYOUTS.find(x=>x[0]===l.ui.view)||[0,''])[1])}</small>`:''}<span>${l?`<button class="btn" data-act="lload" data-arg="${i}">Load</button>`:''}<button class="btn" data-act="lsave" data-arg="${i}">${l?'Replace':'Save here'}</button>${l?`<button class="btn bad" data-act="ldel" data-arg="${i}">Clear</button>`:''}</span></div>`}).join('')}</div>
+    <div class="row"><label>Shuffle</label><input type="checkbox" data-set="shuffle" ${u.shuffle?'checked':''}><small>Each time Cove opens, pick one of your saved layouts at random</small></div>
     <h3>Theme</h3>${sws(u.theme,'theme')}
     <div class="row"><button class="btn" data-act="newtheme">New custom theme</button><small>Starts as a copy of the theme you are on, then change anything below.</small></div>
     ${(ct=>ct?`<h3>Custom theme</h3>
@@ -1761,6 +1801,7 @@ async function settings(t='lib'){
   if(t==='share')body=`
     <div class="card"><b>Desktop shortcut</b><p class="dim">Puts a Cove shortcut on this PC's desktop.</p><button class="btn pri" data-act="applnk">Create desktop shortcut</button></div>
     <div class="card"><b>Send to a friend</b><p class="dim">Makes Cove-share.zip with the launcher, your theme and your custom systems. No games, saves or folder paths are included. They unzip it, run Cove.bat, and get the same setup walkthrough.</p><button class="btn pri" data-act="pack">Export share pack</button></div>
+    <div class="card"><b>Your setup as a file</b><p class="dim">Saves your look, custom themes, saved layouts and collections to one small file you can keep or send to a friend. No games, saves or folder paths are in it.</p><button class="btn" data-act="exp">Export my setup</button> <label class="btn" style="display:inline-block">Import a setup<input type="file" accept=".json" id="impf" hidden></label></div>
     <div class="card"><b>Run setup again</b><p class="dim">Replays the first-run walkthrough. Your library and settings are kept.</p><button class="btn" data-act="rewiz">Open walkthrough</button></div>`;
   if(t==='about')body=`
     <div class="card" style="text-align:center;padding:28px"><img src="/cove.ico" alt="" style="width:84px;height:84px;border-radius:22px;box-shadow:0 12px 30px var(--shade)">
@@ -1774,6 +1815,9 @@ async function settings(t='lib'){
   modal('Settings',body,'<button class="btn pri" data-act="x">Done</button>',tabsHtml);
   const E=id=>S.emus.find(e=>e.id===id), again=()=>settings(t);
   if(t==='emus')coreMarks();
+  if(t==='share')$('#impf').onchange=async e=>{try{const o=JSON.parse(await e.target.files[0].text());if(!o.cove)throw 0;
+    S.ui={...structuredClone(DEF.ui),...o.ui};S.themes=[...(S.themes||[]),...(o.themes||[]).filter(t=>!(S.themes||[]).some(x=>x.id===t.id))];
+    S.layouts=o.layouts||S.layouts;S.cols=[...(S.cols||[]),...(o.cols||[]).filter(c=>!(S.cols||[]).some(x=>x.id===c.id))];save();look();render();toast('Setup imported');again()}catch{toast('That file is not a Cove setup')}};
   onChange=(k,v,arg)=>{
     if(k.startsWith('c.')){const ct=ctheme();if(!ct)return;k=k.slice(2);
       if(k==='fontx'){if(!v.trim())return;k='font';v=v.trim()}
@@ -1846,6 +1890,10 @@ async function settings(t='lib'){
     if(a==='sfx'){['move','tab','ok','back','open','launch'].forEach((k,i)=>setTimeout(()=>blip(k),i*650));return}
     if(a==='sp'||a==='rows'){S.ui[a]=a==='rows'?+arg:arg;look();save();return again()}
     if(a==='laydef'){['sp','info','names','rows'].forEach(k=>delete S.ui[k]);look();save();return again()}
+    if(a==='lsave'){saveLayout(+arg);blip('ok');toast('Saved to slot '+(+arg+1));return again()}
+    if(a==='lload'){loadLayout(+arg);blip('ok');return again()}
+    if(a==='ldel'){S.layouts[+arg]=null;save();return again()}
+    if(a==='exp'){const o={cove:1,ui:S.ui,themes:S.themes||[],layouts:S.layouts||[],cols:S.cols||[]};const u=URL.createObjectURL(new Blob([JSON.stringify(o,null,1)],{type:'application/json'}));const l=document.createElement('a');l.href=u;l.download='cove-setup.json';l.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Saved cove-setup.json to your Downloads')}
     if(a==='newtheme'){newTheme();blip('ok');return again()}
     if(a==='deltheme'){S.themes=S.themes.filter(x=>x!==ctheme());S.ui.theme='frost';look();save();return again()}
     if(a==='noaccent'){S.ui.accent='';look();save();return again()}
@@ -1927,6 +1975,7 @@ async function checkUpdate(manual){
   if(!S.users?.length){S.users=[{id:'p1',name:'Player 1',col:'#19d3c5'}];S.user='p1'}
   userUI();
   setTimeout(()=>$('#splash').classList.add('gone'),900);
+  if(S.ui.shuffle){const L=(S.layouts||[]).map((l,i)=>l?i:-1).filter(i=>i>=0);if(L.length)loadLayout(L[Math.floor(Math.random()*L.length)])}   // like the 3DS's theme shuffle
   look();
   if((INFO.v||1)<VER)setTimeout(()=>toast('Update ready: close Cove, wait 10 seconds, then reopen it'),1500);
   if(!S.setup)return wizard(0);
