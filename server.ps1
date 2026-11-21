@@ -14,36 +14,6 @@ function Open-UI {
   try { Start-Process 'msedge.exe' "--app=$Url --autoplay-policy=no-user-gesture-required" } catch { Start-Process $Url }
 }
 
-$listener = New-Object System.Net.HttpListener
-$listener.Prefixes.Add($Url)
-$started = $false
-$tries = 1; if ($NoBrowser) { $tries = 20 }          # after an update the old copy needs a moment to let go of the port
-for ($i = 0; $i -lt $tries -and -not $started; $i++) {
-  try { $listener.Start(); $started = $true } catch {
-    if ($i + 1 -lt $tries) { Start-Sleep -Milliseconds 400; $listener = New-Object System.Net.HttpListener; $listener.Prefixes.Add($Url) }
-  }
-}
-if (-not $started -and -not $NoBrowser) {   # a copy is already running; if it has stopped answering, replace it
-  $alive = $false
-  try { $q = [Net.WebRequest]::Create($Url + 'cove.ico'); $q.Timeout = 5000; $q.GetResponse().Close(); $alive = $true } catch [Net.WebException] { if ($_.Exception.Response) { $alive = $true } } catch {}
-  if (-not $alive) {
-    try { Stop-Process -Id ([int][IO.File]::ReadAllText((Join-Path $Data 'helper.pid'))) -Force -ErrorAction Stop; Start-Sleep -Milliseconds 800 } catch {}
-    $listener = New-Object System.Net.HttpListener; $listener.Prefixes.Add($Url)
-    try { $listener.Start(); $started = $true } catch {}
-  }
-}
-if (-not $started) { Open-UI; exit }   # already running and answering: just show the window
-try { [void](New-Item -ItemType Directory -Force -Path $Data); [IO.File]::WriteAllText((Join-Path $Data 'helper.pid'), [string]$PID) } catch {}
-Open-UI
-$vbs = Join-Path $App 'Cove.vbs'   # copies updated from older versions get the hidden starter, and their shortcuts are switched to it
-if (-not (Test-Path -LiteralPath $vbs)) { try { [IO.File]::WriteAllText($vbs, ('Set s = CreateObject("WScript.Shell")' + "`r`n" + 'd = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName)' + "`r`n" + 's.Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File " & Chr(34) & d & "\server.ps1" & Chr(34), 0, False' + "`r`n")) } catch {} }
-
-# version.json says which version this is and which GitHub repo updates come from
-$VerPath = Join-Path $App 'version.json'
-$AppFiles = 'index.html', 'server.ps1', 'Cove.bat', 'Cove.vbs', 'cove.ico', 'README.txt', 'version.json'
-$restart = $false
-function Get-Ver { try { return [IO.File]::ReadAllText($VerPath, $Utf8) | ConvertFrom-Json } catch { return $null } }
-
 # Window control: find Cove's own window, minimise/hide/restore it, and bring a game to the front.
 try {
   Add-Type -TypeDefinition @'
@@ -108,6 +78,54 @@ public static class CoveWin {
 '@
   $HasWin = $true
 } catch { $HasWin = $false }
+
+$listener = New-Object System.Net.HttpListener
+$listener.Prefixes.Add($Url)
+$started = $false
+$tries = 1; if ($NoBrowser) { $tries = 20 }          # after an update the old copy needs a moment to let go of the port
+for ($i = 0; $i -lt $tries -and -not $started; $i++) {
+  try { $listener.Start(); $started = $true } catch {
+    if ($i + 1 -lt $tries) { Start-Sleep -Milliseconds 400; $listener = New-Object System.Net.HttpListener; $listener.Prefixes.Add($Url) }
+  }
+}
+if (-not $started -and -not $NoBrowser) {   # a copy is already running; if it has stopped answering, replace it
+  $alive = $false
+  try { $q = [Net.WebRequest]::Create($Url + 'cove.ico'); $q.Timeout = 5000; $q.GetResponse().Close(); $alive = $true } catch [Net.WebException] { if ($_.Exception.Response) { $alive = $true } } catch {}
+  if (-not $alive) {
+    try { Stop-Process -Id ([int][IO.File]::ReadAllText((Join-Path $Data 'helper.pid'))) -Force -ErrorAction Stop; Start-Sleep -Milliseconds 800 } catch {}
+    $listener = New-Object System.Net.HttpListener; $listener.Prefixes.Add($Url)
+    try { $listener.Start(); $started = $true } catch {}
+  }
+}
+if (-not $started) {   # already running and answering: bring its window forward, or open one if it was closed
+  $h = [IntPtr]::Zero; if ($HasWin) { $h = [CoveWin]::Find() }
+  if ($h -ne [IntPtr]::Zero) { [CoveWin]::Front($h) } else { Open-UI }
+  exit
+}
+try { [void](New-Item -ItemType Directory -Force -Path $Data); [IO.File]::WriteAllText((Join-Path $Data 'helper.pid'), [string]$PID) } catch {}
+Open-UI
+$vbs = Join-Path $App 'Cove.vbs'   # copies updated from older versions get the hidden starter, and their shortcuts are switched to it
+if (-not (Test-Path -LiteralPath $vbs)) { try { [IO.File]::WriteAllText($vbs, ('Set s = CreateObject("WScript.Shell")' + "`r`n" + 'd = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName)' + "`r`n" + 's.Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File " & Chr(34) & d & "\server.ps1" & Chr(34), 0, False' + "`r`n")) } catch {} }
+
+# version.json says which version this is and which GitHub repo updates come from
+$VerPath = Join-Path $App 'version.json'
+$AppFiles = 'index.html', 'server.ps1', 'Cove.bat', 'Cove.vbs', 'cove.ico', 'README.txt', 'version.json'
+$restart = $false
+# The page installs this so that, if the helper is not running, the window shows Cove's own reconnect screen instead of Edge's error page
+$SwJs = @'
+const PAGE=`<!doctype html><html><head><meta charset="utf-8"><title>Cove</title><style>
+html{height:100%;background:#050605;color:#fff;font:15px "Segoe UI",system-ui,sans-serif}body{margin:0;height:100%;display:grid;place-items:center;text-align:center}
+h1{font-size:46px;font-weight:900;margin:0 0 6px;letter-spacing:-.02em}p{margin:0 0 26px;color:rgba(255,255,255,.62)}
+a{display:inline-block;padding:13px 26px;border-radius:14px;background:#CCFF00;color:#0a0a0a;font-weight:700;text-decoration:none}
+i{display:block;width:26px;height:26px;margin:22px auto 0;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:#CCFF00;animation:s 1s linear infinite}@keyframes s{to{transform:rotate(1turn)}}
+</style></head><body><div><h1>Cove</h1><p>Cove's helper is not running.</p><a href="cove://open">Start Cove</a><i></i></div>
+<script>setInterval(()=>fetch('/cove.ico',{cache:'no-store'}).then(r=>r.ok&&location.reload(),()=>{}),1500)</script></body></html>`;
+self.addEventListener('install',()=>self.skipWaiting());
+self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
+self.addEventListener('fetch',e=>{if(e.request.mode==='navigate')e.respondWith(fetch(e.request).catch(()=>new Response(PAGE,{headers:{'Content-Type':'text/html'}})))});
+'@
+function Get-Ver { try { return [IO.File]::ReadAllText($VerPath, $Utf8) | ConvertFrom-Json } catch { return $null } }
+
 $coveWin = [IntPtr]::Zero   # Cove's window while it is minimised or hidden for a game
 $tray = $null
 $front = $null              # a just-launched game waiting for its window, to be brought to the front
@@ -143,6 +161,7 @@ function Send($res, [int]$code, [byte[]]$bytes, $type) {
   $res.StatusCode = $code
   $res.ContentType = $type
   $res.Headers['Cache-Control'] = 'no-store'
+  $res.Headers['X-Content-Type-Options'] = 'nosniff'; $res.Headers['X-Frame-Options'] = 'DENY'; $res.Headers['Referrer-Policy'] = 'no-referrer'   # no other site can frame Cove and click it for you
   $res.ContentLength64 = $bytes.Length
   $res.OutputStream.Write($bytes, 0, $bytes.Length)
   $res.Close()
@@ -207,6 +226,24 @@ function Cove-Link($path) {
   $lnk.WorkingDirectory = $App; $lnk.IconLocation = (Join-Path $App 'cove.ico'); $lnk.Save()
   if ($HasWin) { try { [CoveWin]::LinkId($path, 'CALINADO.Cove') } catch {} }
 }
+function Fix-Links {   # older shortcuts started PowerShell or Cove.bat, which flashes a console; point them at the hidden starter
+  $sh = New-Object -ComObject WScript.Shell
+  $dirs = @([Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs'), (Join-Path $env:APPDATA 'Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar'))
+  foreach ($f in @(Get-ChildItem -LiteralPath $dirs -Filter '*.lnk' -ErrorAction SilentlyContinue)) {
+    try {
+      $l = $sh.CreateShortcut($f.FullName); $s = $l.TargetPath + ' ' + $l.Arguments
+      if ($s.IndexOf($App, [StringComparison]::OrdinalIgnoreCase) -ge 0 -and $s -match '(?i)server\.ps1|Cove\.bat' -and $l.TargetPath -notmatch '(?i)wscript') { Cove-Link $f.FullName }
+    } catch {}
+  }
+  # cove:// starts Cove from its reconnect screen; it takes no arguments, so a link can do nothing else
+  $k = 'HKCU:\Software\Classes\cove'; $cmd = '"' + $env:SystemRoot + '\System32\wscript.exe" "' + (Join-Path $App 'Cove.vbs') + '"'
+  if ((Get-ItemProperty -LiteralPath "$k\shell\open\command" -ErrorAction SilentlyContinue).'(default)' -ne $cmd) {
+    [void](New-Item -Path "$k\shell\open\command" -Force)
+    Set-ItemProperty -LiteralPath $k -Name '(default)' -Value 'URL:Cove'; Set-ItemProperty -LiteralPath $k -Name 'URL Protocol' -Value ''
+    Set-ItemProperty -LiteralPath "$k\shell\open\command" -Name '(default)' -Value $cmd
+  }
+}
+$linksFixed = $false
 function Tag-Cove {   # gives Cove's window its own taskbar identity; repeated because Edge can put its own back
   if (-not $HasWin) { return }
   try {
@@ -280,6 +317,7 @@ function Handle($ctx) {
     $html = [IO.File]::ReadAllText((Join-Path $App 'index.html'), $Utf8).Replace('__TOKEN__', $Token)
     Send $res 200 $Utf8.GetBytes($html) 'text/html; charset=utf-8'; return
   }
+  if ($path -eq '/sw.js') { Send $res 200 $Utf8.GetBytes($SwJs) 'text/javascript; charset=utf-8'; return }
   if ($path -eq '/cove.ico') { Send $res 200 ([IO.File]::ReadAllBytes((Join-Path $App 'cove.ico'))) 'image/x-icon'; return }
   if ($req.Headers['X-Token'] -ne $Token -and $req.QueryString['t'] -ne $Token) { Json $res @{ error = 'bad token' } 403; return }
 
@@ -317,6 +355,7 @@ function Handle($ctx) {
       Tag-Cove
       $sm = Join-Path ([Environment]::GetFolderPath('Programs')) 'Cove.lnk'   # a Start menu entry: Windows ties the taskbar button to it
       if (-not (Test-Path -LiteralPath $sm)) { try { Cove-Link $sm } catch {} }
+      if (-not $script:linksFixed) { $script:linksFixed = $true; try { Fix-Links } catch {} }
       # RetroArch reads this on top of its own settings when Cove starts a game: Start + Select on the controller opens its menu
       $ra = Join-Path $Data 'retroarch-cove.cfg'
       # rewritten each start so every copy gets the current lines: sound on, not muted, through the driver that follows Windows' default speakers
@@ -455,7 +494,6 @@ function Handle($ctx) {
       $base = "https://raw.githubusercontent.com/$($v.repo)/main/"
       $tmp = Join-Path ([IO.Path]::GetTempPath()) ('Cove-update-' + $Token.Substring(0, 8))
       [void](New-Item -ItemType Directory -Force -Path $tmp)
-      $wc = New-Object System.Net.WebClient
       $ProgressPreference = 'SilentlyContinue'   # the progress bar alone makes downloads crawl in a hidden window
       foreach ($f in $AppFiles) { Invoke-WebRequest -Uri ($base + $f) -OutFile (Join-Path $tmp $f) -UseBasicParsing -TimeoutSec 60 }   # a stalled download gives up instead of freezing Cove
       $new = [IO.File]::ReadAllText((Join-Path $tmp 'version.json'), $Utf8) | ConvertFrom-Json
@@ -570,8 +608,10 @@ function Handle($ctx) {
 
 while ($listener.IsListening) {
   $task = $listener.GetContextAsync()
+  $swept = Get-Date
   while (-not $task.Wait(300)) {
-    Sweep
+    try {
+    if (((Get-Date) - $swept).TotalMilliseconds -gt 1500) { Sweep; $swept = Get-Date }   # listing processes is slow: not every 300 ms
     if ($tray -and $tray.Visible) { [System.Windows.Forms.Application]::DoEvents() }   # lets the tray icon answer clicks
     if ($front) {   # the game's window has appeared: put it in front of everything
       try {
@@ -581,7 +621,8 @@ while ($listener.IsListening) {
       } catch { $front = $null }
     }
     if ($quitAt -and (Get-Date) -gt $quitAt) { $listener.Stop(); exit }
-    if ($running.Count -eq 0 -and ((Get-Date) - $lastSeen).TotalMinutes -gt 10) { $listener.Stop(); exit }
+    if ($running.Count -eq 0 -and ((Get-Date) - $lastSeen).TotalMinutes -gt 10 -and -not ($HasWin -and [CoveWin]::Find() -ne [IntPtr]::Zero)) { $listener.Stop(); exit }   # nobody left: the window is gone
+    } catch {}   # one bad moment in the background work must not take Cove down
   }
   $ctx = $task.Result
   $lastSeen = Get-Date

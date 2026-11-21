@@ -2,7 +2,7 @@ COVE - one launcher for every emulator
 ======================================
 
 START
-  Double-click Cove.bat. The first run walks you through setup and can put a
+  Double-click Cove.vbs. The first run walks you through setup and can put a
   shortcut on your desktop. Nothing to install: it uses PowerShell and
   Microsoft Edge, which Windows 10 and 11 already include.
 
@@ -35,8 +35,8 @@ CONTROLS
 
 SHARE WITH FRIENDS
   Settings > Share > Export share pack makes Cove-share.zip with your theme and
-  custom systems, without your games or paths. They unzip and run Cove.bat.
-  Windows may show a SmartScreen prompt for a downloaded .bat: More info > Run.
+  custom systems, without your games or paths. They unzip and run Cove.vbs.
+  Windows may show a SmartScreen prompt for a downloaded script: More info > Run.
 
 EDITING
   Everything is two readable files: index.html (look, systems, emulator

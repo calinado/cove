@@ -233,10 +233,9 @@ details.adv>summary:focus{outline:2px solid var(--acc);outline-offset:2px}
 .v-ds #grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--rows,3),auto);grid-auto-columns:max(44px,min(calc(var(--tile)*1.1),calc((100cqh - 44px - (var(--rows,3) - 1)*14px)/var(--rows,3) - 12px)));gap:14px;padding:22px;margin:auto 0}
 #dots{display:none}.v-ds #dots{display:flex;justify-content:center;gap:10px;height:8px}#dots i{width:7px;height:7px;border-radius:50%;background:rgba(var(--tint),.22);cursor:pointer;transition:background .2s,scale .2s}#dots i.on{background:var(--acc);scale:1.25}   /* Home Menu pages */
 .v-ds .tile{padding:5px}.v-ds .tile .name,.v-ds .tile .meta,.v-ds .sec,.v-ds .new{display:none}
-.v-home main,.v-shelf main{overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none}
-.v-home #grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--rows,2),auto);grid-auto-columns:max(60px,min(var(--tile),calc((100vh - 590px)/var(--rows,2) - 34px)));gap:18px;margin:auto 0;padding:30px 14px}
-.v-home .tile .name,.v-home .tile .meta,.v-home .sec,.v-shelf .sec,.v-shelf .tile .meta{display:none}
-@media (max-height:780px){.v-ds #hero{height:30vh}.v-home #grid{grid-template-rows:auto!important;grid-auto-columns:min(var(--tile),calc(100vh - 480px))!important}}   /* short screens: one row */
+.v-shelf main{overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none}
+.v-shelf .sec,.v-shelf .tile .meta{display:none}
+@media (max-height:780px){.v-ds #hero{height:30vh}}   /* short screens: a shorter top panel */
 /* layout: Grid (everything, grouped by system) */
 .v-grid #hero{display:none}
 .v-grid #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--tile),1fr));gap:22px}
@@ -796,7 +795,7 @@ function applyMatch(g,hit){
     if(game(document.activeElement)===x)hero(x);
   }
 }
-const artQ=[], artPending=new Set(); let artBusy=0;
+const artQ=[], artPending=new Set(); let artBusy=0, artPause=0;
 const heroReady=()=>sources().some(id=>id!=='wiki');   // only IGDB and SteamGridDB carry wide background art
 const scraped=g=>{const k=artKey(g);return k in S.meta&&!(needsArt(g)&&!(k in S.art))&&!(heroReady()&&!(k in S.wide))};
 function findArt(g){const k=artKey(g);if(scraped(g)||artPending.has(k))return;artPending.add(k);artQ.push(g);pumpArt()}
@@ -816,10 +815,10 @@ async function pumpArt(){
     }
     applyMatch(g,got); artPending.delete(k);
   }catch{
-    g.tries=(g.tries||0)+1;
+    g.tries=(g.tries||0)+1; artPause=15000;   // the site is busy or rate-limiting: give it a break instead of asking again right away
     if(g.tries<5)setTimeout(()=>{artQ.push(g);pumpArt()},5000*g.tries); else artPending.delete(k);
   }
-  setTimeout(()=>{artBusy=0;pumpArt()},400);
+  setTimeout(()=>{artBusy=0;pumpArt()},artPause||400); artPause=0;
 }
 // a cover that has not arrived after a few seconds counts as missing, so the next source gets a turn
 setInterval(()=>document.querySelectorAll('.art img').forEach(i=>{if(i.complete)return;i.dataset.w=(+i.dataset.w||0)+1;if(i.dataset.w>2&&/libretro/.test(i.src))artFail(i)}),2000);
@@ -890,7 +889,9 @@ async function poll(quiet){
   if(NOW&&Date.now()-NOW.t>6000&&(r.ids?!r.ids.includes(NOW.id):!r.running)){NOW=null;nowUI();if(!quiet)render(true);syncPresence()}
   return r;
 }
-setInterval(()=>poll().catch(()=>{}),5000);
+let MISS=0;   // the helper stopped answering (closed, crashed, or restarted by an update): reload, and Cove's reconnect screen waits until it is back
+setInterval(()=>poll().then(()=>MISS=0,e=>{if(/bad token/.test(e.message)||(e instanceof TypeError&&++MISS>=2))location.reload()}),5000);
+if('serviceWorker' in navigator&&!window.CoveNative)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 // coming back to Cove while a game is open lands on that game, like a console's switcher
 addEventListener('focus',()=>{if(NOW&&!$('#layer').children.length){const t=tiles().find(x=>x.dataset.id===NOW.id);if(t)goto(t)}});
 addEventListener('pagehide',()=>navigator.sendBeacon('/api/quit?t='+T));
@@ -1899,7 +1900,7 @@ async function settings(t='lib'){
     `)}`}
   if(t==='share')body=`
     <div class="card"><b>Desktop shortcut</b><p class="dim">Puts a Cove shortcut on this PC's desktop.</p><button class="btn pri" data-act="applnk">Create desktop shortcut</button></div>
-    <div class="card"><b>Send to a friend</b><p class="dim">Makes Cove-share.zip with the launcher, your theme and your custom systems. No games, saves or folder paths are included. They unzip it, run Cove.bat, and get the same setup walkthrough.</p><button class="btn pri" data-act="pack">Export share pack</button></div>
+    <div class="card"><b>Send to a friend</b><p class="dim">Makes Cove-share.zip with the launcher, your theme and your custom systems. No games, saves or folder paths are included. They unzip it, double-click Cove.vbs, and get the same setup walkthrough.</p><button class="btn pri" data-act="pack">Export share pack</button></div>
     <div class="card"><b>Your setup as a file</b><p class="dim">Saves your look, custom themes, saved layouts and collections to one small file you can keep or send to a friend. No games, saves or folder paths are in it.</p><button class="btn" data-act="exp">Export my setup</button> <label class="btn" style="display:inline-block">Import a setup<input type="file" accept=".json" id="impf" hidden></label></div>
     <div class="card"><b>Run setup again</b><p class="dim">Replays the first-run walkthrough. Your library and settings are kept.</p><button class="btn" data-act="rewiz">Open walkthrough</button></div>`;
   if(t==='about')body=`
@@ -1996,7 +1997,7 @@ async function settings(t='lib'){
     if(a==='lsave'){saveLayout(+arg);blip('ok');toast('Saved to slot '+(+arg+1));return again()}
     if(a==='lload'){loadLayout(+arg);blip('ok');return again()}
     if(a==='ldel'){S.layouts[+arg]=null;save();return again()}
-    if(a==='exp'){const o={cove:1,ui:S.ui,themes:S.themes||[],layouts:S.layouts||[],cols:S.cols||[]};const u=URL.createObjectURL(new Blob([JSON.stringify(o,null,1)],{type:'application/json'}));const l=document.createElement('a');l.href=u;l.download='cove-setup.json';l.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Saved cove-setup.json to your Downloads')}
+    if(a==='exp'){const o={cove:1,ui:{...S.ui,wall:'',walls:{}},themes:S.themes||[],layouts:S.layouts||[],cols:S.cols||[]};const u=URL.createObjectURL(new Blob([JSON.stringify(o,null,1)],{type:'application/json'}));const l=document.createElement('a');l.href=u;l.download='cove-setup.json';l.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Saved cove-setup.json to your Downloads')}
     if(a==='newtheme'){OPEN.add('ct');newTheme();blip('ok');return again()}
     if(a==='deltheme'){S.themes=S.themes.filter(x=>x!==ctheme());S.ui.theme='frost';look();save();return again()}
     if(a==='noaccent'){S.ui.accent='';look();save();return again()}
@@ -2008,7 +2009,7 @@ async function settings(t='lib'){
     if(a==='upd')return checkUpdate(true);
     if(a==='site'){if(INFO.repo)openLink('https://github.com/'+INFO.repo);return}
     if(a==='applnk'){await api('shortcut',{name:'Cove'});return toast('Cove is on your desktop')}
-    if(a==='pack'){const r=await api('pack',{preset:JSON.stringify({ui:{...S.ui,wall:''},systems:S.systems,discord:{...S.discord,on:false}})});toast('Saved '+r.path);return api('open',{path:dir(r.path)})}
+    if(a==='pack'){const r=await api('pack',{preset:JSON.stringify({ui:{...S.ui,wall:'',walls:{}},systems:S.systems,discord:{...S.discord,on:false}})});toast('Saved '+r.path);return api('open',{path:dir(r.path)})}
     if(a==='rewiz'){S.setup=false;return wizard(0)}
   };
 }

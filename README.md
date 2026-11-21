@@ -16,7 +16,7 @@ One launcher for every emulator. Cove finds your emulators and your games, opens
 **[Download Cove (zip)](https://github.com/calinado/cove/archive/refs/heads/main.zip)**
 
 1. Unzip it anywhere, for example `C:\Games\Cove`.
-2. Double-click `Cove.bat`.
+2. Double-click `Cove.vbs`.
 3. Follow the three setup steps: where your emulators are, where your games are, done.
 
 Windows 10 or 11. Nothing to install: Cove uses PowerShell and Microsoft Edge, which Windows already has. If Windows shows a blue "Windows protected your PC" box the first time, choose **More info**, then **Run anyway**.
