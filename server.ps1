@@ -375,6 +375,42 @@ function Handle($ctx) {
     '/api/exists' { Json $res @{ r = @($j.paths | ForEach-Object { [bool]($_ -and (Test-Path -LiteralPath $_)) }) } }
     '/api/mkdir' { foreach ($p in $j.paths) { [void](New-Item -ItemType Directory -Force -Path $p) }; Json $res @{ ok = $true } }
     '/api/pick' { Json $res @{ path = [string](Pick $j.kind) } }
+    '/api/locate' {   # a browser never says where a dropped file lives, so look for one with the same name and size
+      $want = [IO.Path]::GetFileName([string]$j.name); $size = [long]$j.size; $sw = [Diagnostics.Stopwatch]::StartNew(); $hit = $null; $seen = @{}
+      $q = New-Object System.Collections.Queue
+      $starts = @($j.roots) + @([Environment]::GetFolderPath('Desktop'), (Join-Path $env:USERPROFILE 'Downloads'), $env:ProgramFiles, ${env:ProgramFiles(x86)}) + @([IO.DriveInfo]::GetDrives() | Where-Object { $_.DriveType -eq 'Fixed' -and $_.IsReady } | ForEach-Object { $_.RootDirectory.FullName })
+      foreach ($d in $starts) { if ($d) { $q.Enqueue(@([string]$d, 0)) } }
+      while ($q.Count -and -not $hit -and $sw.ElapsedMilliseconds -lt 12000) {   # ponytail: breadth-first walk with a time cap; an index would be faster if this is ever too slow
+        $d, $n = $q.Dequeue(); $k = $d.ToLowerInvariant().TrimEnd('\'); if ($seen[$k]) { continue }; $seen[$k] = 1
+        try {
+          $f = Join-Path $d $want
+          if ([IO.File]::Exists($f) -and (New-Object IO.FileInfo $f).Length -eq $size) { $hit = $f; break }
+          if ($n -lt 6) { foreach ($c in [IO.Directory]::EnumerateDirectories($d)) { if ($c -notmatch '\\(Windows|\$Recycle\.Bin|System Volume Information|WinSxS|node_modules|\.git)$') { $q.Enqueue(@($c, ($n + 1))) } } }
+        } catch {}
+      }
+      Json $res @{ path = $hit }
+    }
+    '/api/drop' {   # a game dropped onto the window becomes a shortcut in Cove's PC folder
+      $pc = Join-Path ([string]$j.lib) 'ROMs\PC'; [void](New-Item -ItemType Directory -Force -Path $pc)
+      if ($j.exe) {
+        $exe = [string]$j.exe
+        if ([IO.Path]::GetExtension($exe) -ne '.exe' -or -not (Test-Path -LiteralPath $exe)) { throw 'not a program' }
+        $name = ''; try { $name = [Diagnostics.FileVersionInfo]::GetVersionInfo($exe).ProductName } catch {}
+        if (-not $name -or $name -match '(?i)^(unity|unreal|microsoft|windows|game|launcher)') { $name = Split-Path (Split-Path $exe -Parent) -Leaf }   # engine names make poor titles: use the game's folder
+        $ext = '.lnk'
+      } else {
+        $name = [IO.Path]::GetFileNameWithoutExtension([string]$j.name); $ext = [IO.Path]::GetExtension([string]$j.name).ToLowerInvariant()
+        if ($ext -ne '.lnk' -and $ext -ne '.url') { throw 'not a shortcut' }
+      }
+      $name = ($name -replace '[\\/:*?"<>|]', '_').Trim(); if (-not $name) { $name = 'Game' }
+      $path = Join-Path $pc ($name + $ext); $i = 2
+      while (Test-Path -LiteralPath $path) { $path = Join-Path $pc ("$name ($i)" + $ext); $i++ }
+      if ($j.exe) {
+        $sh = New-Object -ComObject WScript.Shell; $lnk = $sh.CreateShortcut($path)
+        $lnk.TargetPath = $exe; $lnk.WorkingDirectory = Split-Path $exe -Parent; $lnk.IconLocation = $exe; $lnk.Save()
+      } else { [IO.File]::WriteAllBytes($path, [Convert]::FromBase64String([string]$j.data)) }
+      Json $res @{ path = $path }
+    }
     '/api/ls' {
       $root = $j.path; $out = New-Object System.Collections.ArrayList
       if ($root -and (Test-Path -LiteralPath $root)) {

@@ -1,5 +1,5 @@
 {
-  "version": "1.4.6",
+  "version": "1.4.7",
   "repo": "calinado/cove",
-  "notes": "No more terminal window. Windows 11 was opening Cove's background helper in Windows Terminal even though it was set to stay hidden. The helper now runs with no console at all, and if it is ever started from an old shortcut it restarts itself out of sight and fixes that shortcut."
+  "notes": "Drag a game's .exe, or any game shortcut (.lnk or .url, like Steam's desktop shortcuts), straight onto Cove's window to add it to your PC games."
 }

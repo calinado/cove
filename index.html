@@ -231,6 +231,7 @@ details.adv>summary:focus{outline:2px solid var(--acc);outline-offset:2px}
 .v-ds main{container-type:size;flex:1;overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none;padding:0;--e:calc(var(--pl,22px) + var(--pw,100vw) - 6px);mask:linear-gradient(90deg,transparent calc(var(--pl,22px) - 8px),#000 calc(var(--pl,22px) - 8px) var(--e),transparent var(--e))}   /* hide the edge of the next and last pages */
 .v-ds .tile.gap{visibility:visible;pointer-events:auto;background:none;box-shadow:none;border:1px solid rgba(var(--tint),.07)}.v-ds .tile.gap .art{background:none;box-shadow:none}   /* empty slots stay visible, like the 3DS grid */
 .v-ds #grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--rows,3),auto);grid-auto-columns:max(44px,min(calc(var(--tile)*1.1),calc((100cqh - 44px - (var(--rows,3) - 1)*14px)/var(--rows,3) - 12px)));gap:14px;padding:22px;margin:auto 0}
+body.filedrop::after{content:"Drop games here";position:fixed;inset:14px;z-index:90;display:grid;place-items:center;border:2px dashed var(--acc);border-radius:var(--r);background:rgba(0,0,0,.55);color:var(--acc);font-size:30px;font-weight:800;letter-spacing:-.01em;pointer-events:none}   /* a dragged .exe or shortcut */
 #dots{display:none}.v-ds #dots{display:flex;justify-content:center;gap:10px;height:8px}#dots i{width:7px;height:7px;border-radius:50%;background:rgba(var(--tint),.22);cursor:pointer;transition:background .2s,scale .2s}#dots i.on{background:var(--acc);scale:1.25}   /* Home Menu pages */
 .v-ds .tile{padding:5px}.v-ds .tile .name,.v-ds .tile .meta,.v-ds .sec,.v-ds .new{display:none}
 .v-shelf main{overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none}
@@ -1582,6 +1583,28 @@ function closeModal(){
 }
 $('#layer').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b)Promise.resolve(onAct(b.dataset.act,b.dataset.arg,b)).catch(err=>{toast(err.message);blip('error')});else if(e.target.classList.contains('scrim'))closeModal()});
 $('#layer').addEventListener('change',e=>{if(e.target.dataset.set)Promise.resolve(onChange(e.target.dataset.set,e.target.type==='checkbox'?e.target.checked:e.target.value,e.target.dataset.arg)).catch(err=>toast(err.message))});
+// Drop a game's .exe or a shortcut (.lnk, .url) onto the window: it becomes a shortcut in Cove's PC folder
+addEventListener('dragover',e=>{if(!e.dataTransfer.types.includes('Files'))return;e.preventDefault();e.dataTransfer.dropEffect='copy';document.body.classList.add('filedrop')});
+addEventListener('dragleave',e=>{if(!e.relatedTarget)document.body.classList.remove('filedrop')});
+addEventListener('drop',e=>{if(!e.dataTransfer.files.length)return;e.preventDefault();document.body.classList.remove('filedrop');dropGames([...e.dataTransfer.files])});
+async function dropGames(fs){
+  if(INFO.android)return;
+  if(!S.library)return toast('Pick a folder for Cove in Settings first');
+  let n=0;
+  for(const f of fs){
+    const x=ext(f.name);
+    try{
+      if(x==='.lnk'||x==='.url'){const b=new Uint8Array(await f.arrayBuffer());let d='';for(let i=0;i<b.length;i+=8192)d+=String.fromCharCode(...b.subarray(i,i+8192));await api('drop',{lib:S.library,name:f.name,data:btoa(d)});n++}
+      else if(x==='.exe'){
+        toast('Looking for '+f.name);   // the browser hands over the file but not where it lives
+        let p=(await api('locate',{name:f.name,size:f.size,roots:romRoots()})).path;
+        if(!p){toast('Show Cove where '+f.name+' is');p=await pick('exe')}
+        if(p){await api('drop',{lib:S.library,exe:p});n++}
+      }else toast(f.name+' is not a game. Drop an .exe or a shortcut');
+    }catch{toast('Could not add '+f.name)}
+  }
+  if(n){await scan();render(true);toast(n===1?'Added to your PC games':'Added '+n+' games to your PC games')}
+}
 $('#empty').addEventListener('click',async e=>{if(e.target.dataset.act==='addgames'){const p=await pick('folder');if(p){addRoot(p);await scan();render()}}});
 const opt=(v,l,sel)=>`<option value="${esc(v)}" ${v===sel?'selected':''}>${esc(l)}</option>`;
 const addRoot=p=>{if(!romRoots().some(r=>r.toLowerCase()===p.toLowerCase()))S.roots.push(p);save()};
