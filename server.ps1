@@ -1,8 +1,15 @@
 # Cove - local helper for the launcher UI. Keep this file ASCII-only (Windows PowerShell 5.1 reads it as ANSI).
 # It only listens on localhost, and every API call needs the per-session token baked into the page.
-param([int]$Port = 47615, [switch]$NoBrowser)
+param([int]$Port = 47615, [switch]$NoBrowser, [switch]$Bg)
 $ErrorActionPreference = 'Stop'
 $App = $PSScriptRoot
+# Windows 11 hands every console program to Windows Terminal, which shows it even when asked to hide.
+# conhost --headless gives PowerShell a console that is never drawn, so the helper always runs that way.
+function Start-Helper([string]$extra) {
+  $ps = '-NoProfile -ExecutionPolicy Bypass -File "' + (Join-Path $App 'server.ps1') + '" -Bg' + $extra
+  try { Start-Process 'conhost.exe' ('--headless powershell.exe ' + $ps) -WindowStyle Hidden } catch { Start-Process 'powershell.exe' ('-WindowStyle Hidden ' + $ps) -WindowStyle Hidden }
+}
+if (-not $Bg) { if ($NoBrowser) { Start-Helper ' -NoBrowser' } else { Start-Helper '' }; exit }   # started in a visible console (old shortcut, by hand): restart unseen and close it
 $Data = Join-Path $App 'data'
 $Url = "http://localhost:$Port/"
 $Token = [guid]::NewGuid().ToString('N')
@@ -105,7 +112,7 @@ if (-not $started) {   # already running and answering: bring its window forward
 try { [void](New-Item -ItemType Directory -Force -Path $Data); [IO.File]::WriteAllText((Join-Path $Data 'helper.pid'), [string]$PID) } catch {}
 Open-UI
 $vbs = Join-Path $App 'Cove.vbs'   # copies updated from older versions get the hidden starter, and their shortcuts are switched to it
-if (-not (Test-Path -LiteralPath $vbs)) { try { [IO.File]::WriteAllText($vbs, ('Set s = CreateObject("WScript.Shell")' + "`r`n" + 'd = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName)' + "`r`n" + 's.Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File " & Chr(34) & d & "\server.ps1" & Chr(34), 0, False' + "`r`n")) } catch {} }
+if (-not (Test-Path -LiteralPath $vbs) -or [IO.File]::ReadAllText($vbs) -notmatch 'headless') { try { [IO.File]::WriteAllText($vbs, ('Set s = CreateObject("WScript.Shell")' + "`r`n" + 'd = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName)' + "`r`n" + 's.Run "conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File " & Chr(34) & d & "\server.ps1" & Chr(34) & " -Bg", 0, False' + "`r`n")) } catch {} }
 
 # version.json says which version this is and which GitHub repo updates come from
 $VerPath = Join-Path $App 'version.json'
@@ -228,8 +235,8 @@ function Cove-Link($path) {
 }
 function Fix-Links {   # older shortcuts started PowerShell or Cove.bat, which flashes a console; point them at the hidden starter
   $sh = New-Object -ComObject WScript.Shell
-  $dirs = @([Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs'), (Join-Path $env:APPDATA 'Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar'))
-  foreach ($f in @(Get-ChildItem -LiteralPath $dirs -Filter '*.lnk' -ErrorAction SilentlyContinue)) {
+  $dirs = @([Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs'), (Join-Path $env:APPDATA 'Microsoft\Internet Explorer\Quick Launch\User Pinned'))
+  foreach ($f in @(Get-ChildItem -LiteralPath $dirs -Filter '*.lnk' -Recurse -Depth 2 -ErrorAction SilentlyContinue)) {
     try {
       $l = $sh.CreateShortcut($f.FullName); $s = $l.TargetPath + ' ' + $l.Arguments
       if ($s.IndexOf($App, [StringComparison]::OrdinalIgnoreCase) -ge 0 -and $s -match '(?i)server\.ps1|Cove\.bat' -and $l.TargetPath -notmatch '(?i)wscript') { Cove-Link $f.FullName }
@@ -549,7 +556,7 @@ function Handle($ctx) {
           $wc.DownloadFile($lb + 'stable/1.22.2/windows/x86_64/RetroArch.7z', $tmp)
           # Windows' own tar reads .7z on Windows 11; older Windows cannot, and gets the message below
           $tar = Join-Path $env:SystemRoot 'System32\tar.exe'
-          if (Test-Path -LiteralPath $tar) { Start-Process -FilePath $tar -ArgumentList @('-xf', ('"' + $tmp + '"'), '-C', ('"' + $dest + '"')) -Wait -WindowStyle Hidden }
+          if (Test-Path -LiteralPath $tar) { Start-Process -FilePath $tar -ArgumentList @('-xf', ('"' + $tmp + '"'), '-C', ('"' + $dest + '"')) -Wait -NoNewWindow }
           Remove-Item -LiteralPath $tmp -Force
           if (-not (Test-Path -LiteralPath $exe)) { throw 'This version of Windows could not unpack RetroArch. Install it from retroarch.com, then add it under Settings, Emulators.' }
         }
@@ -632,7 +639,7 @@ while ($listener.IsListening) {
   }
   if ($restart) {   # an update was installed: hand over to the new helper
     $listener.Stop(); $listener.Close()
-    Start-Process 'powershell.exe' ('-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + (Join-Path $App 'server.ps1') + '" -NoBrowser') -WindowStyle Hidden
+    Start-Helper ' -NoBrowser'
     exit
   }
 }

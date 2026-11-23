@@ -1,5 +1,5 @@
 {
-  "version": "1.4.5",
+  "version": "1.4.6",
   "repo": "calinado/cove",
-  "notes": "Cleaner, sturdier app. If Cove's helper stops, the window now shows Cove's own reconnect screen with a Start Cove button and comes back by itself, instead of Edge's error page. Opening Cove while it is already open brings the window forward. Old shortcuts that flashed a console window are fixed automatically. Artwork lookups back off when a site is busy. Exported setups and share packs no longer include your wallpaper paths, and other websites can no longer embed Cove."
+  "notes": "No more terminal window. Windows 11 was opening Cove's background helper in Windows Terminal even though it was set to stay hidden. The helper now runs with no console at all, and if it is ever started from an old shortcut it restarts itself out of sight and fixes that shortcut."
 }
