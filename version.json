@@ -1,5 +1,5 @@
 {
-  "version": "1.4.7",
+  "version": "1.4.8",
   "repo": "calinado/cove",
-  "notes": "Drag a game's .exe, or any game shortcut (.lnk or .url, like Steam's desktop shortcuts), straight onto Cove's window to add it to your PC games."
+  "notes": "Home Menu now looks like the 3DS: every page is a full board of slots, with empty places shown faintly. Grid is now a wall of big covers with titles, scrolling down. The random game button only picks games that are installed."
 }

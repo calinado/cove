@@ -232,6 +232,7 @@ details.adv>summary:focus{outline:2px solid var(--acc);outline-offset:2px}
 .v-ds .tile.gap{visibility:visible;pointer-events:auto;background:none;box-shadow:none;border:1px solid rgba(var(--tint),.07)}.v-ds .tile.gap .art{background:none;box-shadow:none}   /* empty slots stay visible, like the 3DS grid */
 .v-ds #grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--rows,3),auto);grid-auto-columns:max(44px,min(calc(var(--tile)*1.1),calc((100cqh - 44px - (var(--rows,3) - 1)*14px)/var(--rows,3) - 12px)));gap:14px;padding:22px;margin:auto 0}
 body.filedrop::after{content:"Drop games here";position:fixed;inset:14px;z-index:90;display:grid;place-items:center;border:2px dashed var(--acc);border-radius:var(--r);background:rgba(0,0,0,.55);color:var(--acc);font-size:30px;font-weight:800;letter-spacing:-.01em;pointer-events:none}   /* a dragged .exe or shortcut */
+#grid .tile.slot{pointer-events:none;background:none;box-shadow:none;border:0;animation:none}#grid .tile.slot .art{background:rgba(var(--tint),.025);box-shadow:inset 0 0 0 1px rgba(var(--tint),.09);outline:0}#grid .tile.slot .art::before{content:none}   /* Home Menu: empty places on a page */
 #dots{display:none}.v-ds #dots{display:flex;justify-content:center;gap:10px;height:8px}#dots i{width:7px;height:7px;border-radius:50%;background:rgba(var(--tint),.22);cursor:pointer;transition:background .2s,scale .2s}#dots i.on{background:var(--acc);scale:1.25}   /* Home Menu pages */
 .v-ds .tile{padding:5px}.v-ds .tile .name,.v-ds .tile .meta,.v-ds .sec,.v-ds .new{display:none}
 .v-shelf main{overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none}
@@ -239,7 +240,7 @@ body.filedrop::after{content:"Drop games here";position:fixed;inset:14px;z-index
 @media (max-height:780px){.v-ds #hero{height:30vh}}   /* short screens: a shorter top panel */
 /* layout: Grid (everything, grouped by system) */
 .v-grid #hero{display:none}
-.v-grid #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--tile),1fr));gap:22px}
+.v-grid #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(calc(var(--tile)*1.45),1fr));gap:26px 22px}   /* big covers with titles, scrolling down; the Home Menu is the small icon board */
 /* layout: Shelf (one row of big covers) */
 .v-shelf #hero{background:none;border:0;box-shadow:none;backdrop-filter:none;padding:4px 14px;overflow:visible;border-radius:0}
 .v-shelf #hero::before,.v-shelf #hero .cover{display:none}
@@ -899,7 +900,7 @@ addEventListener('pagehide',()=>navigator.sendBeacon('/api/quit?t='+T));
 
 /* ---------- main view ---------- */
 const STYLES=[['frost','Frosted','Glass panels over soft light'],['art','Full art','The selected game fills the screen'],['flat','Flat','Solid colour, no glow']];
-const LAYOUTS=[['shelf','Shelf','One row of large covers'],['ds','Home Menu','3DS style: an icon grid you zoom in and out, with folders and empty slots'],['grid','Grid','Everything, grouped by system'],['list','List','Cover on the left, rows on the right']];
+const LAYOUTS=[['shelf','Shelf','One row of large covers'],['ds','Home Menu','3DS style: an icon grid you zoom in and out, with folders and empty slots'],['grid','Grid','Big covers with titles, grouped by system'],['list','List','Cover on the left, rows on the right']];
 const THEMES=[['frost','Frost','#CCFF00','#0b0d08'],['aurora','Aurora','#b9a2ff','#090818'],['joy','Joy','#ff4554','#0f0f13'],['midnight','Midnight','#ffd166','#050a1c'],['mint','Mint','#5eead4','#03110f'],['sunset','Sunset','#ffb347','#160910'],['mono','Mono','#ffffff','#111'],['neon','Arcade neon','#ff2bd6','#05010d'],['crt','CRT retro','#7cff6b','#060b06'],['dark','Console dark','#4da3ff','#0c0d10'],['basicb','Basic black','#19d3c5','#2d2d2d'],
   ['daylight','Daylight','#2563eb','#dde6f6'],['channel','Channel','#00a3e0','#eef4f8'],['pocket','Pocket','#f26b1d','#f5ede2'],['sakura','Sakura','#e2457f','#fbeaf1'],['paper','Paper light','#d9480f','#f4f1ea'],['basicw','Basic white','#0ab9e6','#ebebeb']];
 const LIGHT=['daylight','channel','pocket','sakura','paper','basicw'];
@@ -1019,7 +1020,9 @@ function visible(){
 // Home Menu pages: a page is as many whole columns as fit, the dots show which one you're on
 const pageW=()=>{if(S.ui.view!=='ds'||FULL)return 0;const m=$('main');if(!$('#grid .tile'))return 0;const w=parseFloat(getComputedStyle($('#grid')).gridAutoColumns)+14;return Math.max(1,Math.floor((m.clientWidth-30)/w))*w};
 function dots(){
-  const m=$('main'), w=pageW(), G=$('#grid'), cw=parseFloat(getComputedStyle(G).gridAutoColumns)+14, n=w?Math.ceil(Math.ceil(G.querySelectorAll('.tile').length/(S.ui.rows||3))*cw/w):0;
+  const m=$('main'), w=pageW(), G=$('#grid'), cw=parseFloat(getComputedStyle(G).gridAutoColumns)+14, per=w?Math.round(w/cw)*(S.ui.rows||3):0;
+  const real=G.querySelectorAll('.tile:not(.slot)').length, n=w?Math.max(1,Math.ceil(real/per)):0, want=w?n*per-real:0, have=G.querySelectorAll('.tile.slot');
+  if(have.length!==want){have.forEach(x=>x.remove());G.insertAdjacentHTML('beforeend','<div class="tile slot"><div class="art"></div></div>'.repeat(want))}   // like the 3DS, every page is a full board of slots
   G.style.minWidth=n>1?((n-1)*w+m.clientWidth)+'px':'';   // pad the last page so every page lines up
   const pl=w?Math.max(22,(m.clientWidth-w+14)/2):0; G.style.paddingLeft=w?pl+'px':''; m.style.setProperty('--pl',pl+'px'); m.style.setProperty('--pw',w?w+'px':'100vw');   // each page sits centred, nothing of the next one shows
   const end=m.scrollLeft>=m.scrollWidth-m.clientWidth-2, cur=w?(end?n-1:Math.round(m.scrollLeft/w)):0;
@@ -1065,7 +1068,7 @@ function render(keep){
   requestAnimationFrame(dots);
 }
 const game=el=>GAMES.find(g=>g.id===el?.dataset?.id);
-const tiles=()=>[...document.querySelectorAll('.tile')];
+const tiles=()=>[...document.querySelectorAll('.tile:not(.slot)')];
 const wallFor=()=>(S.ui.walls||{})[INF?'f:'+INF:tab]||S.ui.wall;   // each tab and folder can have its own background
 function hero(g){
   const h=$('#hero'); h.classList.toggle('none',!g);
@@ -1152,7 +1155,7 @@ function menu(kind){
   blip('tab');
 }
 function surprise(){
-  const l=!INF&&tab==='all'&&!$('#q').value.trim()?GAMES:visible(), t0=tiles(); if(l.length<2)return t0[0]&&goto(t0[0]);   // on the main screen, games tucked in folders are in the draw too
+  const l=(!INF&&tab==='all'&&!$('#q').value.trim()?GAMES:visible()).filter(g=>g&&g.id&&!g.owned), t0=tiles();   // only games you can start right now, not owned-but-not-installed if(l.length<2)return t0[0]&&goto(t0[0]);   // on the main screen, games tucked in folders are in the draw too
   const win=l[Math.floor(Math.random()*l.length)], n=36, at=n-5, strip=Array.from({length:n},(_,i)=>i===at?win:l[Math.floor(Math.random()*l.length)]);
   const d=document.createElement('div'); d.id='gacha';
   d.innerHTML=`<div class="reel"><div class="strip">${strip.map(g=>`<div class="cover" ${cover(g).replace('loading="lazy"','')}</div>`).join('')}</div><i></i></div><h2>&nbsp;</h2>`;
